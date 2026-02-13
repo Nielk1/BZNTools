@@ -33,6 +33,7 @@ The BZNStreamReader will peek at the beginning of the file to evaluate its flavo
 | Battlezone II: Combat Commander    |        1 |        2 |         0 | Little |
 | Battlezone 98 Redux                |        2 |        2 |         0 | Little |
 | Battlezone Combat Commander        |        1 |        2 |         0 | Little |
+
 \* The Type field in Armada BZNs is 4 bytes but 3 of those bytes are garbage data. For now we just always use 1 byte for the type for all games as there are less than 256 types in all games.
 
 Difficulties:
@@ -71,7 +72,7 @@ using (var reader = new BZNStreamReader(fileStream, "path/to/file.bzn"))
 
 ### Hints
 Hints are used to guide the parser in understanding the structure of the BZN file by providing information from outside, such as the ClassLabel of game object files.
-See the `BuildHintsBZ1` and `BuildHintsBZ2` functions in the `BattlezoneBZNHints` class for examples of how to build the hints structure.
+See the `BuildHintsBZ1` and `BuildHintsBZ2` functions in the [`BattlezoneBZNHints`](BZNParser/Battlezone/BZNFileBattlezone.cs) class for examples of how to build the hints structure.
 
 ### Bookmarks
 A "Bookmark" is a marker in the token stream that allows for the parser to return to a specific point in the stream after parsing failures.

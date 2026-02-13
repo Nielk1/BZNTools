@@ -13,6 +13,13 @@ namespace BZNParser.Battlezone
 {
     static class ExtensionsBattlezone
     {
+        private static Encoding win1252;
+        static ExtensionsBattlezone()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            win1252 = Encoding.GetEncoding(1252);
+        }
+
         public static uint ReadBZ1_PtrDepricated(this BZNStreamReader reader, string name)
         {
             IBZNToken tok;
@@ -184,17 +191,13 @@ namespace BZNParser.Battlezone
                 return reader.ReadBZ2InputString(name);
             }
         }
-        public static void GetAiCmdInfo(this BZNStreamReader reader)
+        public static AiCmdInfo GetAiCmdInfo(this BZNStreamReader reader)
         {
-            uint priority;
-            uint what;
-            int who;
-            uint where;
-            uint param;
+            AiCmdInfo retVal = new AiCmdInfo();
 
             IBZNToken tok = reader.ReadToken();
             if (!tok.Validate("priority", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse priority/LONG");
-            priority = tok.GetUInt32();
+            retVal.priority = tok.GetUInt32();
 
             tok = reader.ReadToken();
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
@@ -211,17 +214,17 @@ namespace BZNParser.Battlezone
                 }
                 if (reader.InBinary)
                 {
-                    what = tok.GetUInt8();
+                    retVal.what = tok.GetUInt8();
                 }
                 else
                 {
-                    what = tok.GetUInt32H();
+                    retVal.what = tok.GetUInt32H();
                 }
             }
 
             tok = reader.ReadToken();
             if (!tok.Validate("who", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse who/LONG");
-            who = tok.GetInt32();
+            retVal.who = tok.GetInt32();
 
             //if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
@@ -234,7 +237,7 @@ namespace BZNParser.Battlezone
                 {
                     if (!tok.Validate("where", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse where/PTR");
                 }
-                where = tok.GetUInt32H();
+                retVal.where = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)
@@ -244,20 +247,35 @@ namespace BZNParser.Battlezone
                     string tmp = tok.GetString();
                     if (tmp == string.Empty)
                     {
-                        param = 0;
+                        retVal.param = 0;
                     }
                     else
                     {
                         //param = tok.GetUInt32();
-                        param = tok.GetRaw(0, 1)[0];
+                        byte[] rawBytes = tok.GetRaw(0, -1);
+                        if (rawBytes.Length > 8)
+                        {
+                            // bugged path!
+                            // Probably not converting these properly
+                            retVal.Malformations.Add(Malformation.INCORRECT, "param", rawBytes);
+
+                            string utf8Str = Encoding.UTF8.GetString(rawBytes);
+                            byte[] newRawBytes = win1252.GetBytes(utf8Str);
+                            rawBytes = newRawBytes;
+                        }
+                        byte[] raw2 = new byte[8];
+                        Array.Copy(rawBytes, 0, raw2, 0, Math.Min(8, rawBytes.Length));
+                        retVal.param = BitConverter.ToUInt64(raw2, 0);
                     }
                 }
                 else
                 {
                     if (!tok.Validate("param", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse param/LONG");
-                    param = tok.GetUInt32();
+                    retVal.param = tok.GetUInt32();
                 }
             }
+
+            return retVal;
         }
 
         public static Euler GetEuler(this BZNStreamReader reader, SaveType saveType)
@@ -403,6 +421,24 @@ namespace BZNParser.Battlezone
                 }
             }
             throw new NotImplementedException("Euler Save");
+        }
+    }
+
+    public class AiCmdInfo : IMalformable
+    {
+        public uint priority { get; set; }
+        public uint what { get; set; }
+        public int who { get; set; }
+        public uint where { get; set; }
+        public ulong param { get; set; }
+
+
+        private readonly IMalformable.MalformationManager _malformationManager;
+        public IMalformable.MalformationManager Malformations => _malformationManager;
+
+        public AiCmdInfo()
+        {
+            _malformationManager = new IMalformable.MalformationManager(this);
         }
     }
 }

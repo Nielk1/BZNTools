@@ -34,6 +34,8 @@ namespace BZNParser.Battlezone.GameObject
         public UInt32 where { get; set; }
         public UInt32 param { get; set; }
         public bool aiProcess { get; set; }
+        public AiCmdInfo curCmd { get; set; }
+        public AiCmdInfo nextCmd { get; set; }
         public bool isCargo { get; set; }
         public UInt32 independence { get; set; }
         public string curPilot { get; set; }
@@ -575,7 +577,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (parent.SaveType == 0)
                 {
-                    reader.GetAiCmdInfo(); // TODO get return value
+                    {
+                        AiCmdInfo info = reader.GetAiCmdInfo();
+                        if (obj != null)
+                            obj.nextCmd = info; // TODO is this the correct storage for BZ2's
+                    }
                     // end read of AiCmdInfo
 
                     tok = reader.ReadToken();
@@ -591,15 +597,19 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (parent.SaveType == SaveType.BZN)
                 {
+                    // start read of AiCmdInfo
                     if (reader.Format == BZNFormat.Battlezone && (reader.Version == 1001 || reader.Version == 1011 || reader.Version == 1012))
                     {
-                        // curCmd
-                        reader.GetAiCmdInfo(); // TODO get return value
+                        AiCmdInfo info = reader.GetAiCmdInfo();
+                        if (obj != null)
+                            obj.curCmd = info;
                     }
 
-                    // nextCmd
-                    reader.GetAiCmdInfo(); // TODO get return value
-
+                    {
+                        AiCmdInfo info = reader.GetAiCmdInfo();
+                        if (obj != null)
+                            obj.nextCmd = info;
+                    }
                     // end read of AiCmdInfo
                     
                     // aiProcess?

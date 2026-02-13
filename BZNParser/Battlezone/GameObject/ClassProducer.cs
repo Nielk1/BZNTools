@@ -6,6 +6,7 @@ using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
 {
+    [ObjectClass(BZNFormat.Battlezone, "producer")]
     public class ClassProducerFactory : IClassFactory
     {
         public bool Create(BZNFileBattlezone parent, BZNStreamReader reader, EntityDescriptor preamble, string classLabel, out Entity? obj, bool create = true)

@@ -25,7 +25,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (reader.Format == BZNFormat.Battlezone && reader.Version > 1001 && reader.Version < 1026)
             {
-                IBZNToken tok = reader.ReadToken();
+                IBZNToken tok = reader.ReadToken(); // TODO is this line an error?
                 tok = reader.ReadToken(); // accelDragStop
                 tok = reader.ReadToken(); // accelDragFull
                 tok = reader.ReadToken(); // alphaTrack

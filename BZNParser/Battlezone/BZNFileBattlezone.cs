@@ -3,6 +3,7 @@ using BZNParser.Reader;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Text;
@@ -28,6 +29,163 @@ namespace BZNParser.Battlezone
         public bool Strict { get; set; }
         public Dictionary<string, HashSet<string>>? ClassLabels { get; set; }
         public Dictionary<UInt16, string?>? EnumerationPrjID { get; set; }
+
+        private static bool TryParseFlexibleUInt16(string input, out ushort value)
+        {
+            if (input.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                return UInt16.TryParse(
+                    input.Substring(2),
+                    NumberStyles.AllowHexSpecifier,
+                    CultureInfo.InvariantCulture,
+                    out value
+                );
+            }
+            return UInt16.TryParse(input, out value);
+        }
+        public static BattlezoneBZNHints? BuildHintsBZ1()
+        {
+            BattlezoneBZNHints BZ1Hints = new BattlezoneBZNHints();
+            BZ1Hints.Strict = true;
+            BZ1Hints.ClassLabels = new Dictionary<string, HashSet<string>>();
+            bool AnyHints = false;
+            if (File.Exists("BZ1_ClassLabels.txt"))
+            {
+                AnyHints = true;
+
+                HashSet<string> ValidClassLabelsBZ1 = new HashSet<string>();
+                foreach (Type type in typeof(BZNFileBattlezone).Assembly.GetTypes())
+                {
+                    var attrs = type.GetCustomAttributes(typeof(ObjectClassAttribute), true);
+                    foreach (ObjectClassAttribute attr in attrs)
+                        if (attr.Format == BZNFormat.Battlezone || attr.Format == BZNFormat.BattlezoneN64)
+                            ValidClassLabelsBZ1.Add(attr.ClassName);
+                }
+
+                foreach (string line in File.ReadAllLines("BZ1_ClassLabels.txt"))
+                {
+                    string[] parts = line.Split(new char[] { '\t' }, 3);
+                    if (parts.Length == 2 || parts.Length == 3)
+                    {
+                        string key = parts[0].Trim();
+                        string value = parts[1].Trim();
+                        if (!ValidClassLabelsBZ1.Contains(value))
+                            continue;
+                        if (!BZ1Hints.ClassLabels.ContainsKey(key))
+                            BZ1Hints.ClassLabels[key] = new HashSet<string>();
+                        BZ1Hints.ClassLabels[key].Add(value);
+                    }
+                }
+            }
+            if (File.Exists("BZN64_Enum_PrjID.txt"))
+            {
+                AnyHints = true;
+
+                Dictionary<UInt16, string?> EnumPrjID = new Dictionary<UInt16, string?>();
+
+                foreach (string line in File.ReadAllLines("BZN64_Enum_PrjID.txt"))
+                {
+                    string[] parts = line.Split(new char[] { '\t' }, 3);
+                    if (parts.Length == 2 || parts.Length == 3)
+                    {
+                        string keyS = parts[0].Trim();
+                        UInt16 key;
+                        if (TryParseFlexibleUInt16(keyS, out key))
+                        {
+                            string? value = parts[1].Trim();
+                            if (value.Length == 0)
+                                value = null;
+                            EnumPrjID[key] = value;
+                        }
+                    }
+                }
+                if (EnumPrjID.Any())
+                    BZ1Hints.EnumerationPrjID = EnumPrjID;
+            }
+            if (AnyHints)
+                return BZ1Hints;
+            return null;
+        }
+        public static BattlezoneBZNHints? BuildHintsBZ2()
+        {
+            if (File.Exists("BZ2_ClassLabels.txt"))
+            {
+                BattlezoneBZNHints BZ2Hints = new BattlezoneBZNHints();
+                BZ2Hints.Strict = true;
+                BZ2Hints.ClassLabels = new Dictionary<string, HashSet<string>>();
+
+                foreach (string line in File.ReadAllLines("BZ2_ClassLabels.txt"))
+                {
+                    string[] parts = line.Split(new char[] { '\t' }, 3);
+                    if (parts.Length == 2 || parts.Length == 3)
+                    {
+                        string key = parts[0].Trim();
+                        string value = parts[1].Trim();
+                        if (!BZ2Hints.ClassLabels.ContainsKey(key))
+                            BZ2Hints.ClassLabels[key] = new HashSet<string>();
+                        BZ2Hints.ClassLabels[key].Add(value);
+                    }
+                }
+
+                HashSet<string> ValidClassLabelsBZ2 = new HashSet<string>();
+                foreach (Type type in typeof(BZNFileBattlezone).Assembly.GetTypes())
+                {
+                    var attrs = type.GetCustomAttributes(typeof(ObjectClassAttribute), true);
+                    foreach (ObjectClassAttribute attr in attrs)
+                        if (attr.Format == BZNFormat.Battlezone2)
+                            ValidClassLabelsBZ2.Add(attr.ClassName);
+                }
+                foreach (string key in BZ2Hints.ClassLabels.Keys.ToList())
+                    if (ValidClassLabelsBZ2.Contains(key))
+                        BZ2Hints.ClassLabels[key].Add(key);
+                for (; ; )
+                {
+                    bool found = false;
+                    int size = 0;
+                    foreach (string key in BZ2Hints.ClassLabels.Keys.ToList())
+                    {
+                        HashSet<string> classLabels = BZ2Hints.ClassLabels[key];
+
+                        // these classLabels might be other ODF names instead of class labels, so lets expand them
+                        foreach (string item in classLabels.ToList()) // make a new list so we can alter it while looping
+                        {
+                            if (!ValidClassLabelsBZ2.Contains(item))
+                            {
+                                // if it's not a valid class label and is thus just an ODF name, remove it from the options
+                                // we will still try to walk it to valid classlabels below
+                                classLabels.Remove(item);
+                            }
+                            if (BZ2Hints.ClassLabels.ContainsKey(item))
+                            {
+                                HashSet<string> newClassLabels = BZ2Hints.ClassLabels[item];
+                                foreach (string newLabel in newClassLabels)
+                                {
+                                    if (!found && !classLabels.Contains(newLabel))
+                                    {
+
+                                    }
+                                    found = classLabels.Add(newLabel) || found;
+                                }
+                            }
+                        }
+
+                        //BZ2Hints.ClassLabels[key] = classLabels;
+                        size += classLabels.Count;
+                    }
+                    if (!found)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Cleaning BZ2 ClassLabels {size}");
+                    }
+                }
+
+                return BZ2Hints;
+            }
+            return null;
+        }
     }
     public class BZNFileBattlezone : IMalformable
     {
@@ -42,6 +200,10 @@ namespace BZNParser.Battlezone
         private readonly Dictionary<string, IClassFactory> _classLabelMap;
         public Dictionary<string, IClassFactory> ClassLabelMap => _classLabelMap;
 
+        public EntityDescriptor[] Entities { get; private set; }
+
+        /// Mission DLL or internal class
+        public string Mission { get; private set; }
 
         internal Dictionary<string, HashSet<string>> LongTermClassLabelLookupCache;
 
@@ -320,6 +482,8 @@ namespace BZNParser.Battlezone
             Int32 CountItems = tok.GetInt32();
             Console.WriteLine($"size: {CountItems}");
 
+            // TODO hoist this up to property and ensure we can scan it for Malformations to be able to do a "has malformations" check
+            // malformations, depending on what kind, might also let us rank mulitple options when the class is unclear
             EntityDescriptor[] GameObjects = new EntityDescriptor[CountItems];
 
             int CntPad = CountItems.ToString().Length;
@@ -334,6 +498,8 @@ namespace BZNParser.Battlezone
                     Console.WriteLine($"GameObject[{gameObjectCounter.ToString().PadLeft(CntPad)}]: {GameObjects[gameObjectCounter].seqNo.ToString("X8")} {GameObjects[gameObjectCounter].PrjID.ToString().PadRight(16)} {(GameObjects[gameObjectCounter].gameObject?.ClassLabel ?? string.Empty).PadRight(16)} {GameObjects[gameObjectCounter].gameObject?.ToString()?.Replace(@"BZNParser.Battlezone.GameObject.", string.Empty)}");
                 }
             }
+
+            this.Entities = GameObjects;
 
             TailParse(reader);
         }
@@ -357,6 +523,7 @@ namespace BZNParser.Battlezone
                     if (!tok.Validate("name", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse dllName/CHAR");
                     Console.WriteLine($"Mission: {tok.GetString()}");
+                    this.Mission = tok.GetString();
                 }
                 else if (reader.Version < 1145)
                 {
@@ -365,6 +532,7 @@ namespace BZNParser.Battlezone
                     if (!tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse dllName/CHAR");
                     Console.WriteLine($"Mission: {tok.GetString()}");
+                    this.Mission = tok.GetString();
                 }
                 else
                 {
@@ -378,6 +546,7 @@ namespace BZNParser.Battlezone
                     if (!tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse dllName/CHAR");
                     Console.WriteLine($"Mission: {tok.GetString()}");
+                    this.Mission = tok.GetString();
                 }
             }
             if (reader.Format == BZNFormat.BattlezoneN64)
@@ -385,6 +554,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 string mission = string.Format("BZn64Mission_{0,4:X4}", tok.GetUInt16());
                 Console.WriteLine($"Mission: {mission}");
+                this.Mission = tok.GetString();
 
                 UInt32 sObject = reader.ReadBZ1_PtrDepricated("sObject");
             }
@@ -394,6 +564,7 @@ namespace BZNParser.Battlezone
                 if (!tok.Validate("name", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse name/CHAR");
                 Console.WriteLine($"Mission: {tok.GetString()}");
+                this.Mission = tok.GetString();
 
                 // read the old sObject ptr, not sure what can be done with it
                 if (reader.Version < 1002)
@@ -422,6 +593,7 @@ namespace BZNParser.Battlezone
                     {
                         reader.Bookmark.Discard();
                         // if this never happens now we can remove it
+                        // TODO determine if this is a malformation
                     }
                 }
             }

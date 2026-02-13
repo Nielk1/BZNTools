@@ -109,21 +109,21 @@ namespace BZNParser.Reader
         /// </summary>
         public bool IsBigEndian { get; private set; }
         /// <summary>
-        /// Size of the type field in the binary tokens.
-        /// In Battlezone N64 this is 2.
-        /// In Battlezone this is 2.
-        /// In Battlezone II this is 2.
-        /// In Star Trek Armada this is 4.
-        /// In Star Trek Armada 2 this is 4.
-        /// </summary>
-        public byte TypeSize { get; private set; }
-        /// <summary>
         /// Size of the size field in the binary tokens.
         /// In Battlezone N64 this is 0 (not present).
         /// In Battlezone this is 2 (The type enumeration only needs one byte).
         /// In Battlezone II this is 1.
         /// In Star Trek Armada this is 4 (garbage possible in all but lowest sig byte).
         /// In Star Trek Armada 2 this is 4 (garbage possible in all but lowest sig byte).
+        /// </summary>
+        public byte TypeSize { get; private set; }
+        /// <summary>
+        /// Size of the type field in the binary tokens.
+        /// In Battlezone N64 this is 2.
+        /// In Battlezone this is 2.
+        /// In Battlezone II this is 2.
+        /// In Star Trek Armada this is 4.
+        /// In Star Trek Armada 2 this is 4.
         /// </summary>
         public byte SizeSize { get; private set; }
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using BZNParser;
 using BZNParser.Battlezone;
+using BZNParser.Battlezone.GameObject;
 using BZNParser.Reader;
 
 namespace BZNParserTest
@@ -18,17 +19,17 @@ namespace BZNParserTest
                     Success.Add(line);
             Dictionary<BznType, List<(string, bool)>> Files = new Dictionary<BznType, List<(string, bool)>>();
 
-            //foreach (string filename in new string[] { }
-            //.Concat(Directory.EnumerateFiles(@"D:\Program Files (x86)\GOG Galaxy\Games\Battlezone Combat Commander\bz2r_res", "*.bzn", SearchOption.AllDirectories))
-            //.Concat(Directory.EnumerateFiles(@"D:\Program Files (x86)\GOG Galaxy\Games\Battlezone Combat Commander\maps", "*.bzn", SearchOption.AllDirectories))
-            //.Concat(Directory.EnumerateFiles(@"F:\Programming\BZRModManager\BZRModManager\BZRModManager\bin\steamcmd\steamapps\workshop\content\624970", "*.bzn", SearchOption.AllDirectories))
-            //.Concat(Directory.EnumerateFiles(@"F:\Battlezone\Projects\BZ98R\rotbd\src\mission", "*.bzn", SearchOption.AllDirectories))
-            //.Concat(Directory.EnumerateFiles(@"F:\Programming\BZRModManager\GenerateMultiplayerDataExtract\GenerateMultiplayerDataExtract\bin\Debug\BZ98R", "*.bzn", SearchOption.AllDirectories))
-            //.Concat(Directory.EnumerateFiles(@"F:\Programming\BZRModManager\BZRModManager\BZRModManager\bin\steamcmd\steamapps\workshop\content\301650", "*.bzn", SearchOption.AllDirectories))
-            //.Concat(Directory.EnumerateFiles(@"..\..\..\sample", "*", SearchOption.AllDirectories))
-            //.Concat(Directory.EnumerateFiles(@"..\..\..\..\old\sample", "*", SearchOption.AllDirectories))
-            //.Concat(Directory.EnumerateFiles(@"..\..\..\..\TempApp\bin\Debug\net8.0\out", "*", SearchOption.AllDirectories))
-            //    )
+            foreach (string filename in new string[] { }
+                .Concat(Directory.EnumerateFiles(@"D:\Program Files (x86)\GOG Galaxy\Games\Battlezone Combat Commander\bz2r_res", "*.bzn", SearchOption.AllDirectories))
+                .Concat(Directory.EnumerateFiles(@"D:\Program Files (x86)\GOG Galaxy\Games\Battlezone Combat Commander\maps", "*.bzn", SearchOption.AllDirectories))
+                .Concat(Directory.EnumerateFiles(@"F:\Programming\BZRModManager\BZRModManager\BZRModManager\bin\steamcmd\steamapps\workshop\content\624970", "*.bzn", SearchOption.AllDirectories))
+                .Concat(Directory.EnumerateFiles(@"F:\Battlezone\Projects\BZ98R\rotbd\src\mission", "*.bzn", SearchOption.AllDirectories))
+                .Concat(Directory.EnumerateFiles(@"F:\Programming\BZRModManager\GenerateMultiplayerDataExtract\GenerateMultiplayerDataExtract\bin\Debug\BZ98R", "*.bzn", SearchOption.AllDirectories))
+                .Concat(Directory.EnumerateFiles(@"F:\Programming\BZRModManager\BZRModManager\BZRModManager\bin\steamcmd\steamapps\workshop\content\301650", "*.bzn", SearchOption.AllDirectories))
+                .Concat(Directory.EnumerateFiles(@"..\..\..\..\sample", "*", SearchOption.AllDirectories))
+                .Concat(Directory.EnumerateFiles(@"..\..\..\..\old\sample", "*", SearchOption.AllDirectories))
+                .Concat(Directory.EnumerateFiles(@"..\..\..\..\TempApp\bin\Debug\net8.0\out", "*", SearchOption.AllDirectories))
+            )
             //foreach (string filename in new string[] { @"F:\Downloads\nsdf01c.bzn", @"F:\Downloads\nsdf01c (1).bzn" })
             //foreach (string filename in Directory.EnumerateFiles(@"lists", "Battlezone *.txt", SearchOption.TopDirectoryOnly).SelectMany(fn => File.ReadAllLines(fn).Where(dr => dr.Length > 0)))
             //foreach (string filename in Directory.EnumerateFiles(@"lists", "BattlezoneN64 *.txt", SearchOption.TopDirectoryOnly).SelectMany(fn => File.ReadAllLines(fn).Where(dr => dr.Length > 0)))
@@ -36,12 +37,12 @@ namespace BZNParserTest
             //foreach (string filename in File.ReadAllLines(@"lists\Battlezone 2016.txt").Where(dr => dr.Length > 0))
             //foreach (string filename in File.ReadAllLines(@"WARN_ExtraTokens.txt").Where(dr => dr.Length > 0).Select(dr => dr.Split('\t')[1]))
             //string filename = @"F:\Programming\BZRModManager\GenerateMultiplayerDataExtract\GenerateMultiplayerDataExtract\bin\Debug\BZ98R\bzone\misn10.bzn";
-            string filename = @"..\..\..\sample\bz98r\misn10.bzn";
+            //string filename = @"..\..\..\..\sample\bz98r\misn10.bzn";
             {
                 Console.WriteLine(filename);
 
-                //if (Success.Contains(filename))
-                //    continue;
+                if (Success.Contains(filename))
+                    continue;
 
                 if (new FileInfo(filename).Length > 0)
                 {
@@ -59,22 +60,33 @@ namespace BZNParserTest
                                 case BZNFormat.Battlezone2:
                                     {
                                         //bool success = false;
+                                        BZNFileBattlezone? bzn = null;
                                         try
                                         {
                                             switch (reader.Format)
                                             {
                                                 case BZNFormat.Battlezone:
                                                 case BZNFormat.BattlezoneN64:
-                                                    new BZNFileBattlezone(reader, Hints: BZ1Hints);
+                                                    bzn = new BZNFileBattlezone(reader, Hints: BZ1Hints);
                                                     break;
                                                 case BZNFormat.Battlezone2:
-                                                    new BZNFileBattlezone(reader, Hints: BZ2Hints);
+                                                    bzn = new BZNFileBattlezone(reader, Hints: BZ2Hints);
                                                     break;
                                             }
 
-                                            //success = true;
-                                            File.AppendAllText("success.txt", $"{filename}\r\n");
-                                            //File.AppendAllText($"{reader.Format.ToString()} {reader.Version.ToString("D4")}.txt", $"{filename}\r\n");
+                                            if (bzn != null)
+                                            {
+                                                if (!bzn.Entities.Any(dr => dr.gameObject.GetType() == typeof(MultiClass)))
+                                                {
+                                                    //success = true;
+                                                    File.AppendAllText("success.txt", $"{filename}\r\n");
+                                                    //File.AppendAllText($"{reader.Format.ToString()} {reader.Version.ToString("D4")}.txt", $"{filename}\r\n");
+                                                }
+                                                else
+                                                {
+
+                                                }
+                                            }
                                         }
                                         catch (Exception ex)
                                         {

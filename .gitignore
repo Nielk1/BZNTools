@@ -455,5 +455,5 @@ $RECYCLE.BIN/
 
 # custom
 old/
-BZNParser/sample/
-BZNParser/sample_saves/
+sample/
+sample_saves/

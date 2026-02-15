@@ -208,20 +208,19 @@ namespace BZNParser.Battlezone.GameObject
                         if (obj != null) obj.curPilot = tok.GetString();
                     }
 
-                    if (reader.Version >= 1195)
+                    if (reader.Version == 1195)
                     {
                         tok = reader.ReadToken();
-                        if (reader.Version == 1196)
-                        {
-                            if (!tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
-                                throw new Exception("Failed to parse ejectRatio/FLOAT");
-                        }
-                        else
-                        {
-                            if (!tok.Validate("m_ejectRatio", BinaryFieldType.DATA_FLOAT))
-                                throw new Exception("Failed to parse m_ejectRatio/FLOAT");
-                            //m_ejectRatio = tok.GetSingle();
-                        }
+                        if (!tok.Validate("m_ejectRatio", BinaryFieldType.DATA_FLOAT))
+                            throw new Exception("Failed to parse m_ejectRatio/FLOAT");
+                        //m_ejectRatio = tok.GetSingle();
+                    }
+                    else if (reader.Version >= 1196)
+                    {
+                        tok = reader.ReadToken();
+                        if (!tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
+                            throw new Exception("Failed to parse ejectRatio/FLOAT");
+                        //m_ejectRatio = tok.GetSingle();
                     }
                 }
             }

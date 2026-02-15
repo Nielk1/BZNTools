@@ -178,6 +178,20 @@ namespace BZNParser.Battlezone.GameObject
                     if (obj != null) obj.isVisible = tok.GetUInt16();
                 }
 
+                if (reader.Version >= 1197)
+                {
+                    tok = reader.ReadToken();
+                    if (!tok.Validate("isDamped", BinaryFieldType.DATA_SHORT))
+                    {
+                        throw new Exception("Failed to parse isDamped/SHORT");
+                    }
+                    //if (obj != null) obj.isDamped = (UInt16)tok.GetUInt32H();
+                }
+                else
+                {
+                    //if (obj != null) obj.isDamped = saveFlags & 0x2000 != 0 ? 0xffff : 0; // old depricated value
+                }
+
                 // savetype != 0 stuff
 
                 if (reader.Version >= 1151)

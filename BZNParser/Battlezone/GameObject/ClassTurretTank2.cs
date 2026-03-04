@@ -135,7 +135,7 @@ namespace BZNParser.Battlezone.GameObject
                             throw new Exception("Failed to parse wantTurret/BOOL");
                         if (obj != null)
                         {
-                            obj.Malformations.Add(Malformation.MISINTERPRET, "wantTurret", "turretAligned");
+                            obj.Malformations.AddMisinterpretation("wantTurret", "turretAligned");
                             obj.wantTurret = tok.GetBoolean(); // wantTurret
                         }
                     }

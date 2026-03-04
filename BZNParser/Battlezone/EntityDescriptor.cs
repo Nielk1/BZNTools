@@ -248,7 +248,7 @@ namespace BZNParser.Battlezone
                         {
                             if (isUser != 0 && isUser != 1)
                             {
-                                obj.Malformations.Add(Malformation.INCORRECT, "isUser", isUser);
+                                obj.Malformations.AddIncorrect("isUser", isUser);
                             }
                             obj.isUser = isUser != 0;
                         }
@@ -272,7 +272,7 @@ namespace BZNParser.Battlezone
                 {
                     if (isUser != 0 && isUser != 1)
                     {
-                        obj.Malformations.Add(Malformation.INCORRECT, "isUser", isUser);
+                        obj.Malformations.AddIncorrect("isUser", isUser);
                     }
                     obj.isUser = isUser != 0;
                 }

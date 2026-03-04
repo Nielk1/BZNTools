@@ -8,7 +8,7 @@ namespace BZNParser.Battlezone.GameObject
 {
     public class MultiClass : Entity
     {
-        private List<(Entity Object, bool Expected, long Next, string Name)> Candidates;
+        public List<(Entity Object, bool Expected, long Next, string Name)> Candidates { get; private set; }
         public override string ClassLabel { get { return $"[{string.Join(',', Candidates.Select(dr => dr.Object.ClassLabel))}]"; } }
 
 

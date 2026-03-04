@@ -424,7 +424,7 @@ namespace BZNParser.Battlezone
                     LongTermClassLabelLookupCache.Clear();
                     Hydrate(reader);
 
-                    Malformations.Add(Malformation.INCORRECT, "missionSave", true);
+                    Malformations.AddIncorrect("missionSave", true);
                 }
             }
             else
@@ -458,15 +458,15 @@ namespace BZNParser.Battlezone
             {
                 if (reader.CountCR == 0 && reader.CountLF > 0)
                 {
-                    Malformations.Add(Malformation.LINE_ENDING, MAL_LINE_ENDING, "LF");
+                    Malformations.AddLineEnding("LF");
                 }
                 else if (reader.CountLF == 0 && reader.CountCR > 0)
                 {
-                    Malformations.Add(Malformation.LINE_ENDING, MAL_LINE_ENDING, "CR");
+                    Malformations.AddLineEnding("CR");
                 }
                 else
                 {
-                    Malformations.Add(Malformation.LINE_ENDING, MAL_LINE_ENDING, "?");
+                    Malformations.AddLineEnding("?");
                 }
             }
         }
@@ -951,6 +951,7 @@ namespace BZNParser.Battlezone
                 if (reader.Format == BZNFormat.Battlezone)
                 {
                     // odd extra VEC2D at the end of the file with 0,0
+                    
                     tok = reader.ReadToken(); // returns null if the stream ends after chewing extra lines
                     if (tok != null)
                     {
@@ -961,7 +962,7 @@ namespace BZNParser.Battlezone
                         Vector2D point = tok.GetVector2D();
                         if (point.x != 0 || point.z != 0)
                             throw new Exception("Tokens left after last known token");
-                        //Malformations.Add(Malformation.INCOMPAT, "Battlezone BZN file has extra VEC2D at the end, expected 0,0 but got " + point.ToString());
+                        Malformations.AddExtraField("FILE_END", tok);
                     }
                 }
             }

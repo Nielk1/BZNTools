@@ -257,7 +257,7 @@ namespace BZNParser.Battlezone
                         {
                             // bugged path!
                             // Probably not converting these properly
-                            retVal.Malformations.Add(Malformation.INCORRECT, "param", rawBytes);
+                            retVal.Malformations.AddIncorrect("param", rawBytes);
 
                             string utf8Str = Encoding.UTF8.GetString(rawBytes);
                             byte[] newRawBytes = win1252.GetBytes(utf8Str);

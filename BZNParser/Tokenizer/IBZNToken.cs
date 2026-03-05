@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace BZNParser.Reader
+namespace BZNParser.Tokenizer
 {
     public interface IBZNToken
     {

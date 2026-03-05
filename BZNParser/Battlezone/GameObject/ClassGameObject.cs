@@ -1,4 +1,4 @@
-﻿using BZNParser.Reader;
+﻿using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -60,7 +60,14 @@ namespace BZNParser.Battlezone.GameObject
                 if (obj != null) obj.pos = tok.GetVector3D();
             }
 
-            if (obj != null) obj.euler = reader.GetEuler(parent.SaveType);
+            if (obj != null)
+            {
+                obj.euler = reader.GetEuler(parent.SaveType);
+            }
+            else
+            {
+                reader.GetEuler(parent.SaveType);
+            }
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {

@@ -1,4 +1,4 @@
-﻿using BZNParser.Reader;
+﻿using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -42,14 +42,23 @@ namespace BZNParser.Battlezone
                 return tok.GetUInt32Raw(); // might be only version 1001 of BZ1
             }
         }
+        public static void WriteBZ1_PtrDepricated(this BZNStreamWriter writer, string name, uint value)
+        {
+            // untested
+            writer.WriteVoidBytes(name, BitConverter.GetBytes(value));
+        }
         public static uint ReadBZ1_Ptr(this BZNStreamReader reader, string name)
         {
             IBZNToken tok;
-            
+
             tok = reader.ReadToken();
             if (!tok.Validate(name, BinaryFieldType.DATA_PTR))
                 throw new Exception($"Failed to parse {name ?? "???"}/PTR");
             return tok.GetUInt32H();
+        }
+        public static void WriteBZ1_Ptr(this BZNStreamWriter writer, string name, uint value)
+        {
+            writer.WritePtr(name, value);
         }
 
         public static uint ReadCompressedNumberFromBinary(this BZNStreamReader reader)
@@ -72,6 +81,22 @@ namespace BZNParser.Battlezone
             else
             {
                 throw new Exception("Failed to parse LONG/SHORT/CHAR");
+            }
+        }
+
+        public static void WriteCompressedNumberFromBinary(this BZNStreamWriter writer, uint value)
+        {
+            if (value <= byte.MaxValue)
+            {
+                writer.WriteUnsignedValues(null, (byte)value);
+            }
+            else if (value <= ushort.MaxValue)
+            {
+                writer.WriteUnsignedValues(null, (ushort)value);
+            }
+            else
+            {
+                writer.WriteUnsignedValues(null, value);
             }
         }
         public static string? ReadBZ2InputString(this BZNStreamReader reader, string name)
@@ -106,7 +131,7 @@ namespace BZNParser.Battlezone
                 if (length > 0)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+                    if (!tok.Validate(null, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
                     return tok.GetString();
                 }
                 return null;
@@ -191,6 +216,84 @@ namespace BZNParser.Battlezone
                 return reader.ReadBZ2InputString(name);
             }
         }
+
+        public static void WriteSizedString_BZ2_1145(this BZNStreamWriter writer, string name, int bufferSize, string value)
+        {
+            if (writer.Format != BZNFormat.Battlezone2)
+                throw new NotImplementedException();
+
+            IBZNToken tok;
+
+            if (writer.Version <= 1128) // <= 1128 <= 1124 <= 1112 <= 1108 <= 1105?  < 1103
+            {
+                writer.WriteChars(name, value);
+            }
+            else if (writer.Version < 1145)
+            {
+                // bufferSize applies in this branch
+                // in
+                writer.WriteBZ2StringInSized(name, bufferSize, value);
+            }
+            else
+            {
+                // inputstring
+                writer.WriteBZ2InputString(name, value);
+            }
+        }
+
+        public static void WriteBZ2StringInSized(this BZNStreamWriter writer, string name, string value)
+        {
+            if (writer.InBinary)
+            {
+                writer.WriteUnsignedValues(null, (byte)value.Length);
+
+                if (value.Length > 0)
+                    writer.WriteChars(null, value);
+                return;
+            }
+            writer.WriteChars(name, value);
+        }
+        public static void WriteBZ2StringInSized(this BZNStreamWriter writer, string name, int bufferSize, string value)
+        {
+            if (writer.InBinary)
+            {
+                writer.WriteCompressedNumberFromBinary((uint)value.Length);
+
+                if (value.Length > 0)
+                    writer.WriteChars(null, value);
+                return;
+            }
+            writer.WriteChars(name, value);
+        }
+        public static void WriteBZ2InputString(this BZNStreamWriter writer, string name, int bufferSize, string value)
+        {
+            if (writer.InBinary)
+            {
+                writer.WriteCompressedNumberFromBinary((uint)value.Length);
+
+                if (value.Length > 0)
+                    writer.WriteChars(name, value);
+                return;
+            }
+            writer.WriteChars(name, value);
+        }
+
+        public static void WriteBZ2InputString(this BZNStreamWriter writer, string name, string value)
+        {
+            if (writer.InBinary)
+            {
+                writer.WriteUnsignedValues(null, (byte)value.Length);
+
+                if (value.Length > 0)
+                {
+                    writer.WriteChars(null, value);
+                }
+                return;
+            }
+
+            writer.WriteChars(name, value);
+        }
+
         public static AiCmdInfo GetAiCmdInfo(this BZNStreamReader reader)
         {
             AiCmdInfo retVal = new AiCmdInfo();

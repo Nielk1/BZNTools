@@ -1,6 +1,6 @@
-﻿using static BZNParser.Reader.IMalformable;
+﻿using static BZNParser.Tokenizer.IMalformable;
 
-namespace BZNParser.Reader
+namespace BZNParser.Tokenizer
 {
     public enum Malformation
     {
@@ -137,6 +137,11 @@ namespace BZNParser.Reader
                 _parent = parent;
                 malformations = new Stack<Dictionary<string, List<MalformationData>>>();
                 malformations.Push(new Dictionary<string, List<MalformationData>>());
+            }
+
+            public MalformationData[] GetMalformations(Malformation type, string property)
+            {
+                return this[property];
             }
 
             public void Add(Malformation malformation, string property, params object[] fields)

@@ -1,4 +1,4 @@
-﻿using BZNParser.Reader;
+﻿using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

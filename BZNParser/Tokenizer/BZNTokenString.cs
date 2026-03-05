@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace BZNParser.Reader
+namespace BZNParser.Tokenizer
 {
     public class BZNTokenString : IBZNToken
     {

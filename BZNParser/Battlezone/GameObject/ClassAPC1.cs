@@ -1,4 +1,4 @@
-﻿using BZNParser.Reader;
+﻿using BZNParser.Tokenizer;
 using System.Text;
 
 namespace BZNParser.Battlezone.GameObject

@@ -5,9 +5,9 @@ using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
-using static BZNParser.Reader.BZNStreamReader;
+using static BZNParser.Tokenizer.BZNStreamReader;
 
-namespace BZNParser.Reader
+namespace BZNParser.Tokenizer
 {
     public class BZNStreamReader : IDisposable
     {
@@ -151,7 +151,6 @@ namespace BZNParser.Reader
 
         public bool QuoteStrings { get; private set; }
 
-        public string? Filename { get; private set; }
 
 
 
@@ -162,10 +161,8 @@ namespace BZNParser.Reader
         public long CountLF { get; private set; }
         public long CountCRLF { get; private set; }
 
-        public BZNStreamReader(Stream stream, string? filename = null)
+        public BZNStreamReader(Stream stream)
         {
-            this.Filename = filename;
-
             _bookmarkManager = new BookmarkManager(this);
 
             long startPosition = stream.Position;
@@ -377,6 +374,7 @@ namespace BZNParser.Reader
 
                 if (Format == BZNFormat.Battlezone2 && Version == 1160)
                 {
+                    // Breadcrumb BZ2-1160-QUIRK
                     QuoteStrings = true;
                 }
 

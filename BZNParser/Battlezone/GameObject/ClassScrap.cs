@@ -28,6 +28,20 @@ namespace BZNParser.Battlezone.GameObject
             //}
             ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassScrap obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            //if (save)
+            //{
+            //    (a2->vftable->field_38)(a2, &this[1].gap8[52], 4, "expireTime");
+            //    (a2->vftable->out_bool)(a2, &this[1].gap8[48], 1, "HardToGetTo");
+            //}
+            ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
-    
 }

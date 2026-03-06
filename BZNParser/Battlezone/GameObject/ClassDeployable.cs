@@ -20,6 +20,9 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassDeployable : ClassHoverCraft
     {
+        public UInt32 state { get; set; }
+        public float deployTimer { get; set; }
+
         public ClassDeployable(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployable? obj)
         {
@@ -30,11 +33,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                UInt32 state = tok.GetUInt32H();
+                if (obj != null) obj.state = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
-                float deployTimer = tok.GetSingle();
+                if (obj != null) obj.deployTimer = tok.GetSingle();
 
                 if (parent.SaveType == 0)
                 {
@@ -52,6 +55,32 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassDeployable obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            // this class doesn't exist in BZ1
+            //if (writer.Format == BZNFormat.Battlezone2)
+            {
+                writer.WriteVoidBytes("state", obj.state);
+                writer.WriteFloats("deployTimer", obj.deployTimer);
+                if (parent.SaveType == 0)
+                {
+                    // setup stuff where some vars are generated
+                }
+                else
+                {
+                    /*(a2->vftable->write_long)(a2, this + 2336, 4, "changeState");
+                    (a2->vftable->in_bool)(a2, this + 2344, 1, "lockMode");
+                    (a2->vftable->in_bool)(a2, this + 2345, 1, "lockModeDeployed");*/
+                }
+            }
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

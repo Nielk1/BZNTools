@@ -2,12 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
 {
-    // BZCC Done
-
     [ObjectClass(BZNFormat.Battlezone, "i76building")] // is not in code in the main area but appears to be valid?
     [ObjectClass(BZNFormat.Battlezone, "i76building2")] // is in code directly
     [ObjectClass(BZNFormat.Battlezone, "i76sign")]
@@ -126,7 +125,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (!string.IsNullOrEmpty(saveClass) && (reader.Version < 1148 || m_AlignsToObject))
                 {
-                    if (obj != null) obj.saveMatrix = obj.transform; // TODO: this may be incorrect, figure that out
+                    //if (obj != null) obj.saveMatrix = obj.transform; // TODO: this may be incorrect, figure that out
                 }
                 return;
             }
@@ -144,6 +143,70 @@ namespace BZNParser.Battlezone.GameObject
                 if (obj != null) obj.tempBuilding = false;
             }
             ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                bool m_AlignsToObject = false;
+                string saveClass = null;
+
+                if (writer.Version >= 1147)
+                {
+                    //if (reader.Version == 1147 || reader.Version == 1148 || reader.Version == 1149 || reader.Version == 1151 || reader.Version == 1154)
+                    if (writer.Version < 1155)
+                    {
+                        writer.WriteGameObjectClass_BZ2(parent, "config", obj.saveClass);
+                    }
+                    else
+                    {
+                        writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass);
+                    }
+
+                    if (!string.IsNullOrEmpty(obj.saveClass))
+                    {
+                        if (writer.Version >= 1148)
+                        {
+                            if (obj.saveMatrix.HasValue)
+                            {
+                                writer.WriteMat3Ds("saveMatrix", obj.saveMatrix.Value);
+                            }
+                            else
+                            {
+                                m_AlignsToObject = true;
+                            }
+                        }
+
+                        writer.WriteSignedValues("saveTeam", obj.saveTeam);
+                        writer.WriteUnsignedHexLValues("saveSeqno", (UInt32)obj.saveSeqno);
+                        writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel);
+                        writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName);
+                    }
+                }
+
+                if (obj.CLASS_loadAsDummy)
+                {
+                    writer.WriteSizedString_BZ2_1145("name", 32, obj.name);
+                    return;
+                }
+
+                ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                return;
+            }
+
+            // BZ1/BZn64
+            if (parent.SaveType != SaveType.BZN)
+            {
+                writer.WriteBooleans("tempBuilding", obj.tempBuilding);
+            }
+
+            ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

@@ -37,5 +37,22 @@ namespace BZNParser.Battlezone.GameObject
 
             ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassCameraPod obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version >= 1148)
+                {
+                    writer.WriteSignedValues("navSlot", obj.navSlot);
+                }
+            }
+            ClassPowerUp.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
 }

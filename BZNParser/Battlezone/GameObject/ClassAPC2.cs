@@ -1,4 +1,5 @@
 ﻿using BZNParser.Tokenizer;
+using System.Reflection.PortableExecutable;
 
 namespace BZNParser.Battlezone.GameObject
 {
@@ -23,9 +24,9 @@ namespace BZNParser.Battlezone.GameObject
         public float nextSoldierAngle { get; set; }
         public float nextReturnToAPC { get; set; }
         public int ExternalSoldierCount { get; set; }
-        public int[]? ExternalSoldiers { get; set; }
+        public UInt32[]? ExternalSoldiers { get; set; }
         public bool DeployOnLanding { get; set; }
-        public long undeployTimeout { get; set; }
+        public Int32 undeployTimeout { get; set; }
 
         public ClassAPC2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAPC2? obj)
@@ -54,10 +55,10 @@ namespace BZNParser.Battlezone.GameObject
                     int count = tok.GetCount();
                     if (count > APC_MAX_SOLDIERS)
                         obj.Malformations.AddOvercount("ExternalSoldiers");
-                    obj.ExternalSoldiers = new int[Math.Max(APC_MAX_SOLDIERS, count)];
+                    obj.ExternalSoldiers = new UInt32[Math.Max(APC_MAX_SOLDIERS, count)];
                     for(int i = 0; i < count; i++)
                     {
-                        obj.ExternalSoldiers[i] = tok.GetInt32(i);
+                        obj.ExternalSoldiers[i] = tok.GetUInt32(i);
                     }
                 }
             }
@@ -95,6 +96,35 @@ namespace BZNParser.Battlezone.GameObject
             if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32(); // state
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassAPC2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            writer.WriteSignedValues("IsoldierCount", obj.InternalSoldierCount);
+            writer.WriteSignedValues("EsoldierCount", obj.ExternalSoldierCount);
+
+            if (obj.ExternalSoldierCount > 0)
+            {
+                writer.WritePtrs("SoldierHandles", obj.ExternalSoldiers);
+            }
+
+            if (parent.SaveType != SaveType.BZN)
+            {
+                writer.WriteFloats("nextSoldierDelay", obj.nextSoldierDelay);
+                writer.WriteFloats("nextSoldierAngle", obj.nextSoldierAngle);
+                writer.WriteFloats("nextReturnTimer", obj.nextReturnToAPC);
+                writer.WriteBooleans("DeployOnLanding", obj.DeployOnLanding);
+                writer.WriteSignedValues("undeployTimeout", obj.undeployTimeout);
+            }
+            
+            writer.WriteVoidBytes("state", (UInt32)obj.state);
+
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

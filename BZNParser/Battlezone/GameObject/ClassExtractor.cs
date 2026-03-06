@@ -20,6 +20,9 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassExtractor : ClassBuilding
     {
+        public float scrapTimer { get; set; }
+        public bool animStart { get; set; }
+
         public ClassExtractor(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassExtractor? obj)
         {
@@ -27,7 +30,7 @@ namespace BZNParser.Battlezone.GameObject
 
             tok = reader.ReadToken();
             if (!tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scrapTimer/FLOAT");
-            //saveClass = tok.GetSingle();
+            if (obj != null) obj.scrapTimer = tok.GetSingle();
 
             if (reader.Version < 1147)
             {
@@ -39,11 +42,11 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
-                    //tok.GetUInt32();
+                    if (obj != null) obj.saveTeam = tok.GetInt32();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
-                    //seqno = tok.GetUInt32H();
+                    if (obj != null) obj.saveSeqno = tok.GetInt32H();
 
                     string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32);
                     string saveName = reader.ReadSizedString_BZ2_1145("saveName", 32);
@@ -54,9 +57,36 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("animStart", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse animStart/BOOL");
+                if (obj != null) obj.animStart = tok.GetBoolean();
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassExtractor obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            writer.WriteFloats("scrapTimer", obj.scrapTimer);
+            if (writer.Version < 1147)
+            {
+                writer.WriteChars("saveClass", obj.saveClass);
+                if (!string.IsNullOrEmpty(obj.saveClass))
+                {
+                    writer.WriteSignedValues("saveTeam", obj.saveTeam);
+                    writer.WriteSignedValues("saveSeqno", obj.saveSeqno);
+                    writer.WriteSizedString_BZ2_1145("saveLabel", 32, ""); // TODO: figure out what this actually does
+                    writer.WriteSizedString_BZ2_1145("saveName", 32, ""); // TODO: figure out what this actually does
+                }
+            }
+            if (writer.Version > 1102)
+            {
+                writer.WriteBooleans("animStart", obj.animStart);
+            }
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

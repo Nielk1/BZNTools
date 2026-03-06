@@ -73,5 +73,19 @@ namespace BZNParser.Battlezone.GameObject
 
             ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassTrackedVehicle obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (parent.SaveType != SaveType.BZN)
+            {
+                // 
+            }
+            ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
 }

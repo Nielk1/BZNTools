@@ -1,15 +1,16 @@
-﻿using BZNParser.Battlezone.GameObject;
+﻿using BZNParser;
+using BZNParser.Battlezone.GameObject;
 using BZNParser.Tokenizer;
-using BZNParser;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Formats.Asn1;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel.Design;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Reflection.PortableExecutable;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace BZNParser.Battlezone
 {
@@ -73,6 +74,7 @@ namespace BZNParser.Battlezone
                 if (reader.Version == 1001)
                 {
                     PrjID = PrjID.Split('\0')[0];
+                    // might need to keep a malformation here to be able to reverse this
                 }
             }
             else if (reader.Format == BZNFormat.Battlezone2)
@@ -122,25 +124,25 @@ namespace BZNParser.Battlezone
                 {
                     seqNo = reader.ReadCompressedNumberFromBinary();
                 }
-                else if (reader.Version >= 1145 && reader.InBinary && false)// && omitBinarySaveHeadsers)
-                {
-                    tok = reader.ReadToken();
-                    if (tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
-                        throw new Exception("Failed to parse seqno/SHORT");
-                    UInt16 seqno2a = tok.GetUInt16();
-
-                    tok = reader.ReadToken();
-                    if (!tok.Validate("seqno", BinaryFieldType.DATA_CHAR))
-                        throw new Exception("Failed to parse seqno/CHAR");
-                    byte seqno2b = tok.GetUInt8();
-
-                    seqNo = (uint)((seqno2b << 16) | (seqno2a));
-                }
+                //else if (reader.Version >= 1145 && reader.InBinary && false)// && omitBinarySaveHeadsers)
+                //{
+                //    tok = reader.ReadToken();
+                //    if (tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
+                //        throw new Exception("Failed to parse seqno/SHORT");
+                //    UInt16 seqno2a = tok.GetUInt16();
+                //
+                //    tok = reader.ReadToken();
+                //    if (!tok.Validate("seqno", BinaryFieldType.DATA_CHAR))
+                //        throw new Exception("Failed to parse seqno/CHAR");
+                //    byte seqno2b = tok.GetUInt8();
+                //
+                //    seqNo = (uint)((seqno2b << 16) | (seqno2a));
+                //}
                 else
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("seqno", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse seqno/SHORT");
+                        throw new Exception("Failed to parse seqno/LONG");
                     seqNo = tok.GetUInt32H();
                 }
             }
@@ -450,6 +452,239 @@ namespace BZNParser.Battlezone
                         return false;
                     }
                 }
+            }
+        }
+
+        public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            writer.WriteValidation("GameObject");
+
+
+            if (writer.Format == BZNFormat.BattlezoneN64)
+            {
+                if (PrjID.StartsWith("bzn64prjid_"))
+                {
+                    string possibleLabel = PrjID.Substring("bzn64prjid_".Length);
+                    if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                    {
+                        writer.WriteUnsignedValues(null, possibleItemID);
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to parse PrjID/ID");
+                    }
+                }
+                else
+                {
+                    var lookup = parent.Hints?.EnumerationPrjID;
+                    if (lookup != null)
+                    {
+                        UInt16? key = lookup.Where(dr => dr.Value == PrjID).Select(dr => dr.Key).FirstOrDefault();
+                        if (key.HasValue)
+                        {
+                            writer.WriteUnsignedValues(null, key.Value);
+                        }
+                        else
+                        {
+                            throw new Exception("Failed to parse PrjID/ID");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to parse PrjID/ID");
+                    }
+                }
+            }
+            else if (writer.Format == BZNFormat.Battlezone)
+            {
+                writer.WriteIDs("PrjID", PrjID);
+            }
+            else if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version < 1155)
+                {
+                    writer.WriteGameObjectClass_BZ2(parent, "config", PrjID);
+                }
+                else
+                {
+                    if (parent.SaveType == SaveType.LOCKSTEP)
+                    {
+
+                    }
+                    else
+                    {
+                        if (writer.Version == 1180)
+                        {
+                             writer.WriteGameObjectClass_BZ2(parent, "GetClass()", PrjID);
+                        }
+                        else
+                        {
+                            writer.WriteGameObjectClass_BZ2(parent, "objClass", PrjID);
+                        }
+                    }
+                }
+            }
+
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.InBinary)
+                {
+                    writer.WriteCompressedNumberFromBinary(seqNo);
+                }
+                else
+                {
+                    writer.WriteUnsignedHexLValues("seqno", seqNo); // lowercase hex
+                }
+            }
+            else if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                writer.WriteUnsignedValues("seqno", (UInt16)seqNo);
+            }
+
+            if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                writer.WriteVector3Ds("pos", pos);
+            }
+
+            if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                writer.WriteUnsignedValues("team", team);
+            }
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version < 1145)
+                {
+                    writer.WriteUnsignedValues("team", team);
+                }
+                else
+                {
+                    writer.WriteUnsignedValues("team", (byte)team);
+                }
+            }
+
+            if (writer.Format == BZNFormat.BattlezoneN64)
+            {
+                if (label != null && label.StartsWith("bzn64label_"))
+                {
+                    string possibleLabelNum = label.Substring("bzn64label_".Length);
+                    if (ushort.TryParse(possibleLabelNum, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleLabelID))
+                    {
+                        writer.WriteUnsignedValues(null, possibleLabelID);
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to parse label/CHAR");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Failed to parse label/CHAR");
+                }
+            }
+            else if (writer.Format == BZNFormat.Battlezone)
+            {
+                writer.WriteChars("label", label);
+            }
+            else if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version < 1145)
+                {
+                    writer.WriteSizedString_BZ2_1145("label", 40, label);
+                }
+                else
+                {
+                    bool noLabel = (seqNo & 0x800000) != 0;
+                    seqNo &= ~(UInt32)0x800000;
+
+                    if (noLabel)
+                    {
+
+                    }
+                    else
+                    {
+                        writer.WriteSizedString_BZ2_1145("label", 40, label);
+                    }
+                }
+            }
+
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (parent.SaveType != SaveType.JOIN)
+                {
+                    if (writer.Version < 1145)
+                    {
+                        var mals = Malformations.GetMalformations(Malformation.INCORRECT, "isUser");
+                        if (preserveMalformations && mals.Length > 0)
+                        {
+                            UInt32 malValue = (UInt32)mals[0].Fields[0];
+                            // consider clearing malformations when you edit a malformed field
+
+                            writer.WriteUnsignedValues("isUser", isUser ? malValue : 0U);
+                        }
+                        else
+                        {
+                            writer.WriteUnsignedValues("isUser", isUser ? 1U : 0U);
+                        }
+                    }
+                    else
+                    {
+                        writer.WriteBooleans("isUser", isUser);
+                    }
+                }
+                //else{}
+            }
+            else if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                var mals = Malformations.GetMalformations(Malformation.INCORRECT, "isUser");
+                if (preserveMalformations && mals.Length > 0)
+                {
+                    UInt32 malValue = (UInt32)mals[0].Fields[0];
+                    // consider clearing malformations when you edit a malformed field
+
+                    writer.WriteUnsignedValues("isUser", isUser ? malValue : 0U);
+                }
+                else
+                {
+                    writer.WriteUnsignedValues("isUser", isUser ? 1U : 0U);
+                }
+            }
+
+            if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version < 1002)
+                {
+                    writer.WriteBZ1_PtrDepricated("obj_addr", obj_addr); // string name unconfirmed
+                }
+                else
+                {
+                    writer.WriteBZ1_PtrDepricated("obj_addr", obj_addr);
+                }
+            }
+            else if (writer.Format == BZNFormat.Battlezone2)
+            {
+                writer.WritePtr("objAddr", obj_addr);
+            }
+
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                writer.WriteMat3Ds("transform", transform);
+            }
+            if ((writer.Format == BZNFormat.Battlezone && writer.Version > 1001) || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                writer.WriteMat3DOlds("transform", transform);
+            }
+
+
+            // GameObject
+            if (gameObject is MultiClass)
+            {
+                // TODO if they all serialize the same, spit out that data, else throw an error
+                // for now we just cheat and use the first one
+                (gameObject as MultiClass).Candidates.OrderBy(dr => dr.Expected ? 0 : 1).First().Object.Write(parent, writer, binary, save, preserveMalformations);
+            }
+            else
+            {
+                gameObject.Write(parent, writer, binary, save, preserveMalformations);
             }
         }
     }

@@ -20,6 +20,9 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassNavBeacon : ClassGameObject
     {
+        public string name { get; set; }
+        public int navSlot { get; set; }
+
         public ClassNavBeacon(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassNavBeacon? obj)
         {
@@ -28,16 +31,32 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (!tok.Validate("name", BinaryFieldType.DATA_CHAR))
                 throw new Exception("Failed to parse name/CHAR");
-            string name = tok.GetString();
+            if (obj != null) obj.name = tok.GetString();
 
             tok = reader.ReadToken();
             if (!tok.Validate("navSlot", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse navSlot/LONG");
-            //int navSlot = tok.GetInt32();
+            if (obj != null) obj.navSlot = tok.GetInt32();
 
             if (reader.Version > 1104)
             {
                 ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+            }
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassNavBeacon obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            writer.WriteChars("name", obj.name);
+            writer.WriteSignedValues("navSlot", obj.navSlot);
+
+            if (writer.Version > 1104)
+            {
+                ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
             }
         }
     }

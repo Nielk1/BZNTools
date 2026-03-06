@@ -30,7 +30,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 //if (reader.Version > 1034)
                 //if (reader.Version > 1037)
-                if ((reader.Version >= 1039 && reader.Version < 2000) || reader.Version > 2004) // confirms from BZ98R disassembly, not confirmed against BZCC yet
+                if ((reader.Version >= 1039 && reader.Version < 2000) || reader.Version > 2004)
                 {
                     IBZNToken tok = reader.ReadToken();
                     if (!tok.Validate("scrapHeld", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse scrapHeld/LONG");
@@ -39,6 +39,25 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassScavenger1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone)
+            {
+                //if (writer.Version > 1034)
+                //if (writer.Version > 1037)
+                if ((writer.Version >= 1039 && writer.Version < 2000) || writer.Version > 2004)
+                {
+                    writer.WriteUnsignedValues("scrapHeld", obj.scrapHeld);
+                }
+            }
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

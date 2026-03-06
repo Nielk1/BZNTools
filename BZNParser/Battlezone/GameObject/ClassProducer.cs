@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
@@ -20,6 +21,7 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassProducer : ClassHoverCraft
     {
+        public float setAltitude { get; set; }
         public float timeDeploy { get; set; }
         public float timeUndeploy { get; set; }
         public UInt32 undefptr2 { get; set; }
@@ -42,7 +44,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("setAltitude", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse setAltitude/FLOAT");
-                float setAltitude = tok.GetSingle();
+                if (obj != null) obj.setAltitude = tok.GetSingle();
             }
 
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version != 1042)
@@ -59,8 +61,8 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             tok = reader.ReadToken();
-            if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                throw new Exception("Failed to parse undefptr/PTR");
+            if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
+                throw new Exception("Failed to parse dropoff/PTR");
             if (obj != null) obj.undefptr2 = tok.GetUInt32H(); // powerSource
 
             tok = reader.ReadToken();
@@ -121,6 +123,96 @@ namespace BZNParser.Battlezone.GameObject
                 return;
             }
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassProducer obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone && writer.Version < 1011)
+            {
+                writer.WriteFloats("setAltitude", obj.setAltitude);
+            }
+
+            if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
+            {
+                writer.WriteFloats("timeDeploy", obj.timeDeploy);
+                writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
+            }
+
+            writer.WritePtr("dropoff", obj.undefptr2);
+            writer.WriteVoidBytes("state", obj.state);
+            writer.WriteFloats("delayTimer", obj.delayTimer);
+            writer.WriteFloats("nextRepair", obj.nextRepair);
+
+            if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version >= 1006)
+            {
+                if (writer.Format == BZNFormat.BattlezoneN64)
+                {
+                    if (obj.buildClass.StartsWith("bzn64prjid_"))
+                    {
+                        string possibleLabel = obj.buildClass.Substring("bzn64prjid_".Length);
+                        if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                        {
+                            writer.WriteUnsignedValues(null, possibleItemID);
+                        }
+                        else
+                        {
+                            throw new Exception("Failed to parse PrjID/ID");
+                        }
+                    }
+                    else
+                    {
+                        var lookup = parent.Hints?.EnumerationPrjID;
+                        if (lookup != null)
+                        {
+                            UInt16? key = lookup.Where(dr => dr.Value == obj.buildClass).Select(dr => dr.Key).FirstOrDefault();
+                            if (key.HasValue)
+                            {
+                                writer.WriteUnsignedValues(null, key.Value);
+                            }
+                            else
+                            {
+                                throw new Exception("Failed to parse buildClass/ID");
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("Failed to parse PrjID/ID");
+                        }
+                    }
+                }
+                else
+                {
+                    writer.WriteIDs("buildClass", obj.buildClass);
+                }
+
+                writer.WriteFloats("buildDoneTime", obj.buildDoneTime);
+                // BZn64 might be invalid when it has CDCDCDCA here.
+
+                if (writer.Format == BZNFormat.Battlezone && writer.Version <= 1026)
+                {
+                    // dummied out and unused
+                    //tok = reader.ReadToken();//buildCost [1] =
+                    //                         //-842150451
+                    //tok = reader.ReadToken();//buildUpdateTime [1] =
+                    //                         //-4.31602e+008
+                    //tok = reader.ReadToken();//buildDt [1] =
+                    //                         //-4.31602e+008
+                    //tok = reader.ReadToken();//buildDc [1] =
+                    //                         //-842150451
+                }
+            }
+
+            if (writer.Format == BZNFormat.Battlezone && writer.Version <= 1010)
+            {
+                ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                return;
+            }
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

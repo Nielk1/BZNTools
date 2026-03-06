@@ -16,6 +16,11 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassArtillery : ClassTurretTank2
     {
+        public UInt32 state { get; set; }
+        public float heightDeploy { get; set; }
+        public float deployTimer { get; set; }
+        public float prevYaw { get; set; }
+
         public ClassArtillery(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassArtillery? obj)
         {
@@ -25,7 +30,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
-                UInt32 state = tok.GetUInt32H();
+                if (obj != null) obj.state = tok.GetUInt32H();
 
                 if (parent.SaveType != SaveType.BZN)
                 {
@@ -37,7 +42,7 @@ namespace BZNParser.Battlezone.GameObject
                     // ignored
                     tok = reader.ReadToken();
                     if (!tok.Validate("heightDeploy", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse heightDeploy/FLOAT");
-                    //if (obj != null) obj.heightDeploy = tok.GetSingle(); // heightDeploy
+                    if (obj != null) obj.heightDeploy = tok.GetSingle(); // heightDeploy
 
                     // ignored
                     tok = reader.ReadToken();
@@ -52,7 +57,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse deployTimer/FLOAT");
-                    //if (obj != null) obj.deployTimer = tok.GetSingle();
+                    if (obj != null) obj.deployTimer = tok.GetSingle();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
@@ -69,10 +74,44 @@ namespace BZNParser.Battlezone.GameObject
                     IBZNToken tok = reader.ReadToken();
                     if (!tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse prevYaw/FLOAT");
-                    float prevYaw = tok.GetSingle(); // prevYaw
+                    if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
                 }
 
                 ClassTurretTank2.Hydrate(parent, reader, obj as ClassTurretTank2);
+            }
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassArtillery obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Version < 1110)
+            {
+                writer.WriteVoidBytes("state", obj.state);
+
+                if (parent.SaveType != SaveType.BZN)
+                {
+                    writer.WriteFloats("omegaTurret", obj.omegaTurret); // omegaTurret
+                    writer.WriteFloats("heightDeploy", obj.heightDeploy); // heightDeploy
+                    writer.WriteFloats("timeDeploy", obj.timeDeploy); // timeDeploy
+                    writer.WriteFloats("timeUndeploy", obj.timeUndeploy); // timeUndeploy
+                    writer.WriteFloats("deployTimer", obj.deployTimer);
+                    writer.WriteFloats("prevYaw", obj.prevYaw); // prevYaw
+                }
+
+                ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            }
+            else
+            {
+                if (parent.SaveType != SaveType.BZN)
+                {
+                    writer.WriteFloats("prevYaw", obj.prevYaw); // prevYaw
+                }
+
+                ClassTurretTank2.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
             }
         }
     }

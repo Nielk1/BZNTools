@@ -17,8 +17,8 @@ namespace BZNParser.Battlezone
 {
     public enum SaveType
     {
-        BZN = 0, // ST_MISSION in BZ2, MissionSave False in BZ1
-        SAVE = 1, // ST_SAVE in BZ2, MissionSave True in BZ1
+        BZN = 0, // ST_MISSION in BZ2, MissionSave False in BZ1 (I might have MissionSave bool backwards in BZ1, not sure)
+        SAVE = 1, // ST_SAVE in BZ2, MissionSave True in BZ1 (I might have MissionSave bool backwards in BZ1, not sure)
         JOIN = 2, // ST_JOIN in BZ2
         LOCKSTEP = 3, // ST_LOCKSTEP in BZ2
         VISUAL = 4, // ST_SWITCHSHOW in BZ2
@@ -220,6 +220,18 @@ namespace BZNParser.Battlezone
         // /BZ1 lua mission state block
 
         public Int32? AiMissionSize { get; set; }
+
+
+
+        public UInt32? UserProcess_sObject { get; set; }
+        public Int32? UserProcess_cycle { get; set; }
+        public Int32? UserProcess_cycleMax { get; set; }
+        public UInt32? UserProcess_selectList { get; set; }
+        public UInt32? UserProcess_undefptr_1 { get; set; }
+        public UInt32? UserProcess_undefptr_2 { get; set; }
+        public bool? UserProcess_exited { get; set; }
+
+
 
         public AreaOfInterest[] AOIs { get; set; }
         public AiPath[] AiPaths { get; set; }
@@ -673,39 +685,39 @@ namespace BZNParser.Battlezone
                 }
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse undefptr/PTR");
-                //tok.GetUInt32H();
+                if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
+                    throw new Exception("Failed to parse dropoff/PTR");
+                UserProcess_sObject = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("cycle", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse cycle/UNKNOWN");
-                //tok.GetUInt32H();
+                UserProcess_cycle = tok.GetInt32();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("cycleMax", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse cycleMax/UNKNOWN");
-                //tok.GetUInt32H();
+                UserProcess_cycleMax = tok.GetInt32();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("selectList", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse selectList/UNKNOWN");
-                //tok.GetUInt32H();
+                UserProcess_selectList = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse undefptr/PTR");
-                //tok.GetUInt32H();
+                if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
+                    throw new Exception("Failed to parse dropoff/PTR");
+                UserProcess_undefptr_1 = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse undefptr/PTR");
-                //tok.GetUInt32H();
+                if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
+                    throw new Exception("Failed to parse dropoff/PTR");
+                UserProcess_undefptr_2 = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("exited", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse exited/UNKNOWN");
-                //tok.GetUInt32H();
+                UserProcess_exited = tok.GetBoolean();
             }
 
             // if reader.SaveType != 0
@@ -1001,7 +1013,7 @@ namespace BZNParser.Battlezone
 
             foreach (var entity in Entities)
             {
-                //entity.Write(this, writer, binary, save, preserveMalformations);
+                entity.Write(this, writer, binary, save, preserveMalformations);
             }
 
             //TailUnParse(writer);
@@ -1082,64 +1094,27 @@ namespace BZNParser.Battlezone
             if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1011 || writer.Version == 1012))
             {
                 // this might also be due to the above count being 1 instead of 0, unknown, for now we're using the version
-                /*
-                tok = reader.ReadToken();
-                if (!tok.Validate("name", BinaryFieldType.DATA_CHAR))
-                    throw new Exception("Failed to parse name/CHAR");
-                //tok.GetBytes(); // "AiMission"
+                
+                writer.WriteChars("name", "AiMission");
 
                 // read the old sObject ptr, not sure what can be done with it
-                if (reader.Version < 1002)
+                if (writer.Version < 1002)
                 {
-                    sObject = reader.ReadBZ1_PtrDepricated("sObject");
+                    writer.WriteBZ1_PtrDepricated("sObject", sObject);
                 }
                 else
                 {
-                    sObject = reader.ReadBZ1_Ptr("sObject");
+                    writer.WriteBZ1_Ptr("sObject", sObject);
                 }
 
-                if (!reader.InBinary)
-                {
-                    tok = reader.ReadToken();
-                    if (!tok.IsValidationOnly() || !tok.Validate("UserProcess", BinaryFieldType.DATA_UNKNOWN))
-                        throw new Exception("Failed to parse [UserProcess]");
-                }
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse undefptr/PTR");
-                //tok.GetUInt32H();
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("cycle", BinaryFieldType.DATA_UNKNOWN))
-                    throw new Exception("Failed to parse cycle/UNKNOWN");
-                //tok.GetUInt32H();
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("cycleMax", BinaryFieldType.DATA_UNKNOWN))
-                    throw new Exception("Failed to parse cycleMax/UNKNOWN");
-                //tok.GetUInt32H();
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("selectList", BinaryFieldType.DATA_UNKNOWN))
-                    throw new Exception("Failed to parse selectList/UNKNOWN");
-                //tok.GetUInt32H();
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse undefptr/PTR");
-                //tok.GetUInt32H();
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse undefptr/PTR");
-                //tok.GetUInt32H();
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("exited", BinaryFieldType.DATA_UNKNOWN))
-                    throw new Exception("Failed to parse exited/UNKNOWN");
-                //tok.GetUInt32H();
-                */
+                writer.WriteValidation("UserProcess");
+                writer.WriteBZ1_PtrDepricated("dropoff", UserProcess_sObject.Value);
+                writer.WriteSignedValues("cycle", UserProcess_cycle.Value);
+                writer.WriteSignedValues("cycleMax", UserProcess_cycleMax.Value);
+                writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
+                writer.WriteBZ1_PtrDepricated("dropoff", UserProcess_undefptr_1.Value);
+                writer.WriteBZ1_PtrDepricated("dropoff", UserProcess_undefptr_2.Value);
+                writer.WriteBooleans("exited", UserProcess_exited.Value);
             }
 
             writer.WriteValidation("AOIs");

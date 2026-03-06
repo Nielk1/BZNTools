@@ -27,10 +27,22 @@ namespace BZNParser.Battlezone.GameObject
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassRecycler1? obj)
         {
             IBZNToken tok = reader.ReadToken();
-            if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
+            if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/PTR");
             if (obj != null) obj.undefptr = tok.GetUInt32H(); // dropObj
 
             ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassRecycler1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            writer.WritePtr("dropoff", obj.undefptr); // dropObj
+
+            ClassProducer.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

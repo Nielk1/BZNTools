@@ -44,5 +44,20 @@ namespace BZNParser.Battlezone.GameObject
 
             ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassBomberBay obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            IBZNToken tok;
+            if (writer.Version >= 1131)
+            {
+                writer.WriteSignedValues("Handle", obj.m_MyBomber);
+            }
+            ClassPoweredBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
 }

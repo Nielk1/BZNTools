@@ -20,5 +20,10 @@ namespace BZNParser.Battlezone.GameObject
         {
             return $"{base.ToString()} [{string.Join(',', Candidates.Select(dr => dr.Object.ToString()))}]";
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            throw new Exception(label + ": MultiClass cannot be written");
+        }
     }
 }

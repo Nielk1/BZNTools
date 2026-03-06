@@ -35,5 +35,21 @@ namespace BZNParser.Battlezone.GameObject
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassDeposit obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            //if (writer.Format == BZNFormat.Battlezone2 && writer.Version > 1123)
+            //{
+            //    // unsure of the type of this
+            //    writer.WriteToken(new BZNTokenString("saveClass", BinaryFieldType.DATA_CHAR, obj.saveClass));
+            //}
+
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
 }

@@ -20,6 +20,8 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassDeployBuilding : ClassTrackedDeployable
     {
+        public Matrix dropMat { get; set; }
+
         public ClassDeployBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployBuilding? obj)
@@ -38,11 +40,28 @@ namespace BZNParser.Battlezone.GameObject
                     //(a2->vftable->field_1C)(a2, this + 2592, 64, "buildMatrix");
                     tok = reader.ReadToken();
                     if (!tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
-                    //dropMat = tok.GetMatrix()
+                    if (obj != null) obj.dropMat = tok.GetMatrix();
                 }
             }
 
             ClassTrackedDeployable.Hydrate(parent, reader, obj as ClassTrackedDeployable);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassDeployBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version != 1047)
+                {
+                    writer.WriteMat3Ds("buildMatrix", obj.dropMat);
+                }
+            }
+            ClassTrackedDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

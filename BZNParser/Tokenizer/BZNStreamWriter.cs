@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.IO.Pipes;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -108,6 +109,31 @@ namespace BZNParser.Tokenizer
             }
         }
 
+        public void WriteUnsignedValues(string name, params UInt64[] values)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
+                InternalWriteBinarySize(values.Length);
+                foreach (UInt64 value in values)
+                {
+                    byte[] bytes = BitConverter.GetBytes(value);
+                    if (IsBigEndian)
+                        Array.Reverse(bytes);
+                    BaseStream.Write(bytes);
+                }
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            InternalWriteNewline();
+            for (int i = 0; i < values.Length; i++)
+            {
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString()));
+                InternalWriteNewline();
+            }
+        }
+
         public void WriteUnsignedValues(string name, params UInt16[] values)
         {
             if (InBinary)
@@ -129,6 +155,56 @@ namespace BZNParser.Tokenizer
             for (int i = 0; i < values.Length; i++)
             {
                 BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString()));
+                InternalWriteNewline();
+            }
+        }
+
+        public void WriteUnsignedHexLValues(string name, params UInt16[] values)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
+                InternalWriteBinarySize(values.Length);
+                foreach (UInt16 value in values)
+                {
+                    byte[] bytes = BitConverter.GetBytes(value);
+                    if (IsBigEndian)
+                        Array.Reverse(bytes);
+                    BaseStream.Write(bytes);
+                }
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            InternalWriteNewline();
+            for (int i = 0; i < values.Length; i++)
+            {
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString("x")));
+                InternalWriteNewline();
+            }
+        }
+
+        public void WriteUnsignedHexLValues(string name, params UInt32[] values)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
+                InternalWriteBinarySize(values.Length);
+                foreach (UInt32 value in values)
+                {
+                    byte[] bytes = BitConverter.GetBytes(value);
+                    if (IsBigEndian)
+                        Array.Reverse(bytes);
+                    BaseStream.Write(bytes);
+                }
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            InternalWriteNewline();
+            for (int i = 0; i < values.Length; i++)
+            {
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString("x")));
                 InternalWriteNewline();
             }
         }
@@ -194,6 +270,234 @@ namespace BZNParser.Tokenizer
             }
         }
 
+        public void WriteVector3Ds(string name, params Vector3D[] values)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_VEC3D);
+                InternalWriteBinarySize(values.Length * sizeof(float) * 3);
+                foreach (Vector3D value in values)
+                {
+                    byte[] xBytes = BitConverter.GetBytes(value.x);
+                    byte[] yBytes = BitConverter.GetBytes(value.y);
+                    byte[] zBytes = BitConverter.GetBytes(value.z);
+                    if (IsBigEndian)
+                    {
+                        Array.Reverse(xBytes);
+                        Array.Reverse(yBytes);
+                        Array.Reverse(zBytes);
+                    }
+                    BaseStream.Write(xBytes);
+                    BaseStream.Write(yBytes);
+                    BaseStream.Write(zBytes);
+                }
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{(values.Length)}] ="));
+            InternalWriteNewline();
+            for (int i = 0; i < values.Length; i++)
+            {
+                BaseStream.Write(Encoding.ASCII.GetBytes("  x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes("  y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes("  z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].z.ToString()));
+                InternalWriteNewline();
+            }
+        }
+
+        public void WriteEuler(string name, Euler value)
+        {
+            if (InBinary)
+            {
+                throw new NotImplementedException("Euler binary save attempt");
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} ="));
+            InternalWriteNewline();
+
+            WriteFloats(" mass", value.mass);
+            WriteFloats(" mass_inv", value.mass_inv);
+            WriteFloats(" v_mag", value.v_mag);
+            WriteFloats(" v_mag_inv", value.v_mag_inv);
+            WriteFloats(" I", value.I);
+            WriteFloats(" k_i", value.I_inv);
+            WriteVector3Ds(" v", value.v);
+            WriteVector3Ds(" omega", value.omega);
+            WriteVector3Ds(" Accel", value.Accel);
+        }
+
+        public void WriteMat3Ds(string name, params Matrix[] values)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_MAT3D);
+                InternalWriteBinarySize(values.Length * sizeof(float) * 16);
+                foreach (Matrix value in values)
+                {
+                    foreach (float x in new float[] {
+                        value.right.x, value.right.y, value.right.z, value.rightw,
+                        value.up.x   , value.up.y   , value.up.z   , value.upw   ,
+                        value.front.x, value.front.y, value.front.z, value.frontw,
+                        value.posit.x, value.posit.y, value.posit.z, value.positw
+                    })
+                    {
+                        byte[] bytes = BitConverter.GetBytes(x);
+                        if (IsBigEndian)
+                            Array.Reverse(bytes);
+                        BaseStream.Write(bytes);
+                    }
+                }
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{(values.Length)}] ="));
+            InternalWriteNewline();
+            for (int i = 0; i < values.Length; i++)
+            {
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  right.x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  right.y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  right.z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.z.ToString()));
+                InternalWriteNewline();
+
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  up.x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  up.y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  up.z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.z.ToString()));
+                InternalWriteNewline();
+
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  front.x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  front.y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  front.z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.z.ToString()));
+                InternalWriteNewline();
+
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit.x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit.y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit.z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.z.ToString()));
+                InternalWriteNewline();
+            }
+        }
+
+        public void WriteMat3DOlds(string name, params Matrix[] values)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_MAT3DOLD);
+                InternalWriteBinarySize(values.Length * sizeof(float) * 16);
+                foreach (Matrix value in values)
+                {
+                    foreach (float x in new float[] {
+                        value.right.x, value.right.y, value.right.z,
+                        value.up.x   , value.up.y   , value.up.z   ,
+                        value.front.x, value.front.y, value.front.z,
+                        value.posit.x, value.posit.y, value.posit.z
+                    })
+                    {
+                        byte[] bytes = BitConverter.GetBytes(x);
+                        if (IsBigEndian)
+                            Array.Reverse(bytes);
+                        BaseStream.Write(bytes);
+                    }
+                }
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{(values.Length)}] ="));
+            InternalWriteNewline();
+            for (int i = 0; i < values.Length; i++)
+            {
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  right_x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  right_y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  right_z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.z.ToString()));
+                InternalWriteNewline();
+
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  up_x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  up_y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  up_z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.z.ToString()));
+                InternalWriteNewline();
+
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  front_x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  front_y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  front_z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.z.ToString()));
+                InternalWriteNewline();
+
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit_x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.x.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit_y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.y.ToString()));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit_z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.z.ToString()));
+                InternalWriteNewline();
+            }
+        }
+
         public void WriteSignedValues(string name, params int[] values)
         {
             if (InBinary)
@@ -243,12 +547,63 @@ namespace BZNParser.Tokenizer
             }
         }
 
+        public void WriteIDs(string name, UInt64 value)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_ID);
+                InternalWriteBinarySize(sizeof(UInt64));
+                byte[] data = BitConverter.GetBytes(value);
+                if (IsBigEndian)
+                    Array.Reverse(data);
+                BaseStream.Write(data);
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(Encoding.ASCII.GetBytes(value.ToString("x")));
+            InternalWriteNewline();
+        }
+
+        public void WriteIDs(string name, byte[] value)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_ID);
+                InternalWriteBinarySize(value.Length);
+                BaseStream.Write(value);
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(value);
+            InternalWriteNewline();
+        }
+
+        public void WriteIDs(string name, string value)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_ID);
+                InternalWriteBinarySize(value.Length);
+                BaseStream.Write(Encoding.ASCII.GetBytes(value));
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(Encoding.ASCII.GetBytes(value));
+            InternalWriteNewline();
+        }
+
         // 8 bit number
         public void WriteUnsignedValues(string name, params byte[] values)
         {
             if (InBinary)
             {
-                InternalWriteBinaryType(BinaryFieldType.DATA_FLOAT);
+                InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
                 InternalWriteBinarySize(values.Length);
                 byte[] bytes = values.ToArray();
                 if (IsBigEndian)
@@ -287,7 +642,7 @@ namespace BZNParser.Tokenizer
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
-                InternalWriteBinarySize(1);
+                InternalWriteBinarySize(4);
                 byte[] bytes = BitConverter.GetBytes(value);
                 if (IsBigEndian)
                     Array.Reverse(bytes);
@@ -298,6 +653,32 @@ namespace BZNParser.Tokenizer
             BaseStream.Write(Encoding.ASCII.GetBytes($"{name} = "));
             InternalWriteStringValue(value.ToString("X8"));
             InternalWriteNewline();
+        }
+
+        // this might be bogus, will know later
+        public void WritePtrs(string name, params uint[] values)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
+                InternalWriteBinarySize(4 * values.Length);
+                for (int i = 0; i < values.Length; i++)
+                {
+                    byte[] bytes = BitConverter.GetBytes(values[i]);
+                    if (IsBigEndian)
+                        Array.Reverse(bytes);
+                    BaseStream.Write(bytes);
+                }
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] = "));
+            InternalWriteNewline();
+            foreach (uint value in values)
+            {
+                InternalWriteStringValue(value.ToString("X8"));
+                InternalWriteNewline();
+            }
         }
         public void WriteVoidBytes(string name, UInt32 value)
         {

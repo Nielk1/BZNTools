@@ -20,6 +20,9 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassTrackedDeployable : ClassTrackedVehicle
     {
+        public UInt32 state { get; set; }
+        public float deployTimer { get; set; }
+
         public ClassTrackedDeployable(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTrackedDeployable? obj)
         {
@@ -30,18 +33,33 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                //state = tok.GetUInt32H();
+                if (obj != null) obj.state = tok.GetUInt32H();
 
                 //(a2->vftable->out_float)(a2, this + 2548, 4, "deployTimer");
                 tok = reader.ReadToken();
                 if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
-                //deployTimer = tok.GetSingle();
+                if (obj != null) obj.deployTimer = tok.GetSingle();
 
                 //if (a2[2].vftable)
                 //    (a2->vftable->read_long)(a2, this + 2544, 4, "changeState");
             }
 
             ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassTrackedDeployable obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                writer.WriteVoidBytes("state", obj.state);
+                writer.WriteFloats("deployTimer", obj.deployTimer);
+            }
+            ClassTrackedVehicle.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

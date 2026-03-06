@@ -19,9 +19,17 @@ namespace BZNParser.Battlezone.GameObject
         public ClassPlant(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPlant? obj)
         {
-            IBZNToken tok;
-
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassPlant obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

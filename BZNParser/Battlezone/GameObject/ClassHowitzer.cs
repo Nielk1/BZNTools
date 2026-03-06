@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
@@ -30,6 +31,21 @@ namespace BZNParser.Battlezone.GameObject
                 return;
             }
             ClassTurretTank1.Hydrate(parent, reader, obj as ClassTurretTank1);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassHowitzer obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone && writer.Version < 1020)
+            {
+                ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                return;
+            }
+            ClassTurretTank1.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassBarracks1 : ClassBuilding
     {
-        protected long nextEmptyCheck { get; set; }
+        protected Int32 nextEmptyCheck { get; set; }
         public ClassBarracks1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBarracks1? obj)
         {
@@ -30,6 +30,20 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassBarracks1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (parent.SaveType != SaveType.BZN)
+            {
+                writer.WriteSignedValues("nextEmptyCheck", obj.nextEmptyCheck);
+            }
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BZNParser.Tokenizer;
+using System.Reflection.PortableExecutable;
 
 namespace BZNParser.Battlezone.GameObject
 {
@@ -19,6 +20,12 @@ namespace BZNParser.Battlezone.GameObject
         public Matrix dropMat { get; set; }
         public string dropClass { get; set; }
 
+        public bool buildQueued { get; set; }
+        public bool buildActive { get; set; }
+        public float buildTime { get; set; }
+        public UInt32 upgradeHandle { get; set; }
+        public UInt32 buildGroup { get; set; }
+
         public ClassConstructionRig2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassConstructionRig2? obj)
         {
@@ -28,16 +35,16 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("buildQueued", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildQueued/BOOL");
-                //saveClass = tok.GetBool();
+                if (obj != null) obj.buildQueued = tok.GetBoolean();
             }
 
             tok = reader.ReadToken();
             if (!tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
-            //saveClass = tok.GetBool();
+            if (obj != null) obj.buildActive = tok.GetBoolean();
 
             tok = reader.ReadToken();
             if (!tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildTime/FLOAT");
-            //saveClass = tok.GetSingle();
+            if (obj != null) obj.buildTime = tok.GetSingle();
 
             tok = reader.ReadToken();
             if (!tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
@@ -60,20 +67,21 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("upgradeHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse upgradeHandle/LONG");
+                if (obj != null) obj.upgradeHandle = tok.GetUInt32();
             }
 
             if (parent.SaveType != SaveType.BZN)
-            { 
+            {
                 if (reader.Version >= 1120)
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("buildGroup", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildGroup/LONG");
-                    //buildGroup = tok.GetUInt32H();
+                    if (obj != null) obj.buildGroup = tok.GetUInt32();
                 }
 
                 //if (!mbIsHoverRig)
                 //{
-                    //Load AminControl
+                //Load AminControl
                 //}
 
                 //(a2->vftable->out_bool)(a2, this + 2378, 1, "Alive");
@@ -88,6 +96,47 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassConstructionRig2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Version >= 1114)
+            {
+                writer.WriteBooleans("buildQueued", obj.buildQueued);
+            }
+
+            writer.WriteBooleans("buildActive", obj.buildActive);
+            writer.WriteFloats("buildTime", obj.buildTime);
+            writer.WriteMat3Ds("buildMatrix", obj.dropMat);
+
+            if (writer.Version == 1149 || writer.Version == 1151)
+            {
+                writer.WriteGameObjectClass_BZ2(parent, "config", obj.dropClass);
+            }
+            else
+            {
+                writer.WriteGameObjectClass_BZ2(parent, "buildClass", obj.dropClass);
+            }
+
+            if (writer.Version >= 1150)
+            {
+                writer.WriteUnsignedValues("upgradeHandle", obj.upgradeHandle);
+            }
+
+            if (parent.SaveType != SaveType.BZN)
+            {
+                if (writer.Version >= 1120)
+                {
+                    writer.WriteUnsignedValues("buildGroup", obj.buildGroup);
+                }
+            }
+
+            ClassDeployable.Dehydrate(obj as ClassDeployable, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

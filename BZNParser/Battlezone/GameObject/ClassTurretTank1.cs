@@ -78,5 +78,36 @@ namespace BZNParser.Battlezone.GameObject
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassTurretTank1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1000)
+                {
+                    if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
+                    {
+                        // obsolete
+                        writer.WriteFloats("undeffloat", obj.omegaTurret); // omegaTurret
+                        writer.WriteFloats("undeffloat", obj.alphaTurret); // alphaTurret
+                        writer.WriteFloats("undeffloat", obj.timeDeploy); // timeDeploy
+                        writer.WriteFloats("undeffloat", obj.timeUndeploy); // timeUndeploy
+                    }
+                    writer.WriteVoidBytes("undefraw", (UInt32)obj.state); // state
+                    writer.WriteFloats("undeffloat", obj.delayTimer); // delayTimer
+                    if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
+                    {
+                        // obsolete
+                        writer.WriteBooleans("undefbool", obj.wantTurret); // wantTurret
+                    }
+                }
+            }
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
 }

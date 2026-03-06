@@ -18,6 +18,8 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassFlareMine : ClassMine
     {
+        public float Undeffloat { get; set; }
+
         public ClassFlareMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFlareMine? obj)
         {
@@ -27,8 +29,8 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                //saveClass = tok.GetSingle();
-                //shotTimer
+                if (obj != null) obj.Undeffloat = tok.GetSingle();
+                //shotTimer?
 
                 //tok = reader.ReadToken();
                 //if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
@@ -36,6 +38,20 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             ClassMine.Hydrate(parent, reader, obj as ClassMine);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassFlareMine obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                writer.WriteFloats("undeffloat", obj.Undeffloat); // type and name unconfirmed
+            }
+            ClassMine.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

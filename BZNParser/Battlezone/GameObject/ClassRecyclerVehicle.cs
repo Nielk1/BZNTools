@@ -16,7 +16,13 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassRecyclerVehicle : ClassDeployBuilding
     {
+        public float nextRepair { get; set; }
+        public float buildDoneTime { get; set; }
+        public bool buildActive { get; set; }
+        public string[] buildItems { get; set; }
+
         public ClassRecyclerVehicle(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassRecyclerVehicle? obj)
         {
             if (reader.Version == 1047)
@@ -25,17 +31,21 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("nextRepair", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextRepair/FLOAT");
-                float nextRepair = tok.GetSingle();
+                if (obj != null) obj.nextRepair = tok.GetSingle();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildDoneTime/FLOAT");
+                if (obj != null) obj.buildDoneTime = tok.GetSingle();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
+                if (obj != null) obj.buildActive = tok.GetBoolean();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
                 int buildCount = tok.GetInt32();
+
+                if (obj != null) obj.buildItems = new string[buildCount];
 
                 for (int i = 0; i < buildCount; i++)
                 {
@@ -43,10 +53,32 @@ namespace BZNParser.Battlezone.GameObject
                     //ILoadSaveVisitor::out(a2, *v5, "buildItem");
                     //++v4;
                     string item = reader.ReadGameObjectClass_BZ2(parent, "buildItem");
+                    if (obj != null) obj.buildItems[i] = item;
                 }
             }
 
             ClassDeployBuilding.Hydrate(parent, reader, obj as ClassDeployBuilding);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassRecyclerVehicle obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Version == 1047)
+            {
+                writer.WriteFloats("nextRepair", obj.nextRepair);
+                writer.WriteFloats("buildDoneTime", obj.buildDoneTime);
+                writer.WriteBooleans("buildActive", obj.buildActive);
+                writer.WriteSignedValues("buildCount", obj.buildItems.Length);
+                for (int i = 0; i < obj.buildItems.Length; i++)
+                {
+                    writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem");
+                }
+            }
+            ClassDeployBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

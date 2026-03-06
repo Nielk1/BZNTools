@@ -1,4 +1,5 @@
 ﻿using BZNParser.Tokenizer;
+using System.Reflection.PortableExecutable;
 
 namespace BZNParser.Battlezone.GameObject
 {
@@ -53,8 +54,8 @@ namespace BZNParser.Battlezone.GameObject
                     if (obj != null) obj.lastThrot = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("lastSteer", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse lastSteer/FLOAT");
+                    if (!tok.Validate("lastStrafe", BinaryFieldType.DATA_FLOAT))
+                        throw new Exception("Failed to parse lastStrafe/FLOAT");
                     if (obj != null) obj.lastStrafe = tok.GetSingle();
                 }
 
@@ -81,6 +82,35 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassAirCraft obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (parent.SaveType != SaveType.BZN)
+            {
+                writer.WriteVoidBytes("state", (UInt32)obj.state);
+                writer.WriteFloats("deployTimer", obj.deployTimer);
+
+                if (parent.SaveType == SaveType.LOCKSTEP)
+                {
+                    writer.WriteFloats("lastSteer", obj.lastSteer);
+                    writer.WriteFloats("lastThrot", obj.lastThrot);
+                    writer.WriteFloats("lastStrafe", obj.lastSteer);
+                }
+
+                if (writer.Version >= 1138)
+                {
+                    writer.WriteBooleans("lockMode", obj.m_bLockMode);
+                    writer.WriteBooleans("lockModeDeployed", obj.m_bLockModeDeployed);
+                }
+            }
+
+            ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

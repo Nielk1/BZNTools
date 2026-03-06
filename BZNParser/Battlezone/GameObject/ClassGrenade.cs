@@ -20,5 +20,15 @@ namespace BZNParser.Battlezone.GameObject
         {
             ClassRocket.Hydrate(parent, reader, obj as ClassRocket);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassGrenade obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            ClassRocket.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
 }

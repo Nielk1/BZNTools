@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
@@ -25,6 +26,9 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassPoweredBuilding : ClassBuilding
     {
+        public int scriptPowerOverride { get; set; }
+        public UInt32[]? powerHandle { get; set; }
+
         public ClassPoweredBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPoweredBuilding? obj)
         {
@@ -42,6 +46,11 @@ namespace BZNParser.Battlezone.GameObject
                     if (tok.GetCount() > 1)
                     {
                         UInt32 powerHandle2 = tok.GetUInt32(1);
+                        if (obj != null) obj.powerHandle = new UInt32[] { powerHandle, powerHandle2 };
+                    }
+                    else
+                    {
+                        if (obj != null) obj.powerHandle = new UInt32[] { powerHandle };
                     }
                     reader.Bookmark.Discard();
                 }
@@ -62,10 +71,39 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse scriptPowerOverride/LONG");
-                Int32 autoTarget = tok.GetInt32();
+                if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassPoweredBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Version >= 1062)
+            {
+                if (obj.powerHandle != null && obj.powerHandle.Length > 0)
+                {
+                    writer.WriteUnsignedValues("powerHandle", obj.powerHandle);
+                }
+            }
+
+            if (parent.SaveType != SaveType.BZN)
+            {
+                //(a2->vftable->read_long)(a2, this + 2052, 4, "terminalUser");
+                //(a2->vftable->out_bool)(a2, this + 2056, 1, "terminalRemote");
+            }
+
+            if (writer.Version >= 1193)
+            {
+                writer.WriteSignedValues("scriptPowerOverride", obj.scriptPowerOverride);
+            }
+
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

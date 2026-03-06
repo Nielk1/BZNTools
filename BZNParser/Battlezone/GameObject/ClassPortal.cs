@@ -20,6 +20,11 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassPortal : ClassGameObject
     {
+        public UInt32 portalState { get; set; }
+        public float portalBeginTime { get; set; }
+        public float portalEndTime { get; set; }
+        public bool isIn { get; set; }
+
         public ClassPortal(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPortal? obj)
         {
@@ -29,22 +34,39 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("portalState", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse portalState/LONG");
-                UInt32 portalState = tok.GetUInt32H();
+                if (obj != null) obj.portalState = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("portalBeginTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse portalBeginTime/FLOAT");
-                float portalBeginTime = tok.GetSingle();
+                if (obj != null) obj.portalBeginTime = tok.GetSingle();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("portalEndTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse portalEndTime/FLOAT");
-                float portalEndTime = tok.GetSingle();
+                if (obj != null) obj.portalEndTime = tok.GetSingle();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("isIn", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isIn/BOOL");
-                bool isIn = tok.GetBoolean();
+                if (obj != null) obj.isIn = tok.GetBoolean();
             }
 
             ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassPortal obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Version >= 2004)
+            {
+                writer.WriteUnsignedValues("portalState", obj.portalState);
+                writer.WriteFloats("portalBeginTime", obj.portalBeginTime);
+                writer.WriteFloats("portalEndTime", obj.portalEndTime);
+                writer.WriteBooleans("isIn", obj.isIn);
+            }
+            ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

@@ -35,5 +35,10 @@ namespace BZNParser.Battlezone.GameObject
 
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
+
+        public virtual void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+
+        }
     }
 }

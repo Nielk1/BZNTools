@@ -48,5 +48,21 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassComputerBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            ClassDummy.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+
+            if (writer.Version >= 1102)
+            {
+                writer.WriteVoidBytes("Nozzle1", obj.Nozzle1_Handle);
+                writer.WriteVoidBytes("Nozzle2", obj.Nozzle2_Handle);
+            }
+        }
     }
 }

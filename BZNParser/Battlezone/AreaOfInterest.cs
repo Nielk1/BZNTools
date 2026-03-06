@@ -60,8 +60,8 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse undefptr/PTR");
+                if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
+                    throw new Exception("Failed to parse dropoff/PTR");
                 if (obj != null) obj.path = tok.GetUInt32H();
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -117,7 +117,7 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WritePtr("undefptr", path);
+                writer.WritePtr("dropoff", path);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {

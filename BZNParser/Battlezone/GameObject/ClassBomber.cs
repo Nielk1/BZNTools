@@ -16,7 +16,9 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassBomber : ClassHoverCraft
     {
-        protected float m_ReloadTime { get; set; }
+        public UInt32 state { get; set; }
+        public float m_ReloadTime { get; set; }
+
         public ClassBomber(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBomber? obj)
         {
@@ -34,6 +36,23 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassBomber obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            writer.WriteVoidBytes("state", obj.state);
+
+            if (parent.SaveType != SaveType.BZN)
+            {
+                writer.WriteFloats("m_ReloadTime", obj.m_ReloadTime);
+            }
+
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

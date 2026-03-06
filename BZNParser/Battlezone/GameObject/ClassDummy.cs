@@ -41,5 +41,21 @@ namespace BZNParser.Battlezone.GameObject
             // Terrain doesn't call base data load
             //base.Build(reader, obj);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassDummy obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Version == 1047)
+            {
+                ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations); // this might be due to a changed base class on "spawnpnt"
+                return;
+            }
+
+            writer.WriteChars("name", obj.name);
+        }
     }
 }

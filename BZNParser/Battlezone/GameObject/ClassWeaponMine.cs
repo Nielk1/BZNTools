@@ -29,19 +29,39 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse curAmmo/FLOAT");
-                    if (obj != null) obj.curAmmo = (int)tok.GetSingle();
+                    if (obj != null) obj.curAmmoF = tok.GetSingle();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse maxAmmo/FLOAT");
-                    if (obj != null) obj.maxAmmo = (int)tok.GetSingle();
+                    if (obj != null) obj.maxAmmoF = tok.GetSingle();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse addAmmo/FLOAT");
-                    float addAmmo = (uint)tok.GetSingle();
+                    if (obj != null) obj.addAmmoF = tok.GetSingle();
                 }
             }
 
             ClassMine.Hydrate(parent, reader, obj as ClassMine);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassWeaponMine obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version >= 1144)
+                {
+                    writer.WriteFloats("curAmmo", obj.curAmmoF);
+                    writer.WriteFloats("maxAmmo", obj.maxAmmoF);
+                    writer.WriteFloats("addAmmo", obj.addAmmoF);
+                }
+            }
+
+            ClassMine.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

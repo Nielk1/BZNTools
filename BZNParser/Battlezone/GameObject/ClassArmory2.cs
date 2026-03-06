@@ -1,4 +1,6 @@
 ﻿using BZNParser.Tokenizer;
+using System.Diagnostics.Contracts;
+using System.Reflection.PortableExecutable;
 
 namespace BZNParser.Battlezone.GameObject
 {
@@ -92,6 +94,41 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassArmory2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            writer.WriteFloats("buildDoneTime", obj.buildDoneTime);
+            writer.WriteBooleans("buildActive", obj.buildActive);
+            writer.WriteSignedValues("buildCount", obj.buildQueue.Count);
+
+            foreach (string? item in obj.buildQueue)
+            {
+                writer.WriteGameObjectClass_BZ2(parent, item, "buildItem");
+            }
+            if (parent.SaveType != SaveType.BZN)
+            {
+                writer.WriteBooleans("buildStall", obj.buildStall);
+                writer.WriteVector3Ds("buildRally", obj.buildRally);
+                writer.WriteSignedValues("navHandle", obj.navHandle);
+                writer.WriteSignedValues("launchHandle", obj.launchHandle);
+                writer.WriteVector3Ds("launchTarget", obj.launchTarget);
+            }
+
+            if (parent.SaveType == 0)
+            {
+                if (writer.Version >= 1135)
+                {
+                    writer.WriteSignedValues("navHandle", obj.navHandle);
+                }
+            }
+
+            ClassPoweredBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
@@ -22,7 +23,8 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassTug : ClassHoverCraft
     {
-        public UInt32 undefptr { get; set; }
+        public UInt32 cargo { get; set; }
+        public UInt32 state { get; set; }
 
         public ClassTug(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTug? obj)
@@ -35,15 +37,15 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Format == BZNFormat.Battlezone && reader.Version == 1045)
                 {
                     // This is due to bvapc26, assumed to be a tug,in "bdmisn26.bzn"
-                    if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
+                    if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
                         if (!tok.Validate("state", BinaryFieldType.DATA_PTR))
-                            throw new Exception("Failed to parse undefptr/state/PTR");
+                            throw new Exception("Failed to parse dropoff/state/PTR");
                 }
                 else
                 {
-                    if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
+                    if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/PTR");
                 }
-                if (obj != null) obj.undefptr = tok.GetUInt32H(); // cargo
+                if (obj != null) obj.cargo = tok.GetUInt32H(); // cargo
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -65,10 +67,69 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse state/VOID");
-                    // state = tok.GetUInt32H();
+                    if (obj != null) obj.state = tok.GetUInt32H();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("cargoHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse cargoHandle/LONG");
+                    if (obj != null) obj.cargo = tok.GetUInt32();
+
+                    if (parent.SaveType != SaveType.BZN)
+                    {
+                        //(a2->vftable->field_24)(a2, this + 2364, 12, "lastPosit");
+                    }
+                }
+                if (parent.SaveType == SaveType.JOIN || parent.SaveType == SaveType.LOCKSTEP)
+                {
+                    //(a2->vftable->out_float)(a2, this + 2340, 4, "dockSpeed");
+                    //(a2->vftable->out_float)(a2, this + 2344, 4, "delayTimer");
+                    //(a2->vftable->out_float)(a2, this + 2348, 4, "timeDeploy");
+                    //(a2->vftable->out_float)(a2, this + 2352, 4, "timeUndeploy");
+                }
+                if (parent.SaveType == 0)
+                {
+                    // stuff
+                }
+            }
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassTug obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                if (writer.Format == BZNFormat.Battlezone && writer.Version == 1045)
+                {
+                    throw new NotImplementedException("Can't write PTR types since we don't know what they point to"); // this is a confusion point we need to resolve
+                    writer.WritePtr("dropoff", obj.cargo); // dropoff
+                }
+                else
+                {
+                    writer.WritePtr("dropoff", obj.cargo); // dropoff
+                }
+            }
+            else if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version < 1109)
+                {
+                    if (parent.SaveType != SaveType.BZN)
+                    {
+                        // 2 things to write here, cargoHandle and lastPosit
+                    }
+                }
+            }
+
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version >= 1109)
+                {
+                    writer.WriteVoidBytes("state", obj.state);
+                    writer.WriteUnsignedValues("cargoHandle", obj.cargo);
 
                     if (parent.SaveType != SaveType.BZN)
                     {

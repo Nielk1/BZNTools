@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Numerics;
+using System.Reflection.PortableExecutable;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
@@ -141,7 +142,7 @@ namespace BZNParser.Battlezone
             if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
             return tok.GetString();
         }
-        
+
         public static string? ReadGameObjectClass_BZ2(this BZNStreamReader reader, BZNFileBattlezone parent, string name, [System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")
         {
             if (reader.Version < 1145)
@@ -157,6 +158,25 @@ namespace BZNParser.Battlezone
                 else
                 {
                     return reader.ReadBZ2InputString(name);
+                }
+            }
+        }
+
+        public static void WriteGameObjectClass_BZ2(this BZNStreamWriter writer, BZNFileBattlezone parent, string name, string value, [System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")
+        {
+            if (writer.Version < 1145)
+            {
+                writer.WriteSizedString_BZ2_1145(name, 16, value);
+            }
+            else
+            {
+                if (parent.SaveType == SaveType.LOCKSTEP)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    writer.WriteBZ2InputString(name, value);
                 }
             }
         }
@@ -179,6 +199,21 @@ namespace BZNParser.Battlezone
             else
             {
                 return tok.GetRaw(0, 1)[0];
+            }
+        }
+
+        public static void WriteBytePossibleRawPossibleSigned_BZ2(this BZNStreamWriter writer, string name, byte value)
+        {
+            if (writer.Version >= 1187)
+            {
+                writer.WriteUnsignedValues(name, value);
+                return;
+            }
+            else
+            {
+                //return tok.GetRaw(0, 1)[0];
+                writer.WriteUnsignedValues(name, value);
+                return;
             }
         }
 
@@ -304,7 +339,10 @@ namespace BZNParser.Battlezone
 
             tok = reader.ReadToken();
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
+            {
                 if (!tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
+                // we forgot to read the what
+            }
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 if (reader.Version < 1145)
@@ -334,7 +372,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (reader.Format == BZNFormat.Battlezone && (reader.Version == 1001 || reader.Version == 1011 || reader.Version == 1012))
                 {
-                    if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
+                    if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/PTR");
                 }
                 else
                 {
@@ -379,6 +417,77 @@ namespace BZNParser.Battlezone
             }
 
             return retVal;
+        }
+
+        // UNTESTED AI, TODO REPLACE
+        public static void WriteAiCmdInfo(this BZNStreamWriter writer, AiCmdInfo value, bool preserveMalformations)
+        {
+            writer.WriteUnsignedValues("priority", value.priority);
+
+            if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
+            {
+                // can't write what we don't know how to read, breakpoint until we fix that
+                writer.WriteVoidBytes("what", new byte[1] { (byte)value.what });
+            }
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version < 1145)
+                {
+                    if (writer.InBinary)
+                    {
+                        writer.WriteVoidBytes("what", (byte)value.what);
+                    }
+                    else
+                    {
+                        writer.WriteVoidBytes("what", value.what);
+                    }
+                }
+                else
+                {
+                    if (writer.InBinary)
+                    {
+                        writer.WriteUnsignedValues("what", (byte)value.what);
+                    }
+                    else
+                    {
+                        writer.WriteVoidBytes("what", value.what);
+                    }
+                }
+            }
+
+            writer.WriteSignedValues("who", value.who);
+
+            //if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
+            {
+                if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
+                {
+                    writer.WritePtr("dropoff", value.where);
+                }
+                else
+                {
+                    writer.WritePtr("where", value.where);
+                }
+
+                //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)
+                if (writer.Format == BZNFormat.Battlezone && writer.Version >= 2012)
+                {
+                    var mal = value.Malformations.GetMalformations(Malformation.INCORRECT, "param");
+                    if (preserveMalformations && mal.Length > 0)
+                    {
+                        writer.WriteIDs("param", (byte[])mal[0].Fields[0]);
+                    }
+                    else
+                    {
+                        writer.WriteIDs("param", value.param); // sometimes empty string for 0, not sure WTF that's about
+                    }
+                }
+                else
+                {
+                    writer.WriteUnsignedValues("param", (UInt32)value.param);
+                }
+            }
+
+            return;
         }
 
         public static Euler GetEuler(this BZNStreamReader reader, SaveType saveType)
@@ -521,6 +630,76 @@ namespace BZNParser.Battlezone
                     //euler.CalcVMag();
 
                     //return euler;
+                }
+            }
+            throw new NotImplementedException("Euler Save");
+        }
+
+        public static void WriteEulerBZ(this BZNStreamWriter writer, SaveType saveType, Euler value)
+        {
+            if (writer.Format != BZNFormat.Battlezone2 || saveType == SaveType.BZN) // Battlezone 2 has side paths
+            {
+                if (writer.InBinary)
+                {
+                    writer.WriteFloats(null, value.mass);
+                    writer.WriteFloats(null, value.mass_inv);
+                    writer.WriteFloats(null, value.v_mag);
+                    writer.WriteFloats(null, value.v_mag_inv);
+                    writer.WriteFloats(null, value.I);
+                    writer.WriteFloats(null, value.I_inv);
+                    writer.WriteVector3Ds(null, value.v);
+                    writer.WriteVector3Ds(null, value.omega);
+                    writer.WriteVector3Ds(null, value.Accel);
+
+                    return;
+                }
+                else
+                {
+                    writer.WriteEuler("euler", value);
+
+                    return;
+                }
+            }
+            else if (writer.Format == BZNFormat.Battlezone2 && writer.Version < 1145)
+            {
+                // byte buffer as void*
+                throw new NotImplementedException("Version <1145 Euler Save");
+            }
+            else
+            {
+                if (writer.InBinary)
+                {
+                    writer.WriteFloats("mass", value.mass);
+
+                    //float euler_mass_inv = tok.GetSingle();
+                    //float euler_v_mag = tok.GetSingle();
+                    //float euler_v_mag_inv = tok.GetSingle();
+
+                    writer.WriteFloats("I", value.I);
+
+                    //float euler_k_i = tok.GetSingle();
+
+                    bool canCompress = true;
+                    if (canCompress && value.v.Magnitude() != 0) canCompress = false;
+                    if (canCompress && value.omega.Magnitude() != 0) canCompress = false;
+                    if (canCompress && value.Accel.Magnitude() != 0) canCompress = false;
+                    if (canCompress && value.Alpha.Magnitude() != 0) canCompress = false;
+
+                    if (!canCompress)
+                    {
+                        writer.WriteVector3Ds(" v", value.v);
+                        writer.WriteVector3Ds(" omega", value.omega);
+                        writer.WriteVector3Ds(" Accel", value.Accel);
+                        writer.WriteVector3Ds(" Alpha", value.Alpha);
+                    }
+                    else
+                    {
+                        writer.WriteBooleans(" small", true);
+                    }
+
+                    writer.WriteVector3Ds(" Pos", value.Pos);
+                    throw new NotImplementedException("Euler Save");
+                    //writer.WriteQuat(" Att", value.Att); // no Quat saving written yet
                 }
             }
             throw new NotImplementedException("Euler Save");

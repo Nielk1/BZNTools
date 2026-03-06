@@ -27,14 +27,14 @@ The BZNStreamReader will peek at the beginning of the file to evaluate its flavo
 | Game                               | TypeSize | SizeSize | Alignment | Endian |
 |:-----------------------------------|---------:|---------:|----------:|:-------|
 | Battlezone: Rise of the Black Dogs |        0 |        2 |         2 | Big    |
-| Battlezone                         |        2 |        2 |         0 | Little |
+| Battlezone                         |       2* |        2 |         0 | Little |
 | Battlezone 98 Redux                |        2 |        2 |         0 | Little |
 | Battlezone II: Combat Commander    |        1 |        2 |         0 | Little |
 | Battlezone Combat Commander        |        1 |        2 |         0 | Little |
 | Star Trek Armada                   |       4* |        4 |         0 | Little |
 | Star Trek Armada II                |       4* |        4 |         0 | Little |
 
-\* The Type field in Armada BZNs is 4 bytes but 3 of those bytes are garbage data. For now we just always use 1 byte for the type for all games as there are less than 256 types in all games.
+\* The Type field in Armada BZNs is 4 bytes but 3 of those bytes are garbage data. Some Battlezone BZNs have shown this same behavior with their 2 byte type values. For now we just always use 1 byte for the type for all games as there are less than 256 types in all games.
 
 Difficulties:
 * There are no markers for the ends of objects so the format is very fragile.

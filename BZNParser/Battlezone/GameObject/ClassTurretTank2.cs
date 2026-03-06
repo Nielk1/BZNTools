@@ -1,4 +1,5 @@
 ﻿using BZNParser.Tokenizer;
+using System.Reflection.PortableExecutable;
 
 namespace BZNParser.Battlezone.GameObject
 {
@@ -24,6 +25,9 @@ namespace BZNParser.Battlezone.GameObject
         protected bool turretAligned { get; set; }
         protected bool wantTurret { get; set; } // obsolete, minterpreted as turretAligned
         protected float prevYaw { get; set; }
+
+        public float alphaTurret { get; set; } // obsolete, only read in LOCKSTEP/JOINSAVE, ignored otherwise
+
         public ClassTurretTank2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank2? obj)
         {
@@ -49,7 +53,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("change_state", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse change_state/LONG");
-                int change_state = tok.GetInt32(); // change_state
+                if (obj != null) obj.change_state = tok.GetInt32(); // change_state
 
 
                 tok = reader.ReadToken();
@@ -65,7 +69,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse prevYaw/FLOAT");
-                float prevYaw = tok.GetSingle(); // prevYaw
+                if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
 
                 throw new NotImplementedException("Turret Control loading loop needed here");
             }
@@ -105,7 +109,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("alphaTurret", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse alphaTurret/FLOAT");
-                    float alphaTurret = tok.GetSingle(); // alphaTurret
+                    if (obj != null) obj.alphaTurret = tok.GetSingle(); // alphaTurret
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
@@ -193,6 +197,94 @@ namespace BZNParser.Battlezone.GameObject
             // parent.SaveType != SaveType.BZN
 
             ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassTurretTank2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (parent.SaveType == SaveType.LOCKSTEP || parent.SaveType == SaveType.JOIN)
+            {
+                writer.WriteFloats("omegaTurret", obj.omegaTurret);
+                writer.WriteFloats("timeDeploy", obj.timeDeploy);
+                writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
+                writer.WriteSignedValues("change_state", obj.change_state);
+                writer.WriteFloats("delayTimer", obj.delayTimer);
+                writer.WriteBooleans("turretAligned", obj.turretAligned);
+                writer.WriteFloats("prevYaw", obj.prevYaw);
+
+                throw new NotImplementedException("Turret Control loading loop needed here");
+            }
+            else
+            {
+                if (obj.m_Use13Aim)
+                {
+                    if (writer.Version < 1109)
+                    {
+                        // we read a turretAligned but we're too old a version for that to be a thing
+                        throw new Exception("Use13Aim turret save data found in BZN Version < 1109, impossible, parse error expected");
+                    }
+                }
+                else
+                {
+                    writer.WriteFloats("omegaTurret", obj.omegaTurret);
+                    writer.WriteFloats("alphaTurret", obj.alphaTurret); // obsolete
+                    writer.WriteFloats("timeDeploy", obj.timeDeploy);
+                    writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
+                    writer.WriteVoidBytes("state", (UInt32)obj.state);
+                    writer.WriteFloats("delayTimer", obj.delayTimer);
+
+                    if (writer.Version == 1100)
+                    {
+                        var mal = obj.Malformations.GetMalformations(Malformation.MISINTERPRET, "wantTurret");
+                        if (mal.Length > 0)
+                        {
+                            writer.WriteBooleans((string)mal[0].Fields[0], obj.turretAligned);
+                        }
+                        else
+                        {
+                            writer.WriteBooleans("wantTurret", obj.wantTurret);
+                        }
+                    }
+                    else
+                    {
+                        writer.WriteBooleans("turretAligned", obj.turretAligned);
+                    }
+
+                    if (parent.SaveType != SaveType.BZN && writer.Version >= 1140)
+                    {
+                        if (!obj.m_Use13Aim)
+                        {
+                            writer.WriteFloats("prevYaw", obj.prevYaw);
+                            writer.WriteSignedValues("change_state", obj.change_state);
+                        }
+                    }
+
+                    if (writer.Version < 1109)
+                    {
+                        ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                        return;
+                    }
+                }
+
+                if (obj.m_Use13Aim)
+                {
+                    writer.WriteBooleans("turretAligned", obj.turretAligned);
+                }
+
+                if (parent.SaveType != SaveType.BZN)
+                {
+                    if (obj.m_Use13Aim)
+                    {
+                        throw new NotImplementedException("Turret Control loading loop needed here");
+                    }
+                }
+            }
+
+            ClassDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

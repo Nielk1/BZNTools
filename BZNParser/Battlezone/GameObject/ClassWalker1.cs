@@ -52,5 +52,19 @@ namespace BZNParser.Battlezone.GameObject
 
             ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassWalker1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Version > 1001 && writer.Version < 1026)
+            {
+                throw new NotImplementedException("Can't write walker for versions 1002-1025 due to unknown hovercraft params");
+            }
+            ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
 }

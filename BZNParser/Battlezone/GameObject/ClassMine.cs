@@ -17,6 +17,9 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassMine : ClassBuilding
     {
+        public float lifeTimer { get; set; }
+        public float undeffloat { get; set; }
+
         public ClassMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMine? obj)
@@ -27,7 +30,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     IBZNToken tok = reader.ReadToken();
                     if (!tok.Validate("lifeTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse lifeTimer/FLOAT");
-                    //lifeTimer = tok.GetSingle();
+                    if (obj != null) obj.lifeTimer = tok.GetSingle();
                 }
             }
 
@@ -35,37 +38,33 @@ namespace BZNParser.Battlezone.GameObject
             {
                 IBZNToken tok = reader.ReadToken();
                 if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                //saveClass = tok.GetSingle();
-                //lifeTimer
-
-                //if (reader.Version > 1123)
-                //{
-                //    IBZNToken tok;
-                //
-                //    long pos = reader.BaseStream.Position;
-                //
-                //    tok = reader.ReadToken();
-                //    if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
-                //    {
-                //        reader.BaseStream.Position = pos;
-                //    }
-                //    else
-                //    {
-                //        if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                //        float undeffloat = (int)tok.GetSingle();
-                //    }
-                //}
-                //if (reader.Version >= 1180 && reader.Version != 1192) // unless it needs to be over 1192, do check
-                //{
-                //    IBZNToken tok;
-                //
-                //    tok = reader.ReadToken();
-                //    if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                //    float undeffloat = (int)tok.GetSingle();
-                //}
+                if (obj != null) obj.undeffloat = tok.GetSingle(); // might be lifeTimer
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassMine obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone)
+            {
+                if (writer.Version >= 1038 && parent.SaveType != SaveType.BZN)
+                {
+                    writer.WriteFloats("lifeTimer", obj.lifeTimer);
+                }
+            }
+
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                writer.WriteFloats("undeffloat", obj.lifeTimer);
+            }
+
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

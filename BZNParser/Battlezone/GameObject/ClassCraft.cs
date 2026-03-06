@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
@@ -28,7 +29,12 @@ namespace BZNParser.Battlezone.GameObject
 
         public Int32 abandoned { get; set; }
 
+        public float? cloakTransitionTime { get; set; }
+        public UInt32? cloakState { get; set; }
+        public float? cloakTransBeginTime { get; set; }
+        public float? cloakTransEndTime { get; set; }
 
+        public float m_ejectRatio { get; set; }
 
         public bool m_Use13Aim { get; set; } = false;
 
@@ -139,23 +145,23 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("cloakTransitionTime", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse cloakTransitionTime/FLOAT");
-                    float cloakTransitionTime = (uint)tok.GetSingle();
+                    if (obj != null) obj.cloakTransitionTime = (uint)tok.GetSingle();
                 }
-                
+
                 tok = reader.ReadToken();
                 if (!tok.Validate("cloakState", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse cloakState/VOID");
-                UInt32 cloakState = (uint)tok.GetUInt32H();
+                if (obj != null) obj.cloakState = (uint)tok.GetUInt32H();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("cloakTransBeginTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransBeginTime/FLOAT");
-                float cloakTransBeginTime = (uint)tok.GetSingle();
+                if (obj != null) obj.cloakTransBeginTime = (uint)tok.GetSingle();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("cloakTransEndTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransEndTime/FLOAT");
-                float cloakTransEndTime = (uint)tok.GetSingle();
+                if (obj != null) obj.cloakTransEndTime = (uint)tok.GetSingle();
             }
 
             if (reader.Format == BZNFormat.Battlezone2)
@@ -165,17 +171,17 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse curAmmo/FLOAT");
-                    if (obj != null) obj.curAmmo = (int)tok.GetSingle();
+                    if (obj != null) obj.curAmmoF = tok.GetSingle();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse maxAmmo/FLOAT");
-                    if (obj != null) obj.maxAmmo = (int)tok.GetSingle();
+                    if (obj != null) obj.maxAmmoF = tok.GetSingle();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse addAmmo/FLOAT");
-                    float addAmmo = (uint)tok.GetSingle();
+                    if (obj != null) obj.addAmmoF = tok.GetSingle();
 
                     if (reader.InBinary)
                     {
@@ -213,19 +219,98 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (!tok.Validate("m_ejectRatio", BinaryFieldType.DATA_FLOAT))
                             throw new Exception("Failed to parse m_ejectRatio/FLOAT");
-                        //m_ejectRatio = tok.GetSingle();
+                        if (obj != null) obj.m_ejectRatio = tok.GetSingle();
                     }
                     else if (reader.Version >= 1196)
                     {
                         tok = reader.ReadToken();
                         if (!tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
                             throw new Exception("Failed to parse ejectRatio/FLOAT");
-                        //m_ejectRatio = tok.GetSingle();
+                        if (obj != null) obj.m_ejectRatio = tok.GetSingle();
                     }
                 }
             }
 
             ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+        }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassCraft obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            if (writer.Format == BZNFormat.Battlezone && writer.Version < 1019)
+            {
+                if (writer.Version > 1001)
+                {
+                    // obsolete
+                    throw new NotImplementedException("Dehydration of obsolete ClassCraft fields not implemented");
+                }
+            }
+
+            if (writer.Format == BZNFormat.BattlezoneN64
+            || (writer.Format == BZNFormat.Battlezone && writer.Version > 1027)
+            || (writer.Format == BZNFormat.Battlezone2))// && reader.Version >= 1034))
+            {
+                writer.WriteSignedValues("abandoned", obj.abandoned);
+            }
+
+            // guesses: omit version 2016, 2011
+            if (writer.Format == BZNFormat.Battlezone && writer.Version >= 2000)
+            {
+                if (writer.Version < 2002)
+                {
+                    writer.WriteFloats("cloakTransitionTime", obj.cloakTransitionTime.Value);
+                }
+
+                writer.WriteVoidBytes("cloakState", obj.cloakState.Value);
+                writer.WriteFloats("cloakTransBeginTime", obj.cloakTransBeginTime.Value);
+                writer.WriteFloats("cloakTransEndTime", obj.cloakTransEndTime.Value);
+            }
+
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version >= 1143)
+                {
+                    writer.WriteFloats("cutAMmo", obj.curAmmoF);
+                    writer.WriteFloats("maxAmmo", obj.maxAmmoF);
+                    writer.WriteFloats("addAmmo", obj.addAmmoF);
+
+                    if (writer.InBinary)
+                    {
+                        writer.WriteUnsignedValues(null, (byte)obj.curPilot.Length);
+
+                        if (obj.curPilot.Length > 0)
+                        {
+                            writer.WriteChars("curPilot", obj.curPilot);
+                        }
+                    }
+                    else
+                    {
+                        if (writer.Version == 1145 || writer.Version == 1147 || writer.Version == 1148 || writer.Version == 1149 || writer.Version == 1151 || writer.Version == 1154)
+                        {
+                            writer.WriteChars("config", obj.curPilot);
+                        }
+                        else
+                        {
+                            writer.WriteChars("curPilot", obj.curPilot);
+                        }
+                    }
+
+                    if (writer.Version == 1195)
+                    {
+                        writer.WriteFloats("m_ejectRatio", obj.m_ejectRatio);
+                    }
+                    else if (writer.Version >= 1196)
+                    {
+                        writer.WriteFloats("ejectRatio", obj.m_ejectRatio);
+                    }
+                }
+            }
+
+            ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }
 }

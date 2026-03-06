@@ -35,5 +35,15 @@ namespace BZNParser.Battlezone.GameObject
 
             ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
         }
+
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+        }
+
+        public static void Dehydrate(ClassMorphTank obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        {
+            ClassDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+        }
     }
 }

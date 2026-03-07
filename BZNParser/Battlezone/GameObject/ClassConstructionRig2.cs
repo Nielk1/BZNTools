@@ -120,7 +120,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             else
             {
-                writer.WriteGameObjectClass_BZ2(parent, "buildClass", obj.dropClass);
+                writer.WriteGameObjectClass_BZ2(parent, "buildClass", obj.dropClass ?? string.Empty);
             }
 
             if (writer.Version >= 1150)

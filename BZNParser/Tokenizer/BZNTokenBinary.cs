@@ -57,6 +57,7 @@ namespace BZNParser.Tokenizer
             return BitConverter.ToInt32(data, index * sizeof(Int32));
         }
         public Int32 GetInt32H(int index = 0) => GetInt32(index);
+        public UInt32 GetUInt32HR(int index = 0) { throw new InvalidOperationException(); } // need to figure out if they're reversed or not in binary
 
         public UInt32 GetUInt32(int index = 0)
         {
@@ -118,7 +119,7 @@ namespace BZNParser.Tokenizer
         {
             if (index > 0) throw new ArgumentOutOfRangeException();
             string retVal = Encoding.ASCII.GetString(data);
-            return retVal.IndexOf('\0') > -1 ? retVal.Substring(0, retVal.IndexOf('\0')) : retVal;
+            return retVal;
         }
 
         public Vector3D GetVector3D(int index = 0)
@@ -173,6 +174,11 @@ namespace BZNParser.Tokenizer
 
         public byte[] GetBytes(int index = 0, int length = -1)
         {
+            if (length == -1)
+            {
+                if (index >= data.Length) throw new ArgumentOutOfRangeException();
+                return data.Skip(index).ToArray();
+            }
             if (index + length > data.Length) throw new ArgumentOutOfRangeException();
             return data.Skip(index).Take(length).ToArray();
         }

@@ -99,12 +99,14 @@ namespace BZNParser.Battlezone.GameObject
                         {
                             for (; ; )
                             {
+                                List<UInt32> PowerHandles = new List<UInt32>();
                                 reader.Bookmark.Push();
                                 tok = reader.ReadToken();
                                 if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                                 {
                                     reader.Bookmark.Discard();
                                     UInt32 powerHandle = tok.GetUInt32();
+                                    powerHandles.Add(powerHandle);
                                 }
                                 else
                                 {
@@ -123,9 +125,11 @@ namespace BZNParser.Battlezone.GameObject
                         {
                             reader.Bookmark.Discard();
                             UInt32 powerHandle = tok.GetUInt32();
+                            powerHandles.Add(powerHandle);
                             if (tok.GetCount() > 1)
                             {
                                 UInt32 powerHandle2 = tok.GetUInt32(1);
+                                powerHandles.Add(powerHandle2);
                             }
                         }
                         else
@@ -134,6 +138,8 @@ namespace BZNParser.Battlezone.GameObject
                         }
                     }
                 }
+
+                obj.powerHandles = powerHandles.ToArray();
 
                 // parent.SaveType != SaveType.BZN
                 /*if (a2[2].vftable)
@@ -245,19 +251,22 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                if (writer.Version >= 1068)
+                if (obj.powerHandles != null)
                 {
-                    if (writer.Version >= 1072)
+                    if (writer.Version >= 1068)
                     {
-                        // we don't know how many taps there are without the ODF, so just try to read forever
-                        foreach(UInt32 powerHandle in obj.powerHandles)
+                        if (writer.Version >= 1072)
                         {
-                            writer.WriteUnsignedValues("powerHandle", powerHandle);
+                            // we don't know how many taps there are without the ODF, so just try to read forever
+                            foreach (UInt32 powerHandle in obj.powerHandles)
+                            {
+                                writer.WriteUnsignedValues("powerHandle", powerHandle);
+                            }
                         }
-                    }
-                    else
-                    {
-                        writer.WriteUnsignedValues("powerHandle", obj.powerHandles); // length can't be over 2 without dying, maybe protect?
+                        else
+                        {
+                            writer.WriteUnsignedValues("powerHandle", obj.powerHandles); // length can't be over 2 without dying, maybe protect?
+                        }
                     }
                 }
 
@@ -267,7 +276,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // saveClass must have a CHAR token as its first token if it's in binary mode, meaning the above loop consuming all LONGs is fine
                     // if the version was lower we might have had a LONG conflict
-                    writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass);
+                    writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty);
 
                     //if (*(this + 376))
                     if (!string.IsNullOrEmpty(obj.saveClass))

@@ -205,7 +205,7 @@ namespace BZNParser.Battlezone
         public SaveType SaveType { get; private set; }
 
         public string msn_filename { get; set; }
-        public Int32 seq_count { get; set; }
+        public UInt32 seq_count { get; set; }
         public string TerrainName { get; set; }
         public float? start_time { get; set; }
         public EntityDescriptor[] Entities { get; private set; }
@@ -293,6 +293,12 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 Console.WriteLine($"Version: {tok.GetUInt32()}"); // don't bother validating first field maybe?
+                if (!tok.IsBinary)
+                {
+                    string fieldName = (tok as BZNTokenString).Name;
+                    if (fieldName != "Version")
+                        Malformations.AddIncorrectName("version", fieldName);
+                }
             }
 
             // Breadcrumb BZ2001-QUIRK
@@ -338,7 +344,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse seq_count/LONG");
-                seq_count = tok.GetInt32();
+                seq_count = tok.GetUInt32();
                 Console.WriteLine($"seq_count: {seq_count}");
             }
             else if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.Battlezone2)
@@ -348,7 +354,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse seq_count/LONG");
-                seq_count = tok.GetInt32();
+                seq_count = tok.GetUInt32();
                 Console.WriteLine($"seq_count: {seq_count}");
 
                 if (reader.Format == BZNFormat.Battlezone2)
@@ -400,7 +406,8 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
-                    TerrainName = tok.GetString();
+
+                    TerrainName = Malformations.AddBinaryMessString("TerrainName", tok.GetString());
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else if (reader.Version == 1171)
@@ -548,15 +555,15 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("groupTargets", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse groupTargets/VOID");
-                    groupTargets = tok.GetBytes();
+                    this.groupTargets = tok.GetBytes();
                 }
                 if (reader.Version == 1100 || reader.Version == 1041 || reader.Version == 1047 || reader.Version == 1070) // not sure what versions this happens
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("name", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse name/CHAR");
-                    Console.WriteLine($"Mission: {tok.GetString()}");
-                    this.Mission = tok.GetString();
+                    this.Mission = Malformations.AddBinaryMessString("name", tok.GetString());
+                    Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else if (reader.Version < 1145)
                 {
@@ -564,8 +571,8 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse dllName/CHAR");
-                    Console.WriteLine($"Mission: {tok.GetString()}");
-                    this.Mission = tok.GetString();
+                    this.Mission = Malformations.AddBinaryMessString("dllName", tok.GetString());
+                    Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else
                 {
@@ -578,8 +585,8 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse dllName/CHAR");
-                    Console.WriteLine($"Mission: {tok.GetString()}");
-                    this.Mission = tok.GetString();
+                    this.Mission = Malformations.AddBinaryMessString("dllName", tok.GetString());
+                    Console.WriteLine($"Mission: {this.Mission}");
                 }
             }
             if (reader.Format == BZNFormat.BattlezoneN64)
@@ -852,7 +859,7 @@ namespace BZNParser.Battlezone
                 }
 
                 tok = reader.ReadToken();
-                string TerrainName = tok.GetString();
+                TerrainName = tok.GetString();
                 if (!tok.Validate("Name", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse Name/UNKNOWN");
                 Console.WriteLine($"TerrainName: {TerrainName}");
@@ -891,13 +898,21 @@ namespace BZNParser.Battlezone
         {
             if (writer.Format != BZNFormat.BattlezoneN64)
             {
-                writer.WriteSignedValues("version", writer.Version);
+                var mal = Malformations.GetMalformations(Malformation.INCORRECT_NAME, "version");
+                if (preserveMalformations && mal.Length > 0)
+                {
+                    writer.WriteSignedValues((string)mal[0].Fields[0], writer.Version);
+                }
+                else
+                {
+                    writer.WriteSignedValues("version", writer.Version);
+                }
             }
 
             // Breadcrumb BZ2001-QUIRK
             if (writer.Format == BZNFormat.Battlezone2 && writer.Version != 1041 && writer.Version != 1047) // version is special case for bz2001.bzn
             {
-                writer.WriteUnknown("saveType", ((UInt32)SaveType).ToString()); // only in ASCII format in our testing
+                writer.WriteUnsignedValues("saveType", (UInt32)SaveType); // only in ASCII format in our testing
             }
 
             if (writer.Format == BZNFormat.Battlezone)
@@ -915,6 +930,8 @@ namespace BZNParser.Battlezone
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 writer.WriteBooleans("binarySave", binary);
+                if (binary)
+                    writer.SetBinary();
 
                 writer.WriteSizedString_BZ2_1145("msn_filename", 16, msn_filename);
             }
@@ -922,11 +939,19 @@ namespace BZNParser.Battlezone
             // todo this is oddly messy, clean it up and confirm
             if (writer.Format == BZNFormat.BattlezoneN64 || (writer.Format == BZNFormat.Battlezone && writer.Version <= 1001))
             {
-                writer.WriteSignedValues("seq_count", seq_count);
+                writer.WriteUnsignedValues("seq_count", seq_count);
             }
             else if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteSignedValues("seq_count", seq_count);
+                /*if (writer.InBinary)
+                {
+                    writer.WriteCompressedNumberFromBinary(seq_count);
+                }
+                else
+                {
+                    writer.WriteUnsignedValues("seq_count", seq_count);
+                }*/
+                writer.WriteUnsignedValues("seq_count", seq_count);
 
                 if (writer.Format == BZNFormat.Battlezone2)
                 {
@@ -987,7 +1012,10 @@ namespace BZNParser.Battlezone
                 if (writer.Version < 1171)
                 {
                     // BZ2: 1123 1124s
-                    writer.WriteChars("TerrainName", TerrainName);
+                    if (preserveMalformations)
+                        writer.WriteChars("TerrainName", Malformations.CheckBinaryMessString("TerrainName", TerrainName));
+                    else
+                        writer.WriteChars("TerrainName", TerrainName);
                 }
                 else if (writer.Version == 1171)
                 {
@@ -1026,12 +1054,12 @@ namespace BZNParser.Battlezone
                 }
                 if (writer.Version == 1100 || writer.Version == 1041 || writer.Version == 1047 || writer.Version == 1070) // not sure what versions this happens
                 {
-                    writer.WriteChars("name", Mission);
+                    writer.WriteChars("name", Malformations.CheckBinaryMessString("name", Mission));
                 }
                 else if (writer.Version < 1145)
                 {
                     // max length 40
-                    writer.WriteChars("dllName", Mission);
+                    writer.WriteChars("dllName", Malformations.CheckBinaryMessString("dllName", Mission));
                 }
                 else
                 {
@@ -1039,7 +1067,7 @@ namespace BZNParser.Battlezone
                     {
                         writer.WriteUnsignedValues(null, (byte)Mission.Length);
                     }
-                    writer.WriteChars("dllName", Mission);
+                    writer.WriteChars("dllName", Malformations.CheckBinaryMessString("dllName", Mission));
                 }
             }
             if (writer.Format == BZNFormat.BattlezoneN64)

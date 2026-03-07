@@ -8,6 +8,8 @@ namespace BZNParser.Tokenizer
 {
     public class BZNTokenString : IBZNToken
     {
+        public string Name { get => name; }
+
         private string[] values;
         private string name;
 
@@ -62,6 +64,15 @@ namespace BZNParser.Tokenizer
         {
             if (index >= values.Length) throw new ArgumentOutOfRangeException();
             return UInt32.Parse(values[index], System.Globalization.NumberStyles.HexNumber);
+        }
+
+        public UInt32 GetUInt32HR(int index = 0)
+        {
+            if (index >= values.Length) throw new ArgumentOutOfRangeException();
+            UInt32 value = UInt32.Parse(values[index], System.Globalization.NumberStyles.HexNumber);
+            byte[] bytes = BitConverter.GetBytes(value);
+            Array.Reverse(bytes);
+            return BitConverter.ToUInt32(bytes, 0);
         }
 
         public UInt32 GetUInt32Raw(int index = 0)

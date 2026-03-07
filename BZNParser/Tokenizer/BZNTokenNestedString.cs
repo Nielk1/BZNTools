@@ -29,6 +29,7 @@ namespace BZNParser.Tokenizer
         public Int32 GetInt32H(int index = 0) { return GetInt32(index); }
         public UInt32 GetUInt32(int index = 0) { throw new InvalidOperationException(); }
         public UInt32 GetUInt32H(int index = 0) { return GetUInt32(index); }
+        public UInt32 GetUInt32HR(int index = 0) { throw new InvalidOperationException(); }
         public UInt32 GetUInt32Raw(int index = 0) { return GetUInt32(index); }
         public Int16 GetInt16(int index = 0) { throw new InvalidOperationException(); }
         public UInt16 GetUInt16(int index = 0) { throw new InvalidOperationException(); }

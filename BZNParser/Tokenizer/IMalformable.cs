@@ -12,6 +12,8 @@ namespace BZNParser.Tokenizer
         NOT_IMPLEMENTED, // <fieldName>                         // Field not implemented, but it probably won't break the BZN read
         INCORRECT,       // <fieldName>,       <incorrectValue> // Value is incorrect and has been corrected
         LINE_ENDING,     // "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
+        STRING_PAD,      // <fieldName>,       <length>         // String is padded by nuls to reach this length
+        INCORRECT_NAME,  // <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
     }
 
     public static class MalformationExtensions
@@ -63,7 +65,7 @@ namespace BZNParser.Tokenizer
         /// <param name="manager">The <see cref="MalformationManager"/> to which the overcount malformation will be added. Cannot be <c>null</c>.</param>
         /// <param name="fieldName">The name of the field associated with the overcount malformation. Cannot be <c>null</c> or empty.</param>
         public static void AddOvercount(this MalformationManager manager, string fieldName) =>
-                manager.Add(Malformation.OVERCOUNT, fieldName);
+            manager.Add(Malformation.OVERCOUNT, fieldName);
 
         /// <summary>
         /// Adds a "not implemented" malformation entry for the specified field to the manager.
@@ -74,7 +76,7 @@ namespace BZNParser.Tokenizer
         /// <param name="manager">The <see cref="MalformationManager"/> to which the malformation entry will be added. Cannot be <c>null</c>.</param>
         /// <param name="fieldName">The name of the field that is not implemented. Cannot be <c>null</c> or empty.</param>
         public static void AddNotImplemented(this MalformationManager manager, string fieldName) =>
-                manager.Add(Malformation.NOT_IMPLEMENTED, fieldName);
+            manager.Add(Malformation.NOT_IMPLEMENTED, fieldName);
 
         /// <summary>
         /// Adds an entry indicating that the specified field contained an incorrect value but was corrected.
@@ -86,10 +88,10 @@ namespace BZNParser.Tokenizer
         /// <param name="fieldName">The name of the field that contains the incorrect value. Cannot be <c>null</c> or empty.</param>
         /// <param name="incorrectValue">The value that is considered incorrect for the specified field. Can be <c>null</c> if the field's incorrect state is due to a missing or invalid value.</param>
         public static void AddIncorrect(this MalformationManager manager, string fieldName, object incorrectValue) =>
-                manager.Add(Malformation.INCORRECT, fieldName, incorrectValue);
+            manager.Add(Malformation.INCORRECT, fieldName, incorrectValue);
 
         /// <summary>
-        /// Add an entry indicating that the line ending count is incorrect and has been corrected.
+        /// Adds an entry indicating that the line ending count is incorrect and has been corrected.
         /// </summary>
         /// <remarks>
         /// This is a whole file issue. This may or may not be reversible when trying to output a BZN with the malformations intact.
@@ -97,7 +99,22 @@ namespace BZNParser.Tokenizer
         /// <param name="manager"></param>
         /// <param name="incorrectValue"></param>
         public static void AddLineEnding(this MalformationManager manager, string incorrectValue) =>
-                manager.Add(Malformation.LINE_ENDING, "ALL:LINE_ENDING", incorrectValue);
+            manager.Add(Malformation.LINE_ENDING, "ALL:LINE_ENDING", incorrectValue);
+
+        /// <summary>
+        /// Adds an entry indication that the specified field was padding with nulls to reach a specific length.
+        /// </summary>
+        /// <remarks>
+        /// This mainly has to do with binary stored strings, it's mostly needed to replicate the original bytes.
+        /// </remarks>
+        /// <param name="manager">The <see cref="MalformationManager"/> instance to which the incorrect entry will be added. Cannot be <c>null</c>.</param>
+        /// <param name="fieldName">The name of the field that contains the incorrect value. Cannot be <c>null</c> or empty.</param>
+        /// <param name="length">The length of the string after padding.</param>
+        public static void AddStringPad(this MalformationManager manager, string filedName, int length) =>
+            manager.Add(Malformation.STRING_PAD, filedName, length);
+
+        public static void AddIncorrectName(this MalformationManager manager, string filedName, string badName) =>
+            manager.Add(Malformation.INCORRECT_NAME, filedName, badName);
     }
     public interface IMalformable
     {

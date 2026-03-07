@@ -59,7 +59,7 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("undefraw", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse undefraw/VOID");
-                    if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32(); // state
+                    if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");

@@ -140,9 +140,10 @@ namespace BZNParser.Battlezone
             return true;
         }
 
-        public void Write(BZNFileBattlezone bZNFileBattlezone, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteValidation("AiPath");
+            if (writer.Version != 1041 && writer.Version != 1070 && writer.Version != 1100)
+                writer.WriteValidation("AiPath");
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -166,7 +167,7 @@ namespace BZNParser.Battlezone
             else if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (sObject.HasValue)
-                    writer.WritePtr("old_ptr", sObject.Value);
+                    writer.WritePtr("sObject", sObject.Value);
             }
 
             if (writer.Format == BZNFormat.BattlezoneN64)

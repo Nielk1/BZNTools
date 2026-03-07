@@ -274,17 +274,24 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1143)
                 {
-                    writer.WriteFloats("cutAMmo", obj.curAmmoF);
+                    writer.WriteFloats("curAmmo", obj.curAmmoF);
                     writer.WriteFloats("maxAmmo", obj.maxAmmoF);
                     writer.WriteFloats("addAmmo", obj.addAmmoF);
 
                     if (writer.InBinary)
                     {
-                        writer.WriteUnsignedValues(null, (byte)obj.curPilot.Length);
-
-                        if (obj.curPilot.Length > 0)
+                        if (obj.curPilot != null)
                         {
-                            writer.WriteChars("curPilot", obj.curPilot);
+                            writer.WriteUnsignedValues(null, (byte)(obj.curPilot.Length));
+
+                            if (obj.curPilot.Length > 0)
+                            {
+                                writer.WriteChars("curPilot", obj.curPilot);
+                            }
+                        }
+                        else
+                        {
+                            writer.WriteUnsignedValues(null, (byte)0);
                         }
                     }
                     else

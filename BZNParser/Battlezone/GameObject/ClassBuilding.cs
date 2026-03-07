@@ -155,7 +155,6 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 bool m_AlignsToObject = false;
-                string saveClass = null;
 
                 if (writer.Version >= 1147)
                 {
@@ -166,7 +165,7 @@ namespace BZNParser.Battlezone.GameObject
                     }
                     else
                     {
-                        writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass);
+                        writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty);
                     }
 
                     if (!string.IsNullOrEmpty(obj.saveClass))

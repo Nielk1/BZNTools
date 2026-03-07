@@ -81,7 +81,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version == 1041) // version is special case for bz2001.bzn
             {
-                writer.WriteVoidBytes("Walker_IK", obj.Walker_IK);
+                writer.WriteVoidBytesL("Walker_IK", obj.Walker_IK);
                 ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
                 return;
             }

@@ -22,6 +22,8 @@ namespace BZNParser.Battlezone.GameObject
     {
         public float scrapTimer { get; set; }
         public bool animStart { get; set; }
+        public string saveLabel { get; set; }
+        public string saveName { get; set; }
 
         public ClassExtractor(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassExtractor? obj)
@@ -37,6 +39,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("saveClass", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveClass/CHAR");
                 string saveClass = tok.GetString();
+                if (obj != null) obj.saveClass = saveClass;
 
                 if (!string.IsNullOrEmpty(saveClass))
                 {
@@ -49,7 +52,9 @@ namespace BZNParser.Battlezone.GameObject
                     if (obj != null) obj.saveSeqno = tok.GetInt32H();
 
                     string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32);
+                    if (obj != null) obj.saveLabel = saveLabel;
                     string saveName = reader.ReadSizedString_BZ2_1145("saveName", 32);
+                    if (obj != null) obj.saveName = saveName;
                 }
             }
 
@@ -77,9 +82,9 @@ namespace BZNParser.Battlezone.GameObject
                 if (!string.IsNullOrEmpty(obj.saveClass))
                 {
                     writer.WriteSignedValues("saveTeam", obj.saveTeam);
-                    writer.WriteSignedValues("saveSeqno", obj.saveSeqno);
-                    writer.WriteSizedString_BZ2_1145("saveLabel", 32, ""); // TODO: figure out what this actually does
-                    writer.WriteSizedString_BZ2_1145("saveName", 32, ""); // TODO: figure out what this actually does
+                    writer.WriteUnsignedHexLValues("saveSeqno", (UInt16)obj.saveSeqno); // unsure if this down-cast is safe, if bool writes LONG instead of SHORT it doesn't
+                    writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel); // TODO: figure out what this actually does
+                    writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName); // TODO: figure out what this actually does
                 }
             }
             if (writer.Version > 1102)

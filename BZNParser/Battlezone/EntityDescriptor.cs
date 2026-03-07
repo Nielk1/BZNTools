@@ -529,7 +529,8 @@ namespace BZNParser.Battlezone
             {
                 if (writer.InBinary)
                 {
-                    writer.WriteCompressedNumberFromBinary(seqNo);
+                    //writer.WriteCompressedNumberFromBinary(seqNo);
+                    writer.WriteUnsignedValues(null, seqNo);
                 }
                 else
                 {

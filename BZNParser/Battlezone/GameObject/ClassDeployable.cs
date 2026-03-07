@@ -20,7 +20,6 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassDeployable : ClassHoverCraft
     {
-        public UInt32 state { get; set; }
         public float deployTimer { get; set; }
 
         public ClassDeployable(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
@@ -33,7 +32,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                if (obj != null) obj.state = tok.GetUInt32H();
+                if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32H();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
@@ -67,7 +66,7 @@ namespace BZNParser.Battlezone.GameObject
             // this class doesn't exist in BZ1
             //if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteVoidBytes("state", obj.state);
+                writer.WriteVoidBytes("state", (UInt32)obj.state);
                 writer.WriteFloats("deployTimer", obj.deployTimer);
                 if (parent.SaveType == 0)
                 {

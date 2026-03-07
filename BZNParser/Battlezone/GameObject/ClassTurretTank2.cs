@@ -20,7 +20,7 @@ namespace BZNParser.Battlezone.GameObject
         protected float omegaTurret { get; set; }
         protected float timeDeploy { get; set; }
         protected float timeUndeploy { get; set; }
-        protected int change_state { get; set; }
+        protected UInt32 change_state { get; set; }
         protected float delayTimer { get; set; }
         protected bool turretAligned { get; set; }
         protected bool wantTurret { get; set; } // obsolete, minterpreted as turretAligned
@@ -53,7 +53,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("change_state", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse change_state/LONG");
-                if (obj != null) obj.change_state = tok.GetInt32(); // change_state
+                if (obj != null) obj.change_state = tok.GetUInt32(); // change_state
 
 
                 tok = reader.ReadToken();
@@ -124,7 +124,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse state/VOID");
-                    if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32(); // state
+                    if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
@@ -163,7 +163,7 @@ namespace BZNParser.Battlezone.GameObject
                             tok = reader.ReadToken();
                             if (!tok.Validate("change_state", BinaryFieldType.DATA_LONG))
                                 throw new Exception("Failed to parse change_state/LONG");
-                            if (obj != null) obj.change_state = tok.GetInt32(); // change_state
+                            if (obj != null) obj.change_state = tok.GetUInt32(); // change_state
                         }
                     }
 
@@ -211,7 +211,7 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteFloats("omegaTurret", obj.omegaTurret);
                 writer.WriteFloats("timeDeploy", obj.timeDeploy);
                 writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
-                writer.WriteSignedValues("change_state", obj.change_state);
+                writer.WriteUnsignedValues("change_state", obj.change_state);
                 writer.WriteFloats("delayTimer", obj.delayTimer);
                 writer.WriteBooleans("turretAligned", obj.turretAligned);
                 writer.WriteFloats("prevYaw", obj.prevYaw);
@@ -234,7 +234,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteFloats("alphaTurret", obj.alphaTurret); // obsolete
                     writer.WriteFloats("timeDeploy", obj.timeDeploy);
                     writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
-                    writer.WriteVoidBytes("state", (UInt32)obj.state);
+                    writer.WriteVoidBytes("state", (UInt32)obj.state); // uses root's state instead of change_state, until later
                     writer.WriteFloats("delayTimer", obj.delayTimer);
 
                     if (writer.Version == 1100)
@@ -242,7 +242,7 @@ namespace BZNParser.Battlezone.GameObject
                         var mal = obj.Malformations.GetMalformations(Malformation.MISINTERPRET, "wantTurret");
                         if (mal.Length > 0)
                         {
-                            writer.WriteBooleans((string)mal[0].Fields[0], obj.turretAligned);
+                            writer.WriteBooleans("wantTurret", obj.turretAligned);
                         }
                         else
                         {
@@ -259,7 +259,7 @@ namespace BZNParser.Battlezone.GameObject
                         if (!obj.m_Use13Aim)
                         {
                             writer.WriteFloats("prevYaw", obj.prevYaw);
-                            writer.WriteSignedValues("change_state", obj.change_state);
+                            writer.WriteUnsignedValues("change_state", obj.change_state);
                         }
                     }
 

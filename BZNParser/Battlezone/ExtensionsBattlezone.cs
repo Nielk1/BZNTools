@@ -21,6 +21,49 @@ namespace BZNParser.Battlezone
             win1252 = Encoding.GetEncoding(1252);
         }
 
+        public static string AddBinaryMessString(this IMalformable.MalformationManager Malformations, string name, string value)
+        {
+            string retVal = value;
+            int idx = value.IndexOf('\0');
+            if (idx > -1)
+            {
+                retVal = value.Substring(0, idx);
+            }
+            if (retVal.Length != value.Length)
+            {
+                string UnpadOnly = value.TrimEnd('\0');
+                if (UnpadOnly == retVal)
+                {
+                    // we're only padded, so store it as needing a pad
+                    Malformations.AddStringPad(name, value.Length);
+                }
+                else
+                {
+                    // it's more than just a pad, so store the old value
+                    Malformations.AddIncorrect(name, value);
+                }
+            }
+            return retVal;
+        }
+
+        public static string CheckBinaryMessString(this IMalformable.MalformationManager Malformations, string name, string value)
+        {
+            var mal = Malformations.GetMalformations(Malformation.STRING_PAD, name);
+            var mal2 = Malformations.GetMalformations(Malformation.INCORRECT, name);
+            if (mal.Length > 0)
+            {
+                return value.PadRight((int)mal[0].Fields[0], '\0');
+            }
+            else if (mal2.Length > 0)
+            {
+                return (string)mal2[0].Fields[0];
+            }
+            else
+            {
+                return value;
+            }
+        }
+
         public static uint ReadBZ1_PtrDepricated(this BZNStreamReader reader, string name)
         {
             IBZNToken tok;
@@ -237,7 +280,8 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
-                return tok.GetString();
+                string retVal = tok.GetString();
+                return retVal;
             }
             else if (reader.Version < 1145)
             {
@@ -257,11 +301,16 @@ namespace BZNParser.Battlezone
             if (writer.Format != BZNFormat.Battlezone2)
                 throw new NotImplementedException();
 
-            IBZNToken tok;
-
             if (writer.Version <= 1128) // <= 1128 <= 1124 <= 1112 <= 1108 <= 1105?  < 1103
             {
-                writer.WriteChars(name, value);
+                if (writer.Version == 1101)
+                {
+                    writer.WriteChars(name, value.PadRight(Math.Max(bufferSize, value.Length), '\0'));
+                }
+                else
+                {
+                    writer.WriteChars(name, value);
+                }
             }
             else if (writer.Version < 1145)
             {
@@ -359,7 +408,8 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    retVal.what = tok.GetUInt32H();
+                    //retVal.what = tok.GetUInt32H();
+                    retVal.what = tok.GetUInt32HR();
                 }
             }
 

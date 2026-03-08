@@ -24,7 +24,6 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassPerson : ClassCraft
     {
         public float nextScream { get; set; }
-        public UInt32 state { get; set; }
 
         public ClassPerson(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPerson? obj)
@@ -49,7 +48,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                    if (obj != null) obj.state = tok.GetUInt32H();
+                    if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
 
                     /*if (a2[2].vftable)
                     {
@@ -88,7 +87,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    writer.WriteVoidBytes("state", BitConverter.GetBytes(obj.state));
+                    writer.WriteVoidBytes("state", (UInt32)obj.state);
 
                     /*if (a2[2].vftable)
                     {

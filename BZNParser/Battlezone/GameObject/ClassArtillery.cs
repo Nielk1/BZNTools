@@ -16,7 +16,6 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassArtillery : ClassTurretTank2
     {
-        public UInt32 state { get; set; }
         public float heightDeploy { get; set; }
         public float deployTimer { get; set; }
         public float prevYaw { get; set; }
@@ -30,7 +29,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
-                if (obj != null) obj.state = tok.GetUInt32H();
+                if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
 
                 if (parent.SaveType != SaveType.BZN)
                 {
@@ -90,7 +89,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version < 1110)
             {
-                writer.WriteVoidBytes("state", obj.state);
+                writer.WriteVoidBytes("state", (UInt32)obj.state);
 
                 if (parent.SaveType != SaveType.BZN)
                 {

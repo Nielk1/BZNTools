@@ -126,7 +126,7 @@ namespace BZNParser.Tokenizer
                 return float.NaN;
             if (values[index] == string.Empty)
                 return 0f;
-            return Single.Parse(values[index]);
+            return Single.Parse(values[index], System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public string GetString(int index = 0)

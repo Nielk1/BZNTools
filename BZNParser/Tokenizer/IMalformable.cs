@@ -113,8 +113,8 @@ namespace BZNParser.Tokenizer
         public static void AddStringPad(this MalformationManager manager, string filedName, int length) =>
             manager.Add(Malformation.STRING_PAD, filedName, length);
 
-        public static void AddIncorrectName(this MalformationManager manager, string filedName, string badName) =>
-            manager.Add(Malformation.INCORRECT_NAME, filedName, badName);
+        public static void AddIncorrectName(this MalformationManager manager, string fieldName, string badName) =>
+            manager.Add(Malformation.INCORRECT_NAME, fieldName, badName);
     }
     public interface IMalformable
     {

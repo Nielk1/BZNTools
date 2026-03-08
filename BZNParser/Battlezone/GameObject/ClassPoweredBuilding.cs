@@ -27,7 +27,7 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassPoweredBuilding : ClassBuilding
     {
         public int scriptPowerOverride { get; set; }
-        public UInt32[]? powerHandle { get; set; }
+        public Int32[]? powerHandle { get; set; }
 
         public ClassPoweredBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPoweredBuilding? obj)
@@ -42,16 +42,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                 {
-                    UInt32 powerHandle = tok.GetUInt32();
-                    if (tok.GetCount() > 1)
-                    {
-                        UInt32 powerHandle2 = tok.GetUInt32(1);
-                        if (obj != null) obj.powerHandle = new UInt32[] { powerHandle, powerHandle2 };
-                    }
-                    else
-                    {
-                        if (obj != null) obj.powerHandle = new UInt32[] { powerHandle };
-                    }
+                    obj.powerHandle = Enumerable.Range(0, tok.GetCount()).Select(i => tok.GetInt32(i)).ToArray();
                     reader.Bookmark.Discard();
                 }
                 else
@@ -88,7 +79,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (obj.powerHandle != null && obj.powerHandle.Length > 0)
                 {
-                    writer.WriteUnsignedValues("powerHandle", obj.powerHandle);
+                    writer.WriteSignedValues("powerHandle", obj.powerHandle);
                 }
             }
 

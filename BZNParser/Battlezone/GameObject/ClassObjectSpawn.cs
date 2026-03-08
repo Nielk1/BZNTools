@@ -20,7 +20,7 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassObjectSpawn : ClassBuilding
     {
-        public UInt32 spawnHandle { get; set; }
+        public Int32 spawnHandle { get; set; }
         public float spawnTimer { get; set; }
 
         public ClassObjectSpawn(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
@@ -32,7 +32,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("spawnHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse spawnHandle/LONG"); // type not confirmed
-                if (obj != null) obj.spawnHandle = tok.GetUInt32();
+                if (obj != null) obj.spawnHandle = tok.GetInt32();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("spawnTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse spawnTimer/FLOAT"); // type not confirmed
@@ -51,7 +51,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteUnsignedValues("spawnHandle", obj.spawnHandle); // value not confirmedss
+                writer.WriteSignedValues("spawnHandle", obj.spawnHandle); // value not confirmedss
                 writer.WriteFloats("spawnTimer", obj.spawnTimer); // value not confirmed
             }
 

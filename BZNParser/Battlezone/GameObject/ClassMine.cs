@@ -18,7 +18,6 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassMine : ClassBuilding
     {
         public float lifeTimer { get; set; }
-        public float undeffloat { get; set; }
 
         public ClassMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
@@ -38,7 +37,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 IBZNToken tok = reader.ReadToken();
                 if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                if (obj != null) obj.undeffloat = tok.GetSingle(); // might be lifeTimer
+                if (obj != null) obj.lifeTimer = tok.GetSingle(); // might be lifeTimer
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);

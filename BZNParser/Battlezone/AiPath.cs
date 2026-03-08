@@ -135,14 +135,19 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (!tok.Validate("pathType", BinaryFieldType.DATA_VOID))
                 throw new Exception("Failed to parse pathType/VOID");
-            if (obj != null) obj.pathType = tok.GetUInt32H();
+            if (obj != null) obj.pathType = tok.GetUInt32HR();
 
             return true;
         }
 
         public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            if (writer.Version != 1041 && writer.Version != 1070 && writer.Version != 1100)
+            // 1041
+            // 1070
+            // 1100
+            // 1192
+            // 1194
+            if (writer.Version < 1041 || writer.Version > 1194)
                 writer.WriteValidation("AiPath");
 
             if (writer.Format == BZNFormat.Battlezone2)

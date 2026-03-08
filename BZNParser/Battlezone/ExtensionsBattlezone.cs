@@ -254,8 +254,15 @@ namespace BZNParser.Battlezone
             }
             else
             {
-                //return tok.GetRaw(0, 1)[0];
-                writer.WriteUnsignedValues(name, value);
+                if (!writer.InBinary)
+                {
+                    writer.WriteRaw(name, new byte[] { value });
+                    //return tok.GetRaw(0, 1)[0];
+                }
+                else
+                {
+                    writer.WriteUnsignedValues(name, value);
+                }
                 return;
             }
         }
@@ -500,7 +507,7 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        writer.WriteVoidBytes("what", value.what);
+                        writer.WriteVoidBytesL("what", value.what);
                     }
                 }
             }

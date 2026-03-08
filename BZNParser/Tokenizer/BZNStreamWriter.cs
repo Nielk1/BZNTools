@@ -1,8 +1,8 @@
-
 using System;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
+using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,57 +13,382 @@ namespace BZNParser.Tokenizer
 {
     public static class SingleExtension
     {
+        public static (int sign, int exponent, uint mantissa) Extract(this float value)
+        {
+            uint bits = BitConverter.SingleToUInt32Bits(value);
+
+            int sign = (int)(bits >> 31);
+            int exponent = (int)((bits >> 23) & 0xFF);
+            uint mantissa = bits & 0x7FFFFF;
+
+            return (sign, exponent, mantissa);
+        }
+
         public static string ToBZNString(this float value, int version, BZNFormat format)
         {
-
             if (float.IsNaN(value)) return "nan";
             if (float.IsPositiveInfinity(value)) return "inf";
             if (float.IsNegativeInfinity(value)) return "-inf";
 
-            if (format == BZNFormat.Battlezone2 && version >= 1183)
-            {
-                // Preserve signed zero
-                if (value == 0f)
+            // 1182 Format1e8 3
+
+            // 1183 Format1e8 2
+            // 1183 Format1e8 3
+
+            // 1187 Format1e8 2
+            // 1188 Format1e8 2
+
+            // 1192 Format1e8 2
+            // 1192 FormatG6 (rare)
+
+            // 1193 Format1e8 2
+            // 1194 Format1e8 2
+            // 1196 Format1e8 2
+            // 1197 Format1e8 2
+
+            (int sign, int exponent, uint mantissa) = value.Extract();
+            if (format == BZNFormat.Battlezone2)
+                if (version == 1182)
                 {
-                    bool negZero = BitConverter.SingleToInt32Bits(value) < 0;
-                    return negZero ? "-0.00000000e+00" : "0.00000000e+00";
+                    return Format1e8(sign, exponent, mantissa, 3);
+                }
+                else if (version == 1183)
+                {
+                    // could be either
+                    return Format1e8(sign, exponent, mantissa, 3);
+                    //return Format1e8(sign, exponent, mantissa, 2);
+                }
+                else if (version >= 1187)
+                {
+                    return Format1e8(sign, exponent, mantissa, 2);
                 }
 
-                // Get exponent
-                int exponent = (int)Math.Floor(Math.Log10(Math.Abs(value)));
-                double mantissa = value / Math.Pow(10, exponent);
+            return FormatG6(sign, exponent, mantissa); // 1192 showed up once?
+        }
 
-                // Round mantissa to the desired significant digits
-                string mantissaStr = mantissa.ToString("F8", System.Globalization.CultureInfo.InvariantCulture);
-
-                // Remove trailing zeros and possible trailing decimal point
-                if (mantissaStr.Contains('.'))
-                    mantissaStr = mantissaStr.TrimEnd('.');
-
-                // Format exponent with sign and at least two digits
-                string expStr = exponent.ToString("+#00;-#00");
-
-                return $"{mantissaStr}e{expStr}";
+        private static string Format1e8(int sign, int exponent, uint mantissa, int exponentSize)
+        {
+            if (exponent == 255)
+            {
+                if (mantissa == 0)
+                    return sign != 0 ? "-inf" : "inf";
+                return "nan";
             }
 
-            // .NET general format with 6 significant digits
-            string s = value.ToString("g6", CultureInfo.InvariantCulture);
+            if (exponent == 0 && mantissa == 0)
+                return sign != 0 ? $"-0.00000000e+{new string('0', exponentSize)}" : $"0.00000000e+{new string('0', exponentSize)}";
 
-            // C++ sample uses lowercase e
-            s = s.Replace('E', 'e');
+            BigInteger num;
+            int exp2;
 
-            // Normalize exponent to at least 3 digits, matching your sample:
-            // e+6   -> e+006
-            // e-5   -> e-005
-            // e+30  -> e+030
-            s = Regex.Replace(s, @"e([+-])(\d+)$", m =>
-                $"e{m.Groups[1].Value}{int.Parse(m.Groups[2].Value):000}");
+            if (exponent == 0)
+            {
+                // subnormal
+                num = mantissa;
+                exp2 = -149;
+            }
+            else
+            {
+                // normal
+                num = ((BigInteger)1 << 23) | mantissa;
+                exp2 = exponent - 150;
+            }
 
-            return s;
+            BigInteger den = BigInteger.One;
+
+            if (exp2 >= 0)
+                num <<= exp2;
+            else
+                den <<= -exp2;
+
+            // Normalize so 1 <= num/den < 10
+            int exp10 = 0;
+
+            while (num >= den * 10)
+            {
+                den *= 10;
+                exp10++;
+            }
+
+            while (num < den)
+            {
+                num *= 10;
+                exp10--;
+            }
+
+            // Optional sanity check:
+            // At this point the normalized significand must be in [1, 10).
+            if (!(num >= den && num < den * 10))
+                throw new InvalidOperationException("Normalization failed.");
+
+            // Generate 10 digits total:
+            // 9 to keep, 1 guard digit for rounding
+            char[] allDigits = new char[10];
+
+            for (int i = 0; i < allDigits.Length; i++)
+            {
+                BigInteger d = num / den;
+                allDigits[i] = (char)('0' + (int)d);
+                num %= den;
+                num *= 10;
+            }
+
+            // Keep first 9 digits
+            char[] digits = new char[9];
+            Array.Copy(allDigits, digits, 9);
+
+            // Round using guard digit + sticky remainder
+            int guard = allDigits[9] - '0';
+            bool sticky = num != 0;
+
+            // round-half-away-from-zero on magnitude
+            bool roundUp = guard > 5 || (guard == 5 && sticky) || (guard == 5 && !sticky);
+
+            if (roundUp)
+            {
+                int i = digits.Length - 1;
+                while (i >= 0)
+                {
+                    if (digits[i] != '9')
+                    {
+                        digits[i]++;
+                        break;
+                    }
+
+                    digits[i] = '0';
+                    i--;
+                }
+
+                if (i < 0)
+                {
+                    digits[0] = '1';
+                    for (int j = 1; j < digits.Length; j++)
+                        digits[j] = '0';
+                    exp10++;
+                }
+            }
+
+            var sb = new StringBuilder(16);
+
+            if (sign != 0)
+                sb.Append('-');
+
+            sb.Append(digits[0]);
+            sb.Append('.');
+            for (int i = 1; i < digits.Length; i++)
+                sb.Append(digits[i]);
+
+            sb.Append('e');
+            sb.Append(exp10 >= 0 ? '+' : '-');
+            sb.Append(Math.Abs(exp10).ToString($"D{exponentSize}"));
+
+            return sb.ToString();
+        }
+
+        private static string FormatG6(int sign, int exponent, uint mantissa)
+        {
+            const int precision = 6;
+
+            // Special cases
+            if (exponent == 255)
+            {
+                if (mantissa == 0)
+                    return sign != 0 ? "-inf" : "inf";
+                return "nan";
+            }
+
+            if (exponent == 0 && mantissa == 0)
+                return sign != 0 ? "-0" : "0";
+
+            // Build exact rational value = num / den
+            BigInteger num;
+            int exp2;
+
+            if (exponent == 0)
+            {
+                // subnormal: mantissa * 2^-149
+                num = mantissa;
+                exp2 = -149;
+            }
+            else
+            {
+                // normal: (2^23 + mantissa) * 2^(exponent - 127 - 23)
+                num = ((BigInteger)1 << 23) | mantissa;
+                exp2 = exponent - 150; // exponent - 127 - 23
+            }
+
+            BigInteger den = BigInteger.One;
+
+            if (exp2 >= 0)
+                num <<= exp2;
+            else
+                den <<= -exp2;
+
+            // Normalize to decimal scientific form: 1 <= num/den < 10
+            int exp10 = 0;
+
+            while (num >= den * 10)
+            {
+                den *= 10;
+                exp10++;
+            }
+
+            while (num < den)
+            {
+                num *= 10;
+                exp10--;
+            }
+
+            // Generate exactly 'precision' significant digits, then round manually
+            char[] digits = new char[precision];
+
+            for (int i = 0; i < precision; i++)
+            {
+                BigInteger d = num / den;
+                digits[i] = (char)('0' + (int)d);
+                num %= den;
+                num *= 10;
+            }
+
+            // Remainder now represents discarded tail as num / (10*den)
+            // Round half away from zero on magnitude
+            bool roundUp = (num * 2) >= (den * 10);
+
+            if (roundUp)
+            {
+                int i = precision - 1;
+                while (i >= 0)
+                {
+                    if (digits[i] != '9')
+                    {
+                        digits[i]++;
+                        break;
+                    }
+
+                    digits[i] = '0';
+                    i--;
+                }
+
+                // 9.99999 -> 1.00000e+01 style carry
+                if (i < 0)
+                {
+                    digits[0] = '1';
+                    for (int j = 1; j < precision; j++)
+                        digits[j] = '0';
+                    exp10++;
+                }
+            }
+
+            // %g rule: use exponent form if exponent < -4 or exponent >= precision
+            bool useExponent = exp10 < -4 || exp10 >= precision;
+
+            string body = useExponent
+                ? BuildExponentForm(digits, exp10)
+                : BuildFixedForm(digits, exp10);
+
+            return sign != 0 ? "-" + body : body;
+        }
+
+        private static string BuildExponentForm(char[] digits, int exp10)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append(digits[0]);
+
+            if (digits.Length > 1)
+            {
+                sb.Append('.');
+                for (int i = 1; i < digits.Length; i++)
+                    sb.Append(digits[i]);
+
+                TrimTrailingZerosAndDot(sb);
+            }
+
+            sb.Append('e');
+            sb.Append(exp10 >= 0 ? '+' : '-');
+            sb.Append(Math.Abs(exp10).ToString("D3")); // pad to 3 digits
+
+            return sb.ToString();
+        }
+
+        private static string BuildFixedForm(char[] digits, int exp10)
+        {
+            // digits represent:
+            // digits[0].digits[1..] × 10^exp10
+            //
+            // Place decimal point after (exp10 + 1) digits from the left.
+            int decimalPos = exp10 + 1;
+            int n = digits.Length;
+
+            var sb = new StringBuilder();
+
+            if (decimalPos <= 0)
+            {
+                sb.Append('0');
+                sb.Append('.');
+                for (int i = 0; i < -decimalPos; i++)
+                    sb.Append('0');
+                for (int i = 0; i < n; i++)
+                    sb.Append(digits[i]);
+            }
+            else if (decimalPos >= n)
+            {
+                for (int i = 0; i < n; i++)
+                    sb.Append(digits[i]);
+                for (int i = 0; i < decimalPos - n; i++)
+                    sb.Append('0');
+            }
+            else
+            {
+                for (int i = 0; i < decimalPos; i++)
+                    sb.Append(digits[i]);
+                sb.Append('.');
+                for (int i = decimalPos; i < n; i++)
+                    sb.Append(digits[i]);
+            }
+
+            TrimTrailingZerosAndDot(sb);
+            return sb.ToString();
+        }
+
+        private static void TrimTrailingZerosAndDot(StringBuilder sb)
+        {
+            int dot = -1;
+            for (int i = 0; i < sb.Length; i++)
+            {
+                if (sb[i] == '.')
+                {
+                    dot = i;
+                    break;
+                }
+            }
+
+            // No decimal point => nothing fractional to trim
+            if (dot < 0)
+                return;
+
+            int end = sb.Length - 1;
+
+            while (end > dot && sb[end] == '0')
+                end--;
+
+            if (end == dot)
+                end--; // remove decimal point too
+
+            sb.Length = end + 1;
         }
     }
     public class BZNStreamWriter : IDisposable
     {
+        private static Encoding win1252;
+        static BZNStreamWriter()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            win1252 = Encoding.GetEncoding(1252);
+        }
+
+
+
         private Stream BaseStream { get; set; }
         public BZNFormat Format { get; private set; }
         public bool IsBigEndian { get; private set; }
@@ -136,8 +461,21 @@ namespace BZNParser.Tokenizer
         {
             if (InBinary)
                 throw new Exception("Unknown type data cannot be written in binary mode.");
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} = "));
+            BaseStream.Write(win1252.GetBytes($"{name} = "));
             InternalWriteStringValue(value);
+            InternalWriteNewline();
+        }
+
+        public void WriteRaw(string name, byte[] values)
+        {
+            if (InBinary)
+            {
+                throw new NotImplementedException("Raw Write only for ASCII");
+            }
+
+            BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(values);
             InternalWriteNewline();
         }
 
@@ -154,10 +492,10 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++) {
-                BaseStream.Write(Encoding.ASCII.GetBytes($"{(values[i] ? "true" : "false")}"));
+                BaseStream.Write(win1252.GetBytes($"{(values[i] ? "true" : "false")}"));
                 InternalWriteNewline();
             }
         }
@@ -178,11 +516,11 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString()));
+                BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
         }
@@ -203,11 +541,11 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString()));
+                BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
         }
@@ -228,11 +566,11 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString("x")));
+                BaseStream.Write(win1252.GetBytes(values[i].ToString("x")));
                 InternalWriteNewline();
             }
         }
@@ -253,11 +591,11 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString("x")));
+                BaseStream.Write(win1252.GetBytes(values[i].ToString("x")));
                 InternalWriteNewline();
             }
         }
@@ -278,12 +616,12 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} ="));
+            BaseStream.Write(win1252.GetBytes($"{name} ="));
             {
                 if (value != 0)
                 {
                     InternalWriteNewline();
-                    BaseStream.Write(Encoding.ASCII.GetBytes(value.ToString()));
+                    BaseStream.Write(win1252.GetBytes(value.ToString()));
                 }
                 InternalWriteNewline();
             }
@@ -306,12 +644,12 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} ="));
+            BaseStream.Write(win1252.GetBytes($"{name} ="));
             InternalWriteNewline();
             {
                 {
                     InternalWriteNewline();
-                    BaseStream.Write(Encoding.ASCII.GetBytes(value.ToString("x")));
+                    BaseStream.Write(win1252.GetBytes(value.ToString("x")));
                 }
                 InternalWriteNewline();
             }
@@ -335,12 +673,12 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             {
                 foreach (UInt32 value in values)
                 {
                     InternalWriteNewline();
-                    BaseStream.Write(Encoding.ASCII.GetBytes(value.ToString("x")));
+                    BaseStream.Write(win1252.GetBytes(value.ToString("x")));
                 }
                 InternalWriteNewline();
             }
@@ -364,12 +702,12 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             {
                 foreach (UInt16 value in values)
                 {
                     InternalWriteNewline();
-                    BaseStream.Write(Encoding.ASCII.GetBytes(value.ToString("x")));
+                    BaseStream.Write(win1252.GetBytes(value.ToString("x")));
                 }
                 InternalWriteNewline();
             }
@@ -391,11 +729,11 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString()));
+                BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
         }
@@ -421,17 +759,17 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{(values.Length)}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{(values.Length)}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes("  x [1] ="));
+                BaseStream.Write(win1252.GetBytes("  x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].x.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes("  z [1] ="));
+                BaseStream.Write(win1252.GetBytes("  z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].z.ToBZNString(Version, Format)));
                 InternalWriteNewline();
             }
         }
@@ -460,21 +798,21 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{(values.Length)}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{(values.Length)}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes("  x [1] ="));
+                BaseStream.Write(win1252.GetBytes("  x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].x.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes("  y [1] ="));
+                BaseStream.Write(win1252.GetBytes("  y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].y.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes("  z [1] ="));
+                BaseStream.Write(win1252.GetBytes("  z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].z.ToBZNString(Version, Format)));
                 InternalWriteNewline();
             }
         }
@@ -486,7 +824,7 @@ namespace BZNParser.Tokenizer
                 throw new NotImplementedException("Euler binary save attempt");
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} ="));
+            BaseStream.Write(win1252.GetBytes($"{name} ="));
             InternalWriteNewline();
 
             WriteFloats(" mass", value.mass);
@@ -524,60 +862,60 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{(values.Length)}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{(values.Length)}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  right.x [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  right.x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.x.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  right.y [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  right.y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.y.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  right.z [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  right.z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.z.ToBZNString(Version, Format)));
-                InternalWriteNewline();
-
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  up.x [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.x.ToBZNString(Version, Format)));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  up.y [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.y.ToBZNString(Version, Format)));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  up.z [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.z.ToBZNString(Version, Format)));
                 InternalWriteNewline();
 
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  front.x [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  up.x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.x.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  front.y [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  up.y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.y.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  front.z [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  up.z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.z.ToBZNString(Version, Format)));
                 InternalWriteNewline();
 
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit.x [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  front.x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.x.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit.y [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  front.y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.y.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit.z [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  front.z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.z.ToBZNString(Version, Format)));
+                InternalWriteNewline();
+
+                BaseStream.Write(win1252.GetBytes($"  posit.x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes(values[i].posit.x.ToBZNString(Version, Format)));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"  posit.y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes(values[i].posit.y.ToBZNString(Version, Format)));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"  posit.z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes(values[i].posit.z.ToBZNString(Version, Format)));
                 InternalWriteNewline();
             }
         }
@@ -606,60 +944,60 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{(values.Length)}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{(values.Length)}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  right_x [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  right_x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.x.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  right_y [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  right_y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.y.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  right_z [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  right_z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].right.z.ToBZNString(Version, Format)));
-                InternalWriteNewline();
-
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  up_x [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.x.ToBZNString(Version, Format)));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  up_y [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.y.ToBZNString(Version, Format)));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  up_z [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].up.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.z.ToBZNString(Version, Format)));
                 InternalWriteNewline();
 
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  front_x [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  up_x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.x.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  front_y [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  up_y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.y.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  front_z [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  up_z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].front.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.z.ToBZNString(Version, Format)));
                 InternalWriteNewline();
 
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit_x [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  front_x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.x.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit_y [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  front_y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.y.ToBZNString(Version, Format)));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes($"  posit_z [1] ="));
+                BaseStream.Write(win1252.GetBytes($"  front_z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].posit.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.z.ToBZNString(Version, Format)));
+                InternalWriteNewline();
+
+                BaseStream.Write(win1252.GetBytes($"  posit_x [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes(values[i].posit.x.ToBZNString(Version, Format)));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"  posit_y [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes(values[i].posit.y.ToBZNString(Version, Format)));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"  posit_z [1] ="));
+                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes(values[i].posit.z.ToBZNString(Version, Format)));
                 InternalWriteNewline();
             }
         }
@@ -680,10 +1018,10 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++) {
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString()));
+                BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
         }
@@ -704,11 +1042,11 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].ToBZNString(Version, Format)));
                 InternalWriteNewline();
             }
         }
@@ -726,9 +1064,9 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [1] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
             InternalWriteNewline();
-            BaseStream.Write(Encoding.ASCII.GetBytes(value.ToString("x")));
+            BaseStream.Write(win1252.GetBytes(value.ToString("x")));
             InternalWriteNewline();
         }
 
@@ -742,7 +1080,7 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [1] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
             InternalWriteNewline();
             BaseStream.Write(value);
             InternalWriteNewline();
@@ -754,13 +1092,13 @@ namespace BZNParser.Tokenizer
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_ID);
                 InternalWriteBinarySize(value.Length);
-                BaseStream.Write(Encoding.ASCII.GetBytes(value));
+                BaseStream.Write(win1252.GetBytes(value));
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [1] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
             InternalWriteNewline();
-            BaseStream.Write(Encoding.ASCII.GetBytes(value));
+            BaseStream.Write(win1252.GetBytes(value));
             InternalWriteNewline();
         }
 
@@ -778,11 +1116,11 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] ="));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes(values[i].ToString()));
+                BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
         }
@@ -792,13 +1130,13 @@ namespace BZNParser.Tokenizer
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
-                byte[] stringBytes = Encoding.ASCII.GetBytes(value);
+                byte[] stringBytes = win1252.GetBytes(value);
                 InternalWriteBinarySize(stringBytes.Length);
                 BaseStream.Write(stringBytes);
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} = "));
+            BaseStream.Write(win1252.GetBytes($"{name} = "));
             InternalWriteStringValue(value);
             InternalWriteNewline();
         }
@@ -816,7 +1154,7 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} = "));
+            BaseStream.Write(win1252.GetBytes($"{name} = "));
             InternalWriteStringValue(value.ToString("X8"));
             InternalWriteNewline();
         }
@@ -838,13 +1176,20 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} [{values.Length}] = "));
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] = "));
             InternalWriteNewline();
             foreach (uint value in values)
             {
                 InternalWriteStringValue(value.ToString("X8"));
                 InternalWriteNewline();
             }
+        }
+        public void WriteVoidBytesL(string name, UInt32 value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (IsBigEndian)
+                Array.Reverse(bytes);
+            WriteVoidBytesL(name, bytes);
         }
         public void WriteVoidBytes(string name, UInt32 value)
         {
@@ -853,7 +1198,6 @@ namespace BZNParser.Tokenizer
                 Array.Reverse(bytes);
             WriteVoidBytes(name, bytes);
         }
-
         public void WriteVoidBytesL(string name, byte[] value)
         {
             if (InBinary)
@@ -864,7 +1208,7 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} = "));
+            BaseStream.Write(win1252.GetBytes($"{name} = "));
             InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant());
             InternalWriteNewline();
         }
@@ -878,7 +1222,7 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(Encoding.ASCII.GetBytes($"{name} = "));
+            BaseStream.Write(win1252.GetBytes($"{name} = "));
             InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty));
             InternalWriteNewline();
         }
@@ -888,7 +1232,7 @@ namespace BZNParser.Tokenizer
             if (InBinary)
                 return;
 
-            BaseStream.Write(Encoding.ASCII.GetBytes($"[{name}]"));
+            BaseStream.Write(win1252.GetBytes($"[{name}]"));
             InternalWriteNewline();
         }
 
@@ -940,21 +1284,21 @@ namespace BZNParser.Tokenizer
         }
         private void InternalWriteStringValue(string value)
         {
-            if (QuoteStrings || value.Contains(' ') || value.Contains('\t'))
+            if (QuoteStrings)// || value.Contains(' ') || value.Contains('\t'))
             {
                 // Escape quotes in the string
                 string escapedValue = value.Replace("\"", "\\\"");
-                BaseStream.Write(Encoding.ASCII.GetBytes($"\"{escapedValue}\""));
+                BaseStream.Write(win1252.GetBytes($"\"{escapedValue}\""));
             }
             else
             {
-                BaseStream.Write(Encoding.ASCII.GetBytes(value));
+                BaseStream.Write(win1252.GetBytes(value));
             }
         }
         private void InternalWriteNewline()
         {
             // TODO deal with newline malformation here
-            byte[] newline = Encoding.ASCII.GetBytes("\r\n");
+            byte[] newline = win1252.GetBytes("\r\n");
             BaseStream.Write(newline);
         }
     }

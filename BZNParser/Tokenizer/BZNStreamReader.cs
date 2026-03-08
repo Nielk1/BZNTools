@@ -11,6 +11,24 @@ namespace BZNParser.Tokenizer
 {
     public class BZNStreamReader : IDisposable
     {
+        private static Encoding win1252;
+        static BZNStreamReader()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            win1252 = Encoding.GetEncoding(1252);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
         /// <summary>
         /// Value used to indicate that the BZN file does not contain binary data.
         /// This is should be a very high number so a basic offset check can be used to determine if binary data is being read or not.
@@ -152,7 +170,7 @@ namespace BZNParser.Tokenizer
         public bool QuoteStrings { get; private set; }
 
 
-
+        public string filename; // temporary
 
 
         // TODO Battlezone BZNs should always end in CRLF, though we have seen some that don't so we need to figure out if they're damaged or not
@@ -161,8 +179,10 @@ namespace BZNParser.Tokenizer
         public long CountLF { get; private set; }
         public long CountCRLF { get; private set; }
 
-        public BZNStreamReader(Stream stream)
+        public BZNStreamReader(Stream stream, string filename)
         {
+            this.filename = filename;
+
             _bookmarkManager = new BookmarkManager(this);
 
             long startPosition = stream.Position;
@@ -767,7 +787,8 @@ namespace BZNParser.Tokenizer
                 }
                 else
                 {
-                    buffer += (char)character;
+                    //buffer += (char)character;
+                    buffer += win1252.GetChars(new byte[] { character })[0];
                 }
             }
 

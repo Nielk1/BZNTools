@@ -32,7 +32,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32H();
+                if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");

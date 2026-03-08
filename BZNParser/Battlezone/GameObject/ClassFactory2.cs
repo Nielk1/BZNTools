@@ -20,7 +20,7 @@ namespace BZNParser.Battlezone.GameObject
         public float buildTime { get; set; }
         public bool buildActive { get; set; }
         public string[] buildItems { get; set; }
-        public UInt32 navHandle { get; set; }
+        public Int32 navHandle { get; set; }
 
         public ClassFactory2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
@@ -69,7 +69,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("navHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse navHandle/LONG");
-                    if (obj != null) obj.navHandle = tok.GetUInt32();
+                    if (obj != null) obj.navHandle = tok.GetInt32();
                 }
             }
 
@@ -96,6 +96,14 @@ namespace BZNParser.Battlezone.GameObject
             for (int i = 0; i < obj.buildItems.Length; i++)
             {
                 writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem");
+            }
+
+            if (parent.SaveType == 0)
+            {
+                if (writer.Version >= 1135)
+                {
+                    writer.WriteSignedValues("navHandle", obj.navHandle);
+                }
             }
 
             ClassPoweredBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

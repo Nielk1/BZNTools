@@ -20,7 +20,6 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassTrackedDeployable : ClassTrackedVehicle
     {
-        public UInt32 state { get; set; }
         public float deployTimer { get; set; }
 
         public ClassTrackedDeployable(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
@@ -33,7 +32,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                if (obj != null) obj.state = tok.GetUInt32H();
+                if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
 
                 //(a2->vftable->out_float)(a2, this + 2548, 4, "deployTimer");
                 tok = reader.ReadToken();
@@ -56,7 +55,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteVoidBytes("state", obj.state);
+                writer.WriteVoidBytes("state", (UInt32)obj.state);
                 writer.WriteFloats("deployTimer", obj.deployTimer);
             }
             ClassTrackedVehicle.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

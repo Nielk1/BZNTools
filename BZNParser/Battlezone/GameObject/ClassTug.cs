@@ -24,7 +24,6 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassTug : ClassHoverCraft
     {
         public UInt32 cargo { get; set; }
-        public UInt32 state { get; set; }
 
         public ClassTug(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTug? obj)
@@ -67,7 +66,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse state/VOID");
-                    if (obj != null) obj.state = tok.GetUInt32H();
+                    if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("cargoHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse cargoHandle/LONG");
@@ -128,7 +127,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1109)
                 {
-                    writer.WriteVoidBytes("state", obj.state);
+                    writer.WriteVoidBytes("state", (UInt32)obj.state);
                     writer.WriteUnsignedValues("cargoHandle", obj.cargo);
 
                     if (parent.SaveType != SaveType.BZN)

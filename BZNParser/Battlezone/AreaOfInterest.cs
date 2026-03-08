@@ -14,7 +14,7 @@ namespace BZNParser.Battlezone
         public UInt32 team { get; set; }
         public bool interesting { get; set; }
         public bool inside { get; set; }
-        public UInt32 value { get; set; }
+        public Int32 value { get; set; }
         public UInt32 force { get; set; }
 
 
@@ -90,7 +90,7 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (!tok.Validate("value", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse value/LONG");
-            if (obj != null) obj.value = tok.GetUInt32();
+            if (obj != null) obj.value = tok.GetInt32();
 
             tok = reader.ReadToken();
             if (!tok.Validate("force", BinaryFieldType.DATA_LONG))
@@ -127,7 +127,7 @@ namespace BZNParser.Battlezone
             writer.WriteUnsignedValues("team", team);
             writer.WriteBooleans("interesting", interesting);
             writer.WriteBooleans("inside", inside);
-            writer.WriteUnsignedValues("value", value);
+            writer.WriteSignedValues("value", value);
             writer.WriteUnsignedValues("force", force);
         }
     }

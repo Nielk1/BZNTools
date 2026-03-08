@@ -34,7 +34,6 @@ namespace BZNParser.Battlezone.GameObject
         public ClassTurretCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretCraft? obj)
         {
-            List<UInt32> powerHandles = new List<uint>();
 
             IBZNToken tok;
 
@@ -45,7 +44,7 @@ namespace BZNParser.Battlezone.GameObject
                     if (reader.Version >= 1072)
                     {
                         // we don't know how many taps there are without the ODF, so just try to read forever
-                        //List<UInt32> powerHandles = new List<uint>();
+                        List<UInt32> powerHandles = new List<uint>();
                         if (reader.InBinary)
                         {
                             for (; ; )
@@ -115,6 +114,7 @@ namespace BZNParser.Battlezone.GameObject
                                 }
                             }
                         }
+                        if (obj != null) obj.powerHandles = powerHandles.ToArray();
                     }
                     else
                     {
@@ -123,14 +123,8 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                         {
+                            if (obj != null) obj.powerHandles = Enumerable.Range(0, tok.GetCount()).Select(i => tok.GetUInt32(i)).ToArray();
                             reader.Bookmark.Discard();
-                            UInt32 powerHandle = tok.GetUInt32();
-                            powerHandles.Add(powerHandle);
-                            if (tok.GetCount() > 1)
-                            {
-                                UInt32 powerHandle2 = tok.GetUInt32(1);
-                                powerHandles.Add(powerHandle2);
-                            }
                         }
                         else
                         {
@@ -139,7 +133,7 @@ namespace BZNParser.Battlezone.GameObject
                     }
                 }
 
-                obj.powerHandles = powerHandles.ToArray();
+                
 
                 // parent.SaveType != SaveType.BZN
                 /*if (a2[2].vftable)

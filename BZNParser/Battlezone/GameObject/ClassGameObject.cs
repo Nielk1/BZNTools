@@ -151,6 +151,9 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version >= 1145)
                 {
                     saveFlags = reader.ReadBytePossibleRawPossibleSigned_BZ2("saveFlags");
+                    //tok = reader.ReadToken();
+                    //if (!tok.Validate("saveFlags", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveFlags/CHAR");
+                    //saveFlags = tok.GetUInt8();
                     if (obj != null) obj.saveFlags = saveFlags; // TODO break apart saveflags into its parts instead of reading and writing it as is
                 }
 
@@ -252,7 +255,14 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("isSeen", BinaryFieldType.DATA_SHORT)) throw new Exception("Failed to parse isSeen/SHORT");
-                    if (obj != null) obj.seen = tok.GetUInt16(); // seen should be 16bit shouldn't it?
+                    if (new int[] { 1180, 1183, 1192 }.Contains(reader.Version))
+                    {
+                        if (obj != null) obj.seen = tok.GetUInt16(); // seen should be 16bit shouldn't it?
+                    }
+                    else
+                    {
+                        if (obj != null) obj.seen = tok.GetUInt16H(); // seen should be 16bit shouldn't it?
+                    }
                 }
                 /*if (reader.Version > 1105)
                 {
@@ -525,13 +535,13 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("maxHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse maxHealth/FLOAT");
-                    if (obj != null) obj.maxHealthF = (uint)tok.GetSingle();
+                    if (obj != null) obj.maxHealthF = tok.GetSingle();
 
                     if (reader.Version != 1041 && reader.Version != 1047)
                     {
                         tok = reader.ReadToken();
                         if (!tok.Validate("addHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse addHealth/FLOAT");
-                        if (obj != null) obj.addHealthF = tok.GetUInt32();
+                        if (obj != null) obj.addHealthF = tok.GetSingle();
                     }
                 }
             }
@@ -745,7 +755,7 @@ namespace BZNParser.Battlezone.GameObject
                     //independence = tok.GetUInt8();
                     if (obj != null) obj.independence = tok.GetUInt32(); // this is a bit odd, the game only uses 8 bits it appears but it uses a 32bit here
                 }
-                else if (parent.SaveType == 0)
+                else if (parent.SaveType == SaveType.BZN)
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("independence", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse independence");
@@ -921,19 +931,20 @@ namespace BZNParser.Battlezone.GameObject
                     }
                     else
                     {
-                        if (writer.Version == 1041)
+                        if (writer.Version == 1041 || writer.Version == 1123)
                         {
                             writer.WriteLongFlags("isVisible", obj.isVisible);
                         }
                         else
                         {
-                            writer.WriteUnsignedValues("isVisible", (UInt16)obj.isVisible);
+                            writer.WriteUnsignedHexLValues("isVisible", obj.isVisible);
                         }
                     }
                 }
                 else
                 {
-                    writer.WriteShortFlags("isVisible", (UInt16)obj.isVisible);
+                    //writer.WriteShortFlags("isVisible", (UInt16)obj.isVisible);
+                    writer.WriteUnsignedValues("isVisible", (UInt16)obj.isVisible);
                 }
 
                 if (writer.Version >= 1197)
@@ -965,12 +976,20 @@ namespace BZNParser.Battlezone.GameObject
                     }
                     else
                     {
-                        writer.WriteUnsignedValues("isSeen", obj.seen);
+                        //writer.WriteUnsignedValues("isSeen", obj.seen);
+                        writer.WriteUnsignedHexLValues("isSeen", obj.seen); // fresh change
                     }
                 }
                 else
                 {
-                    writer.WriteUnsignedHexLValues("isSeen", (UInt16)obj.seen);
+                    if (new int[] { 1180, 1183, 1192 }.Contains(writer.Version))
+                    {
+                        writer.WriteUnsignedValues("isSeen", (UInt16)obj.seen);
+                    }
+                    else
+                    {
+                        writer.WriteUnsignedHexLValues("isSeen", (UInt16)obj.seen);
+                    }
                 }
                 /*if (reader.Version > 1105)
                 {
@@ -1286,7 +1305,8 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else if (parent.SaveType == 0)
                 {
-                    writer.WriteUnsignedValues("independence", (byte)obj.independence);
+                    //writer.WriteUnsignedValues("independence", (byte)obj.independence);
+                    writer.WriteRaw("independence", new byte[] { (byte)obj.independence });
                 }
             }
 

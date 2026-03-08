@@ -418,6 +418,7 @@ namespace BZNParser.Battlezone
                     {
                         if (!tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR)) // saw this on a 1171 once, why?
                             throw new Exception("Failed to parse g_TerrainName/CHAR"); // might need to note a safe malformation here
+                        Malformations.AddIncorrectName("g_TerrainName", "TerrainName");
                     }
                     TerrainName = tok.GetString();
                     Console.WriteLine($"TerrainName: {TerrainName}");
@@ -1019,8 +1020,15 @@ namespace BZNParser.Battlezone
                 }
                 else if (writer.Version == 1171)
                 {
-                    writer.WriteChars("g_TerrainName", TerrainName);
-                    // we might need a malformation utilization here for the one time on version 1171 it said "TerrainName"
+                    var mal = Malformations.GetMalformations(Malformation.INCORRECT_NAME, "g_TerrainName");
+                    if (preserveMalformations && mal.Length > 0)
+                    {
+                        writer.WriteChars((string)mal[0].Fields[0], TerrainName);
+                    }
+                    else
+                    {
+                        writer.WriteChars("g_TerrainName", TerrainName);
+                    }
                 }
                 else
                 {

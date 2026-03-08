@@ -31,12 +31,12 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("Nozzle1", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse Nozzle1/VOID");
-                if (obj != null) obj.Nozzle1_Handle = tok.GetUInt32H();
+                if (obj != null) obj.Nozzle1_Handle = tok.GetUInt32HR();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("Nozzle2", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse Nozzle2/VOID");
-                if (obj != null) obj.Nozzle2_Handle = tok.GetUInt32H();
+                if (obj != null) obj.Nozzle2_Handle = tok.GetUInt32HR();
             }
             else
             {
@@ -60,8 +60,8 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Version >= 1102)
             {
-                writer.WriteVoidBytes("Nozzle1", obj.Nozzle1_Handle);
-                writer.WriteVoidBytes("Nozzle2", obj.Nozzle2_Handle);
+                writer.WriteVoidBytesL("Nozzle1", obj.Nozzle1_Handle);
+                writer.WriteVoidBytesL("Nozzle2", obj.Nozzle2_Handle);
             }
         }
     }

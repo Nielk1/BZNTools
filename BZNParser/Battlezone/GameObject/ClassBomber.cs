@@ -16,7 +16,6 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassBomber : ClassHoverCraft
     {
-        public UInt32 state { get; set; }
         public float m_ReloadTime { get; set; }
 
         public ClassBomber(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
@@ -26,7 +25,7 @@ namespace BZNParser.Battlezone.GameObject
 
             tok = reader.ReadToken();
             if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
-            UInt32 state = tok.GetUInt32H();
+            if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
 
             if (parent.SaveType != SaveType.BZN)
             {
@@ -45,7 +44,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassBomber obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteVoidBytes("state", obj.state);
+            writer.WriteVoidBytes("state", (UInt32)obj.state);
 
             if (parent.SaveType != SaveType.BZN)
             {

@@ -4,6 +4,7 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static BZNParser.Tokenizer.BZNStreamReader;
 
@@ -21,10 +22,16 @@ namespace BZNParser.Tokenizer
 
 
 
+        public enum FloatTextFormat
+        {
+            G, // common, sometimes appears when new format should
+            _9e2, // new format
+            _9e3, // sometimes appears in place of new format
+        };
 
-
-
-
+        // Format used in ASCII mode for float text
+        public FloatTextFormat FloatFormat { get; private set; }
+        public bool FloatFormatUnreliable { get; private set; }
 
 
 
@@ -188,6 +195,8 @@ namespace BZNParser.Tokenizer
             long startPosition = stream.Position;
 
             Format = BZNFormat.Battlezone;
+            FloatFormat = FloatTextFormat.G; // default float text format
+            FloatFormatUnreliable = false;
 
             this.BaseStream = stream;
 
@@ -396,6 +405,136 @@ namespace BZNParser.Tokenizer
                 {
                     // Breadcrumb BZ2-1160-QUIRK
                     QuoteStrings = true;
+                }
+
+                if (Format == BZNFormat.Battlezone2 && !HasBinary)
+                {
+                    // < 1182 we can probably assume G
+                    // 1182 .8e3
+                    // 1183 .8e2
+                    // 1183 .8e3
+                    // 1187 .8e2
+                    // 1188 .8e2
+                    // 1192 .8e2
+                    // 1192 FormatG6 (rare)
+                    // 1193 .8e2
+                    // 1194 .8e2
+                    // 1196 .8e2
+                    // 1197 .8e2
+                    if (Version >= 1182)
+                    {
+                        FloatFormat = FloatTextFormat._9e2;
+
+                        stream.Position = startPosition;
+
+                        // float format could have changed, so lets try to agressive scan for floats
+
+                        Dictionary<FloatTextFormat, UInt32> FloatCounts = new Dictionary<FloatTextFormat, uint>()
+                        {
+                            { FloatTextFormat.G, 0 },
+                            { FloatTextFormat._9e2, 0 },
+                            { FloatTextFormat._9e3, 0 }
+                        };
+
+                        Regex pattern_9e2 = new Regex(@"^-?[0-9]\.[0-9]{8}e[+-][0-9]{2}$");
+                        Regex pattern_9e3 = new Regex(@"^-?[0-9]\.[0-9]{8}e[+-][0-9]{3}$");
+
+                        IBZNToken tok;
+                        while ((tok = ReadToken()) != null)
+                        {
+                            for (int i = 0; i < tok.GetCount(); i++)
+                            {
+                                if (tok.GetSubCount(i) == 0)
+                                {
+                                    // 0 subtokens, so it must be a normal field, check if it has singles
+                                    string s = tok.GetString(i);
+                                    if (float.TryParse(s, out _) && s.Contains(".")) // so we ignore integers to be safe
+                                    {
+                                        float v = tok.GetSingle(i);
+                                        if (pattern_9e2.IsMatch(s))
+                                        {
+                                            FloatCounts[FloatTextFormat._9e2]++;
+                                        }
+                                        else if (pattern_9e3.IsMatch(s))
+                                        {
+                                            FloatCounts[FloatTextFormat._9e3]++;
+                                        }
+                                        else
+                                        {
+                                            FloatCounts[FloatTextFormat.G]++;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    for (int j = 0; j < tok.GetSubCount(i); j++)
+                                    {
+                                        IBZNToken subTok = tok.GetSubToken(i, j);
+
+                                        for (int k = 0; k < subTok.GetCount(); k++)
+                                        {
+                                            if (subTok.GetSubCount(k) == 0)
+                                            {
+                                                string s = subTok.GetString(k);
+
+                                                if (float.TryParse(s, out _) && s.Contains(".")) // so we ignore integers to be safe
+                                                {
+                                                    float v = subTok.GetSingle(k); // so we throw an exception if it's not a float
+                                                    if (pattern_9e2.IsMatch(s))
+                                                    {
+                                                        FloatCounts[FloatTextFormat._9e2]++;
+                                                    }
+                                                    else if (pattern_9e3.IsMatch(s))
+                                                    {
+                                                        FloatCounts[FloatTextFormat._9e3]++;
+                                                    }
+                                                    else
+                                                    {
+                                                        FloatCounts[FloatTextFormat.G]++;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                for (int l = 0; l < subTok.GetSubCount(k); l++)
+                                                {
+                                                    IBZNToken subTok2 = subTok.GetSubToken(k, l);
+                                                    for (int i2 = 0; i2 < subTok2.GetCount(); i2++)
+                                                    {
+                                                        string s2 = subTok2.GetString(i2);
+                                                        if (float.TryParse(s2, out _) && s2.Contains(".")) // so we ignore integers to be safe
+                                                        {
+                                                            float v2 = subTok2.GetSingle(i2);
+                                                            if (pattern_9e2.IsMatch(s2))
+                                                            {
+                                                                FloatCounts[FloatTextFormat._9e2]++;
+                                                            }
+                                                            else if (pattern_9e3.IsMatch(s2))
+                                                            {
+                                                                FloatCounts[FloatTextFormat._9e3]++;
+                                                            }
+                                                            else
+                                                            {
+                                                                FloatCounts[FloatTextFormat.G]++;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // if more than one float count is greater than 0, mark a flag that float confusion exists
+                        // then note the most common format as the main format
+                        if (FloatCounts.Count(kv => kv.Value > 0) > 1)
+                        {
+                            FloatFormatUnreliable = true;
+                        }
+                        FloatFormat = FloatCounts.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).Select(kv => kv.Key).Append(FloatFormat).FirstOrDefault();
+                    }
                 }
 
                 stream.Position = startPosition;

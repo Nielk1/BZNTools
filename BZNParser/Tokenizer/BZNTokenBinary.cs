@@ -51,6 +51,8 @@ namespace BZNParser.Tokenizer
             }
             throw new NotImplementedException();
         }
+        public int GetSubCount(int index = 0) => 0;
+        public IBZNToken GetSubToken(int index = 0, int subIndex = 0) { throw new InvalidOperationException("Binary Tokens have no sub tokens."); }
 
         public bool GetBoolean(int index = 0)
         {

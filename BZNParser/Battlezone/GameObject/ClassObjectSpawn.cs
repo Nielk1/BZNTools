@@ -51,7 +51,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteSignedValues("spawnHandle", obj.spawnHandle); // value not confirmedss
+                writer.WriteSignedValues("spawnHandle", obj.spawnHandle); // value not confirmed
                 writer.WriteFloats("spawnTimer", obj.spawnTimer); // value not confirmed
             }
 

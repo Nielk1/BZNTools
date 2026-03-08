@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Transactions;
+using static BZNParser.Tokenizer.BZNStreamReader;
 using static BZNParser.Tokenizer.IMalformable;
 
 namespace BZNParser.Battlezone
@@ -282,6 +283,7 @@ namespace BZNParser.Battlezone
                 Console.WriteLine($"CountCR: {reader.CountCR}");
                 Console.WriteLine($"CountLF: {reader.CountLF}");
                 Console.WriteLine($"CountCRLF: {reader.CountCRLF}");
+                Console.WriteLine($"FloatFormat: {reader.FloatFormat}");
                 Console.WriteLine($"----------------- END READER INFO -----------------");
             }
 
@@ -490,6 +492,7 @@ namespace BZNParser.Battlezone
                 Console.WriteLine($"CountCR: {reader.CountCR}");
                 Console.WriteLine($"CountLF: {reader.CountLF}");
                 Console.WriteLine($"CountCRLF: {reader.CountCRLF}");
+                Console.WriteLine($"FloatFormat: {reader.FloatFormat}");
                 Console.WriteLine($"----------------- END READER INFO -----------------");
             }
 
@@ -507,6 +510,20 @@ namespace BZNParser.Battlezone
                 else
                 {
                     Malformations.AddLineEnding("?");
+                }
+            }
+
+            if (reader.Format == BZNFormat.Battlezone2 && !reader.HasBinary)
+            {
+                FloatTextFormat ExpectedFloatFormat = FloatTextFormat.G;
+                if (reader.Version >= 1182)
+                {
+                    ExpectedFloatFormat = FloatTextFormat._9e2;
+                }
+
+                if (ExpectedFloatFormat != reader.FloatFormat)
+                {
+                    Malformations.AddFloatFormat(reader.FloatFormat);//, ExpectedFloatFormat);
                 }
             }
         }
@@ -897,6 +914,16 @@ namespace BZNParser.Battlezone
 
         public void Write(BZNStreamWriter writer, bool binary = true, bool save = false, bool preserveMalformations = false)
         {
+            // keep the float format if its non-standard
+            if (preserveMalformations)
+            {
+                FloatTextFormat? floatTextFormat = Malformations.GetFloatTextFormat();
+                if (floatTextFormat != null)
+                {
+                    writer.FloatFormat = floatTextFormat.Value;
+                }
+            }
+
             if (writer.Format != BZNFormat.BattlezoneN64)
             {
                 var mal = Malformations.GetMalformations(Malformation.INCORRECT_NAME, "version");
@@ -1058,7 +1085,7 @@ namespace BZNParser.Battlezone
                 if (writer.Version > 1165)
                 {
                     // 1187, 1188, 1192
-                    writer.WriteVoidBytes("groupTargets", groupTargets);
+                    writer.WriteVoidBytesL("groupTargets", groupTargets);
                 }
                 if (writer.Version == 1100 || writer.Version == 1041 || writer.Version == 1047 || writer.Version == 1070) // not sure what versions this happens
                 {

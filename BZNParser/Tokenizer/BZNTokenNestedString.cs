@@ -18,8 +18,24 @@ namespace BZNParser.Tokenizer
         public bool IsBinary => false;
         public int GetCount()
         {
-            throw new InvalidOperationException();
+            //throw new InvalidOperationException();
+            return 1;
         }
+        public int GetSubCount(int index = 0)
+        {
+            if (index >= values.Length) throw new ArgumentOutOfRangeException();
+            IBZNToken[] subToks = values[index];
+            return subToks.Length;
+        }
+        public IBZNToken GetSubToken(int index = 0, int subIndex = 0)
+        {
+            if (index >= values.Length) throw new ArgumentOutOfRangeException();
+
+            IBZNToken[] subToks = values[index];
+            if (subIndex >= subToks.Length) throw new ArgumentOutOfRangeException();
+            return subToks[subIndex];
+        }
+
         public bool GetBoolean(int index = 0)
         {
             throw new InvalidOperationException();
@@ -38,7 +54,6 @@ namespace BZNParser.Tokenizer
         public byte GetUInt8(int index = 0) { throw new InvalidOperationException(); }
         public string GetString(int index = 0) { throw new InvalidOperationException(); }
         public float GetSingle(int index = 0) { throw new InvalidOperationException(); }
-
         public Vector3D GetVector3D(int index = 0)
         {
             if (index >= values.Length) throw new ArgumentOutOfRangeException();

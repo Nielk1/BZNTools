@@ -1,4 +1,6 @@
-﻿using static BZNParser.Tokenizer.IMalformable;
+﻿using Microsoft.VisualBasic;
+using static BZNParser.Tokenizer.BZNStreamReader;
+using static BZNParser.Tokenizer.IMalformable;
 
 namespace BZNParser.Tokenizer
 {
@@ -14,6 +16,7 @@ namespace BZNParser.Tokenizer
         LINE_ENDING,     // "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
         STRING_PAD,      // <fieldName>,       <length>         // String is padded by nuls to reach this length
         INCORRECT_NAME,  // <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
+        FLOAT_FORMAT,    // "ALL:FLOAT_TEXT",  <formatApplied>  // Float is in an unexpected text format
     }
 
     public static class MalformationExtensions
@@ -115,6 +118,17 @@ namespace BZNParser.Tokenizer
 
         public static void AddIncorrectName(this MalformationManager manager, string fieldName, string badName) =>
             manager.Add(Malformation.INCORRECT_NAME, fieldName, badName);
+
+        public static void AddFloatFormat(this MalformationManager manager, FloatTextFormat formatUsed) =>//, FloatTextFormat formatExpected) =>
+            manager.Add(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT", formatUsed);
+
+        public static FloatTextFormat? GetFloatTextFormat(this MalformationManager manager)
+        {
+            var mals = manager.GetMalformations(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT");
+            if (mals.Length > 0)
+                return (FloatTextFormat)mals[0].Fields[0];
+            return null;
+        }
     }
     public interface IMalformable
     {

@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using static BZNParser.Tokenizer.BZNStreamReader;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BZNParser.Tokenizer
@@ -24,46 +25,23 @@ namespace BZNParser.Tokenizer
             return (sign, exponent, mantissa);
         }
 
-        public static string ToBZNString(this float value, int version, BZNFormat format)
+        public static string ToBZNString(this float value, FloatTextFormat format)
         {
             if (float.IsNaN(value)) return "nan";
             if (float.IsPositiveInfinity(value)) return "inf";
             if (float.IsNegativeInfinity(value)) return "-inf";
 
-            // 1182 Format1e8 3
-
-            // 1183 Format1e8 2
-            // 1183 Format1e8 3
-
-            // 1187 Format1e8 2
-            // 1188 Format1e8 2
-
-            // 1192 Format1e8 2
-            // 1192 FormatG6 (rare)
-
-            // 1193 Format1e8 2
-            // 1194 Format1e8 2
-            // 1196 Format1e8 2
-            // 1197 Format1e8 2
-
             (int sign, int exponent, uint mantissa) = value.Extract();
-            if (format == BZNFormat.Battlezone2)
-                if (version == 1182)
-                {
-                    return Format1e8(sign, exponent, mantissa, 3);
-                }
-                else if (version == 1183)
-                {
-                    // could be either
-                    return Format1e8(sign, exponent, mantissa, 3);
-                    //return Format1e8(sign, exponent, mantissa, 2);
-                }
-                else if (version >= 1187)
-                {
+            switch (format)
+            {
+                case FloatTextFormat._9e2:
                     return Format1e8(sign, exponent, mantissa, 2);
-                }
-
-            return FormatG6(sign, exponent, mantissa); // 1192 showed up once?
+                case FloatTextFormat._9e3:
+                    return Format1e8(sign, exponent, mantissa, 3);
+                case FloatTextFormat.G:
+                default:
+                    return FormatG6(sign, exponent, mantissa);
+            }
         }
 
         private static string Format1e8(int sign, int exponent, uint mantissa, int exponentSize)
@@ -399,12 +377,14 @@ namespace BZNParser.Tokenizer
         public bool QuoteStrings { get; private set; }
         public bool HasBinary { get; private set; }
         public bool InBinary { get; private set; }
+        public FloatTextFormat FloatFormat { get; set; }
 
         public BZNStreamWriter(Stream stream, BZNFormat format, int version)
         {
             BaseStream = stream;
             Format = format;
             Version = version;
+            FloatFormat = FloatTextFormat.G;
 
             switch (format)
             {
@@ -423,6 +403,10 @@ namespace BZNParser.Tokenizer
                     {
                         // Breadcrumb BZ2-1160-QUIRK
                         QuoteStrings = true;
+                    }
+                    if (Version >= 1182)
+                    {
+                        FloatFormat = FloatTextFormat._9e2;
                     }
                     break;
                 case BZNFormat.BattlezoneN64:
@@ -765,11 +749,11 @@ namespace BZNParser.Tokenizer
             {
                 BaseStream.Write(win1252.GetBytes("  x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes("  z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
             }
         }
@@ -804,15 +788,15 @@ namespace BZNParser.Tokenizer
             {
                 BaseStream.Write(win1252.GetBytes("  x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes("  y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes("  z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
             }
         }
@@ -868,54 +852,54 @@ namespace BZNParser.Tokenizer
             {
                 BaseStream.Write(win1252.GetBytes($"  right.x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  right.y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  right.z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
 
                 BaseStream.Write(win1252.GetBytes($"  up.x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  up.y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  up.z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
 
                 BaseStream.Write(win1252.GetBytes($"  front.x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  front.y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  front.z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
 
                 BaseStream.Write(win1252.GetBytes($"  posit.x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].posit.x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  posit.y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].posit.y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  posit.z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].posit.z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
             }
         }
@@ -950,54 +934,54 @@ namespace BZNParser.Tokenizer
             {
                 BaseStream.Write(win1252.GetBytes($"  right_x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  right_y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  right_z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].right.z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
 
                 BaseStream.Write(win1252.GetBytes($"  up_x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  up_y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  up_z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].up.z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
 
                 BaseStream.Write(win1252.GetBytes($"  front_x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  front_y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  front_z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].front.z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
 
                 BaseStream.Write(win1252.GetBytes($"  posit_x [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.x.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].posit.x.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  posit_y [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.y.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].posit.y.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"  posit_z [1] ="));
                 InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.z.ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].posit.z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
             }
         }
@@ -1046,7 +1030,7 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(win1252.GetBytes(values[i].ToBZNString(Version, Format)));
+                BaseStream.Write(win1252.GetBytes(values[i].ToBZNString(FloatFormat)));
                 InternalWriteNewline();
             }
         }

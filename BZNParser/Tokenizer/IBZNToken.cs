@@ -9,6 +9,8 @@ namespace BZNParser.Tokenizer
     {
         bool IsBinary { get; }
         int GetCount();
+        int GetSubCount(int index = 0);
+        IBZNToken GetSubToken(int index = 0, int subIndex = 0);
         bool GetBoolean(int index = 0);
         Int32 GetInt32(int index = 0);
         Int32 GetInt32H(int index = 0);

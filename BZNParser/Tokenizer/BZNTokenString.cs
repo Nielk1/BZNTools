@@ -25,6 +25,8 @@ namespace BZNParser.Tokenizer
         {
             return values.Length;
         }
+        public int GetSubCount(int index = 0) => 0;
+        public IBZNToken GetSubToken(int index = 0, int subIndex = 0) { throw new InvalidOperationException("Basic String Tokens have no sub tokens."); }
 
         public bool GetBoolean(int index = 0)
         {
@@ -118,7 +120,6 @@ namespace BZNParser.Tokenizer
             }
             return byte.Parse(values[index]);
         }
-
         public float GetSingle(int index = 0)
         {
             if (index >= values.Length) throw new ArgumentOutOfRangeException();
@@ -131,8 +132,8 @@ namespace BZNParser.Tokenizer
 
         public string GetString(int index = 0)
         {
-            if (index > 0) throw new ArgumentOutOfRangeException();
-            return values[0];
+            if (index > values.Length) throw new ArgumentOutOfRangeException();
+            return values[index];
         }
 
         public Vector3D GetVector3D(int index = 0)

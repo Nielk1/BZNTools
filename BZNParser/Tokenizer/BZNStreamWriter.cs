@@ -765,22 +765,37 @@ namespace BZNParser.Tokenizer
             {
                 BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  x")} [1] ="));
                 InternalWriteNewline();
-                var mal = values[i].Malformations.GetMalformations(Malformation.INCORRECT_TEXT, "x");
-                if (preserveMalformations && mal.Any())
-                    BaseStream.Write(win1252.GetBytes((string)mal.First().Fields[0]));
-                else
-                    BaseStream.Write(win1252.GetBytes(values[i].X.ToBZNString(FloatFormat)));
+                InternalWriteFloatValue("  x", values[i].X, preserveMalformations, FloatFormat, values[i].Malformations);
                 InternalWriteNewline();
+                
                 BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  z")} [1] ="));
                 InternalWriteNewline();
-
-                mal = values[i].Malformations.GetMalformations(Malformation.INCORRECT_TEXT, "z");
-                if (preserveMalformations && mal.Any())
-                    BaseStream.Write(win1252.GetBytes((string)mal.First().Fields[0]));
-                else
-                    BaseStream.Write(win1252.GetBytes(values[i].Z.ToBZNString(FloatFormat)));
+                InternalWriteFloatValue("  z", values[i].Z, preserveMalformations, FloatFormat, values[i].Malformations);
                 InternalWriteNewline();
             }
+        }
+
+        public void InternalWriteFloatValue(string name, float value, bool preserveMalformations, FloatTextFormat floatFormat, IMalformable.MalformationManager malformations)
+        {
+            if (InBinary)
+            {
+                byte[] bytes = BitConverter.GetBytes(value);
+                if (IsBigEndian)
+                    Array.Reverse(bytes);
+                BaseStream.Write(bytes);
+                return;
+            }
+
+            if (preserveMalformations)
+            {
+                var mal = malformations.GetMalformations(Malformation.INCORRECT_TEXT, name);
+                if (mal.Any())
+                {
+                    BaseStream.Write(win1252.GetBytes((string)mal.First().Fields[0]));
+                    return;
+                }
+            }
+            BaseStream.Write(win1252.GetBytes(value.ToBZNString(FloatFormat)));
         }
 
         public void WriteVector3Ds(string name, bool preserveMalformations, params Vector3D[] values)
@@ -875,57 +890,21 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  right.x")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.x.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  right.y")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.y.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  right.z")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].right.z.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  right.x")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  right.x", values[i].right.x, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  right.y")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  right.x", values[i].right.y, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  right.z")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  right.x", values[i].right.z, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
 
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  up.x")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.x.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  up.y")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.y.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  up.z")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].up.z.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  up.x")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  up.x", values[i].up.x, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  up.y")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  up.x", values[i].up.y, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  up.z")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  up.x", values[i].up.z, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
 
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  front.x")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.x.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  front.y")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.y.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  front.z")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].front.z.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  front.x")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  front.x", values[i].front.x, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  front.y")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  front.x", values[i].front.y, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  front.z")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  front.x", values[i].front.z, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
 
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  posit.x")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.x.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  posit.y")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.y.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  posit.z")} [1] ="));
-                InternalWriteNewline();
-                BaseStream.Write(win1252.GetBytes(values[i].posit.z.ToBZNString(FloatFormat)));
-                InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  posit.x")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  posit.x", values[i].posit.x, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  posit.y")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  posit.y", values[i].posit.y, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
+                BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  posit.z")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  posit.z", values[i].posit.z, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
             }
         }
 
@@ -1145,9 +1124,12 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(win1252.GetBytes($"{name} ="));
-            if (value.Length > 0)
-                BaseStream.Write(win1252.GetBytes(" ")); // only have the trailing space if the value exists
+            BaseStream.Write(win1252.GetBytes($"{name} = "));
+
+            // this is actually a malformation to not have the space, from what we can tell, so we need to figure out this one
+            //if (value.Length > 0)
+            //    BaseStream.Write(win1252.GetBytes(" ")); // only have the trailing space if the value exists
+
             InternalWriteStringValue(value);
             InternalWriteNewline();
         }

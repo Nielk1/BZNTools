@@ -176,7 +176,7 @@ namespace BZNParser.Tokenizer
 
             public MalformationData[] GetMalformations(Malformation type, string property)
             {
-                return this[property];
+                return this[property].Where(md => md.Type == type).ToArray();
             }
 
             public void Add(Malformation malformation, string property, params object[] fields)

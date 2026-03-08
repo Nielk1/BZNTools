@@ -580,17 +580,17 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_v = tok.GetVector3D();
-                    tok.CheckMalformationsVector3D(euler_v.Malformations);
+                    tok.CheckMalformationsVector3D(euler_v.Malformations, reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_omega = tok.GetVector3D();
-                    tok.CheckMalformationsVector3D(euler_omega.Malformations);
+                    tok.CheckMalformationsVector3D(euler_omega.Malformations, reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_Accel = tok.GetVector3D();
-                    tok.CheckMalformationsVector3D(euler_Accel.Malformations);
+                    tok.CheckMalformationsVector3D(euler_Accel.Malformations, reader.FloatFormat);
 
                     Euler euler = new Euler()
                     {
@@ -613,7 +613,7 @@ namespace BZNParser.Battlezone
                     if (!tok.Validate("euler")) throw new Exception("Failed to parse euler");
                     
                     Euler euler = tok.GetEuler();
-                    tok.CheckMalformationsEuler(euler);
+                    tok.CheckMalformationsEuler(euler, reader.FloatFormat);
                     
                     return euler;
                 }

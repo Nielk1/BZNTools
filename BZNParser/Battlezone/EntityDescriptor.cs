@@ -313,7 +313,7 @@ namespace BZNParser.Battlezone
                 if (obj != null)
                 {
                     obj.transform = tok.GetMatrix();
-                    tok.CheckMalformationsMatrix(obj.transform.Malformations);
+                    tok.CheckMalformationsMatrix(obj.transform.Malformations, reader.FloatFormat);
                 }
             }
             if ((reader.Format == BZNFormat.Battlezone && reader.Version > 1001) || reader.Format == BZNFormat.BattlezoneN64)

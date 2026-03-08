@@ -145,14 +145,9 @@ namespace BZNParser.Battlezone
             for (int j = 0; j < pointCount; j++)
             {
                 points[j] = tok.GetVector2D(j);
-                if (!tok.IsBinary && reader.FloatFormatUnreliable)
-                {
-                    // TODO encapsilate
-                    if (SingleExtension.GetFloatTextFormat(tok.GetSubToken(j, 0).GetString()) != reader.FloatFormat)
-                        points[j].Malformations.AddIncorrectTextParse($"x", tok.GetSubToken(j, 0).GetString());
-                    if (SingleExtension.GetFloatTextFormat(tok.GetSubToken(j, 1).GetString()) != reader.FloatFormat)
-                        points[j].Malformations.AddIncorrectTextParse($"z", tok.GetSubToken(j, 1).GetString());
-                }
+                tok.CheckMalformationsVector2D(points[j].Malformations, reader.FloatFormat, j);
+                //tok.GetSubToken(j, 0).CheckMalformationsSingle("  x", points[j].Malformations, reader.FloatFormat);
+                //tok.GetSubToken(j, 1).CheckMalformationsSingle("  z", points[j].Malformations, reader.FloatFormat);
             }
             if (obj != null) obj.points = points;
 

@@ -8,6 +8,145 @@ using System.Text;
 namespace BZNParser
 {
     // note, there are some oddities with passing these around, might need to swap to classes unless this lets me use sizeof
+
+    public class DualModeValue<T1, T2>
+    {
+        public T1 ValueType1
+        {
+            get
+            {
+                if (fromType2)
+                    return internalType2 is not null
+                        ? (T1)Convert.ChangeType(internalType2, typeof(T1))
+                        : (T1)Activator.CreateInstance(typeof(T1))!;
+                else
+                    return internalType1;
+            }
+            set
+            {
+                if (fromType2 || !EqualityComparer<T1>.Default.Equals(value, internalType1))
+                {
+                    originalValue = null;
+                }
+                internalType1 = value;
+                fromType2 = false;
+            }
+        }
+
+        public T2 ValueType2
+        {
+            get
+            {
+                if (fromType2)
+                    return internalType2;
+                else
+                    return internalType1 is not null
+                        ? (T2)Convert.ChangeType(internalType1, typeof(T2))
+                        : (T2)Activator.CreateInstance(typeof(T2))!;
+            }
+            set
+            {
+                if (!fromType2 || !EqualityComparer<T2>.Default.Equals(value, internalType2))
+                {
+                    originalValue = null;
+                }
+                internalType2 = value;
+                fromType2 = true;
+            }
+        }
+
+        public dynamic Value
+        {
+            get
+            {
+                if (fromType2)
+                    return internalType2!;
+                else
+                    return internalType1!;
+            }
+            set
+            {
+                if (value is T1)
+                {
+                    internalType1 = (T1)value;
+                    fromType2 = false;
+                }
+                else if (value is T2)
+                {
+                    internalType2 = (T2)value;
+                    fromType2 = true;
+                }
+                else
+                {
+                    throw new ArgumentException($"Value must be of type {typeof(T1)} or {typeof(T2)}");
+                }
+            }
+        }
+
+        public T Get<T>()
+        {
+            if (typeof(T) == typeof(T1))
+            {
+                return (T)(object)ValueType1!;
+            }
+            if (typeof(T) == typeof(T2))
+            {
+                return (T)(object)ValueType2!;
+            }
+            else
+            {
+                throw new ArgumentException($"Type parameter must be {typeof(T1)} or {typeof(T2)}");
+            }
+        }
+
+        public string? OriginalValue => originalValue;
+
+        private T1 internalType1;
+        private T2 internalType2;
+        private bool fromType2;
+        private string? originalValue;
+
+        public DualModeValue(T1 value, string? originalValue = null)
+        {
+            this.internalType1 = value;
+            this.fromType2 = false;
+            this.originalValue = originalValue;
+        }
+
+        public DualModeValue(T2 value, string? originalValue = null)
+        {
+            this.internalType2 = value;
+            this.fromType2 = true;
+            this.originalValue = originalValue;
+        }
+    }
+
+    public class TextAnnotatedType<T>
+    {
+        public T Value
+        {
+            get { return internalValue; }
+            set
+            {
+                if (!EqualityComparer<T>.Default.Equals(value, internalValue))
+                    originalValue = null;
+                internalValue = value;
+            }
+        }
+
+        public string? OriginalValue => originalValue;
+
+
+        private T internalValue;
+        public string? originalValue;
+
+        public TextAnnotatedType(T value, string? originalValue)
+        {
+            this.internalValue = value;
+            this.originalValue = originalValue;
+        }
+    }
+
     public struct Vector3D
     {
         public float x;
@@ -28,8 +167,8 @@ namespace BZNParser
 
     public struct Euler
     {
-        const float EPSILON = 1.0e-4f;
-        const float HUGE_NUMBER = 1.0e30f;
+        public const float EPSILON = 1.0e-4f;
+        public const float HUGE_NUMBER = 1.0e30f;
 
         public Quaternion Att;
 

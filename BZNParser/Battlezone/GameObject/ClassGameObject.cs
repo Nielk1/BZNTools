@@ -28,18 +28,24 @@ namespace BZNParser.Battlezone.GameObject
         public Int32 groupNumber { get; set; }
         public bool isCritical { get; set; }
         public float healthRatio { get; set; }
-        public UInt32 curHealth { get; set; }
-        public float curHealthF { get; set; }
-        public UInt32 maxHealth { get; set; }
-        public float maxHealthF { get; set; }
-        public float addHealthF { get; set; }
+        //public UInt32 curHealth { get; set; }
+        //public float curHealthF { get; set; }
+        public DualModeValue<Int32, float> curHealth { get; set; }
+
+        //public UInt32 maxHealth { get; set; }
+        //public float maxHealthF { get; set; }
+        public DualModeValue<Int32, float> maxHealth { get; set; }
+        public float addHealth { get; set; }
         public float ammoRatio { get; set; }
-        public Int32 curAmmo { get; set; }
-        public float curAmmoF { get; set; }
-        public Int32 maxAmmo { get; set; }
-        public float maxAmmoF { get; set; }
-        public Int32 addAmmo { get; set; }
-        public float addAmmoF { get; set; }
+        //public Int32 curAmmo { get; set; }
+        //public float curAmmoF { get; set; }
+        public DualModeValue<Int32, float> curAmmo { get; set; }
+        //public Int32 maxAmmo { get; set; }
+        //public float maxAmmoF { get; set; }
+        public DualModeValue<Int32, float> maxAmmo { get; set; }
+        //public Int32 addAmmo { get; set; }
+        //public float addAmmoF { get; set; }
+        public DualModeValue<Int32, float> addAmmo { get; set; }
         public UInt32 undefaicmd { get; set; }
         public UInt32 priority { get; set; }
         public UInt32 what { get; set; }
@@ -504,11 +510,11 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("curHealth", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curHealth/LONG");
-                if (obj != null) obj.curHealth = tok.GetUInt32();
+                if (obj != null) obj.curHealth = new DualModeValue<Int32, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("maxHealth", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxHealth/LONG");
-                if (obj != null) obj.maxHealth = tok.GetUInt32();
+                if (obj != null) obj.maxHealth = new DualModeValue<Int32, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -531,17 +537,17 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("curHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse curHealth/FLOAT");
-                    if (obj != null) obj.curHealthF = tok.GetSingle();
+                    if (obj != null) obj.curHealth = new DualModeValue<Int32, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("maxHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse maxHealth/FLOAT");
-                    if (obj != null) obj.maxHealthF = tok.GetSingle();
+                    if (obj != null) obj.maxHealth = new DualModeValue<Int32, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
 
                     if (reader.Version != 1041 && reader.Version != 1047)
                     {
                         tok = reader.ReadToken();
                         if (!tok.Validate("addHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse addHealth/FLOAT");
-                        if (obj != null) obj.addHealthF = tok.GetSingle();
+                        if (obj != null) obj.addHealth = tok.GetSingle();
                     }
                 }
             }
@@ -572,11 +578,11 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("curAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curAmmo/LONG");
-                if (obj != null) obj.curAmmo = tok.GetInt32();
+                if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxAmmo/LONG");
-                if (obj != null) obj.maxAmmo = tok.GetInt32();
+                if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -591,21 +597,21 @@ namespace BZNParser.Battlezone.GameObject
                         // these probably should be floats not longs
                         tok = reader.ReadToken();
                         if (!tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse curAmmo/FLOAT");
-                        if (obj != null) obj.curAmmoF = tok.GetSingle();
+                        if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
 
                         tok = reader.ReadToken();
                         if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse maxAmmo/FLOAT");
-                        if (obj != null) obj.maxAmmoF = tok.GetSingle();
+                        if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
                     }
                     else
                     {
                         tok = reader.ReadToken();
                         if (!tok.Validate("curAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curAmmo/LONG");
-                        if (obj != null) obj.curAmmo = tok.GetInt32();
+                        if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
 
                         tok = reader.ReadToken();
                         if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxAmmo/LONG");
-                        if (obj != null) obj.maxAmmo = tok.GetInt32();
+                        if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
                     }
 
                     if (reader.Version >= 1070)
@@ -613,13 +619,13 @@ namespace BZNParser.Battlezone.GameObject
                         // probably should be a float
                         tok = reader.ReadToken();
                         if (!tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse addAmmo/FLOAT");
-                        if (obj != null) obj.addAmmoF = tok.GetSingle();
+                        if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
                     }
                     else if (reader.Version != 1041 && reader.Version != 1047) // avoid bz2001.bzn != 1041
                     {
                         tok = reader.ReadToken();
                         if (!tok.Validate("addAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse addAmmo/LONG");
-                        if (obj != null) obj.addAmmo = tok.GetInt32();
+                        if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
                     }
                 }
             }
@@ -1130,8 +1136,8 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
                 writer.WriteFloats("healthRatio", obj.healthRatio);
-                writer.WriteUnsignedValues("curHealth", obj.curHealth);
-                writer.WriteUnsignedValues("maxHealth", obj.maxHealth);
+                writer.WriteSignedValues("curHealth", obj.curHealth.Get<Int32>());
+                writer.WriteSignedValues("maxHealth", obj.maxHealth.Get<Int32>());
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -1148,12 +1154,12 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    writer.WriteFloats("curHealth", obj.curHealthF);
-                    writer.WriteFloats("maxHealth", obj.maxHealthF);
+                    writer.WriteFloats("curHealth", obj.curHealth.Get<Single>());
+                    writer.WriteFloats("maxHealth", obj.maxHealth.Get<Single>());
 
                     if (writer.Version != 1041 && writer.Version != 1047)
                     {
-                        writer.WriteFloats("addHealth", obj.addHealthF);
+                        writer.WriteFloats("addHealth", obj.addHealth);
                     }
                 }
             }
@@ -1181,8 +1187,8 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
                 writer.WriteFloats("ammoRatio", obj.ammoRatio);
-                writer.WriteSignedValues("curAmmo", obj.curAmmo);
-                writer.WriteSignedValues("maxAmmo", obj.maxAmmo);
+                writer.WriteSignedValues("curAmmo", obj.curAmmo.Get<Int32>());
+                writer.WriteSignedValues("maxAmmo", obj.maxAmmo.Get<Int32>());
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -1193,23 +1199,23 @@ namespace BZNParser.Battlezone.GameObject
                     if (writer.Version >= 1070)
                     {
                         // these probably should be floats not longs
-                        writer.WriteFloats("curAmmo", obj.curAmmoF);
-                        writer.WriteFloats("maxAmmo", obj.maxAmmoF);
+                        writer.WriteFloats("curAmmo", obj.curAmmo.Get<Single>());
+                        writer.WriteFloats("maxAmmo", obj.maxAmmo.Get<Single>());
                     }
                     else
                     {
-                        writer.WriteSignedValues("curAmmo", obj.curAmmo);
-                        writer.WriteSignedValues("maxAmmo", obj.maxAmmo);
+                        writer.WriteSignedValues("curAmmo", obj.curAmmo.Get<Int32>());
+                        writer.WriteSignedValues("maxAmmo", obj.maxAmmo.Get<Int32>());
                     }
 
                     if (writer.Version >= 1070)
                     {
                         // probably should be a float
-                        writer.WriteFloats("addAmmo", obj.addAmmoF);
+                        writer.WriteFloats("addAmmo", obj.addAmmo.Get<Single>());
                     }
                     else if (writer.Version != 1041 && writer.Version != 1047) // avoid bz2001.bzn != 1041
                     {
-                        writer.WriteSignedValues("addAmmo", obj.addAmmo);
+                        writer.WriteSignedValues("addAmmo", obj.addAmmo.Get<Int32>());
                     }
                 }
             }

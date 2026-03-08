@@ -171,17 +171,17 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse curAmmo/FLOAT");
-                    if (obj != null) obj.curAmmoF = tok.GetSingle();
+                    if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse maxAmmo/FLOAT");
-                    if (obj != null) obj.maxAmmoF = tok.GetSingle();
+                    if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse addAmmo/FLOAT");
-                    if (obj != null) obj.addAmmoF = tok.GetSingle();
+                    if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
 
                     if (reader.InBinary)
                     {
@@ -274,9 +274,9 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1143)
                 {
-                    writer.WriteFloats("curAmmo", obj.curAmmoF);
-                    writer.WriteFloats("maxAmmo", obj.maxAmmoF);
-                    writer.WriteFloats("addAmmo", obj.addAmmoF);
+                    writer.WriteFloats("curAmmo", obj.curAmmo.Get<Single>());
+                    writer.WriteFloats("maxAmmo", obj.maxAmmo.Get<Single>());
+                    writer.WriteFloats("addAmmo", obj.addAmmo.Get<Single>());
 
                     if (writer.InBinary)
                     {

@@ -10,6 +10,13 @@ using static BZNParser.Tokenizer.BZNStreamReader;
 
 namespace BZNParser.Tokenizer
 {
+    public struct AtlasData
+    {
+        public long Offset { get; set; }
+        public long Length { get; set; }
+        public bool IsBinary { get; set; }
+    }
+
     public class BZNStreamReader : IDisposable
     {
         private static Encoding win1252;
@@ -88,12 +95,18 @@ namespace BZNParser.Tokenizer
             public void Pop()
             {
                 if (_offsets.TryPop(out var pos))
+                {
                     _reader.BaseStream.Position = pos;
+                    _reader.TokenIndex = GetTokenIndex(pos);
+                }
             }
             public void Peek()
             {
                 if (_offsets.TryPeek(out var pos))
+                {
                     _reader.BaseStream.Position = pos;
+                    _reader.TokenIndex = GetTokenIndex(pos);
+                }
             }
 
             public void Discard()
@@ -105,14 +118,26 @@ namespace BZNParser.Tokenizer
             public void Set(long offset)
             {
                 _reader.BaseStream.Position = offset;
+                _reader.TokenIndex = GetTokenIndex(offset);
             }
 
             // Get the offset, used for multi-offset situations
             public long Get()
             {
-                return _reader.BaseStream.Position; ;
+                return _reader.BaseStream.Position;
+            }
+
+            private int GetTokenIndex(long offset)
+            {
+                int idx = _reader.Atlas.FindIndex(dr => dr.Offset <= offset && dr.Offset + dr.Length > offset);
+                if (idx >= 0)
+                    return idx;
+                return _reader.Atlas.Count;
             }
         }
+
+        public int TokenIndex { get; private set; }
+        private List<AtlasData> Atlas; // stores token offsets, later will be an object with more metadata for Stream Defects
 
         /// <summary>
         /// BZN file started in binary.
@@ -191,8 +216,10 @@ namespace BZNParser.Tokenizer
             this.filename = filename;
 
             _bookmarkManager = new BookmarkManager(this);
+            Atlas = new List<AtlasData>();
 
             long startPosition = stream.Position;
+            TokenIndex = 0;
 
             Format = BZNFormat.Battlezone;
             FloatFormat = FloatTextFormat.G; // default float text format
@@ -212,7 +239,8 @@ namespace BZNParser.Tokenizer
                 if(!versionname.All(c => !char.IsControl(c)))
                     binaryDataStartOffset = 0;
 
-                stream.Position = position;
+                //stream.Position = position;
+                Bookmark.Set(position);
 
                 bool TypeSizeSet = false;
                 //TypeSize = 0; // BZn64
@@ -233,7 +261,8 @@ namespace BZNParser.Tokenizer
                         TypeSizeSet = true;
                         Format = BZNFormat.BattlezoneN64;
                     }
-                    stream.Position = position;
+                    //stream.Position = position;
+                    Bookmark.Set(position);
                 }
 
                 long tmpPosition = stream.Position;
@@ -271,7 +300,8 @@ namespace BZNParser.Tokenizer
                     else
                     {
                         // we didn't read a saveType, walk back
-                        stream.Position = position;
+                        //stream.Position = position;
+                        Bookmark.Set(position);
                     }
 
                     //if (Version > 1022)
@@ -306,7 +336,8 @@ namespace BZNParser.Tokenizer
                                 }
                             }
 
-                            stream.Position = tmpPosition2;
+                            //stream.Position = tmpPosition2;
+                            Bookmark.Set(tmpPosition2);
                         }
                         else if (BinaryToken.Validate("BinaryMode"))
                         {
@@ -367,7 +398,8 @@ namespace BZNParser.Tokenizer
                         }
                         else
                         {
-                            stream.Position = position;
+                            //stream.Position = position;
+                            Bookmark.Set(position);
                         }
                     }
                 }
@@ -425,7 +457,8 @@ namespace BZNParser.Tokenizer
                     {
                         FloatFormat = FloatTextFormat._9e2;
 
-                        stream.Position = startPosition;
+                        //stream.Position = startPosition;
+                        Bookmark.Set(startPosition);
 
                         // float format could have changed, so lets try to agressive scan for floats
 
@@ -452,7 +485,8 @@ namespace BZNParser.Tokenizer
                     }
                 }
 
-                stream.Position = startPosition;
+                //stream.Position = startPosition;
+                Bookmark.Set(startPosition);
             }
         }
 
@@ -490,7 +524,7 @@ namespace BZNParser.Tokenizer
         /// Read the next token from the stream.
         /// </summary>
         /// <returns></returns>
-        public IBZNToken ReadToken()
+        public IBZNToken? ReadToken()
         {
             if (InBinary)
             {
@@ -507,9 +541,11 @@ namespace BZNParser.Tokenizer
         /// </summary>
         /// <param name="filestream"></param>
         /// <returns></returns>
-        private IBZNToken ReadStringToken(Stream filestream)
+        private IBZNToken? ReadStringToken(Stream filestream)
         {
             if (filestream.Position >= filestream.Length) return null;
+
+            AtlasData ad = Atlas.Count >= TokenIndex ? new AtlasData() { Offset = BaseStream.Position } : Atlas[TokenIndex];
 
             for (; filestream.Position < filestream.Length; )
             {
@@ -522,7 +558,13 @@ namespace BZNParser.Tokenizer
                         return new BZNTokenValidation(rawLine.Substring(1, rawLine.Length - 2));
                     }
 
-                    return ReadStringValueToken(filestream, rawLine);
+                    IBZNToken tok = ReadStringValueToken(filestream, rawLine);
+                    ad.Length = filestream.Position - ad.Offset;
+                    ad.IsBinary = false;
+                    if (Atlas.Count >= TokenIndex)
+                        Atlas.Add(ad);
+                    TokenIndex++;
+                    return tok;
                 }
             }
             return null;
@@ -750,10 +792,12 @@ namespace BZNParser.Tokenizer
         /// </summary>
         /// <param name="filestream"></param>
         /// <returns></returns>
-        private IBZNToken ReadBinaryToken(Stream filestream)
+        private IBZNToken? ReadBinaryToken(Stream filestream)
         {
             if (filestream.Position >= filestream.Length) return null;
             
+            AtlasData ad = Atlas.Count >= TokenIndex ? new AtlasData() { Offset = BaseStream.Position } : Atlas[TokenIndex];
+
             byte[] number = new byte[4];
             uint type = 0;
             if (TypeSize > 0)
@@ -798,7 +842,13 @@ namespace BZNParser.Tokenizer
                     filestream.ReadByte(); // deal with padding
             }
 
-            return new BZNTokenBinary((BinaryFieldType)type, data, IsBigEndian);
+            IBZNToken tok = new BZNTokenBinary((BinaryFieldType)type, data, IsBigEndian);
+            ad.Length = filestream.Position - ad.Offset;
+            ad.IsBinary = true;
+            if (Atlas.Count >= TokenIndex)
+                Atlas.Add(ad);
+            TokenIndex++;
+            return tok;
         }
 
         /// <summary>

@@ -501,7 +501,10 @@ namespace BZNParser.Battlezone
             }
             else if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WriteIDs("PrjID", PrjID);
+                if (preserveMalformations)
+                    writer.WriteIDs("PrjID", Malformations.CheckBinaryMessString("PrjID", PrjID));
+                else
+                    writer.WriteIDs("PrjID", PrjID);
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {

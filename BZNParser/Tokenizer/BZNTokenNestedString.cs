@@ -59,9 +59,9 @@ namespace BZNParser.Tokenizer
             if (index >= values.Length) throw new ArgumentOutOfRangeException();
             IBZNToken[] subToks = values[index];
 
-            if (!subToks[0].Validate("X")) throw new Exception("Failed to parse X");
+            if (!subToks[0].Validate("x")) throw new Exception("Failed to parse x");
             if (!subToks[1].Validate("y")) throw new Exception("Failed to parse y");
-            if (!subToks[2].Validate("Z")) throw new Exception("Failed to parse Z");
+            if (!subToks[2].Validate("z")) throw new Exception("Failed to parse z");
 
             return new Vector3D() { x = subToks[0].GetSingle(), y = subToks[1].GetSingle(), z = subToks[2].GetSingle() };
         }
@@ -71,8 +71,8 @@ namespace BZNParser.Tokenizer
             if (index >= values.Length) throw new ArgumentOutOfRangeException();
             IBZNToken[] subToks = values[index];
 
-            if (!subToks[0].Validate("X")) throw new Exception("Failed to parse X");
-            if (!subToks[1].Validate("Z")) throw new Exception("Failed to parse Z");
+            if (!subToks[0].Validate("x")) throw new Exception("Failed to parse x");
+            if (!subToks[1].Validate("z")) throw new Exception("Failed to parse z");
 
             return new Vector2D() { X = subToks[0].GetSingle(), Z = subToks[1].GetSingle() };
         }
@@ -95,27 +95,27 @@ namespace BZNParser.Tokenizer
 
             return new Matrix()
             {
-                right = new Vector3D() { x = subToks[00].GetSingle(), y = subToks[01].GetSingle(), z = subToks[02].GetSingle() }, rightw = 0,
-                up    = new Vector3D() { x = subToks[03].GetSingle(), y = subToks[04].GetSingle(), z = subToks[05].GetSingle() }, upw    = 0,
-                front = new Vector3D() { x = subToks[06].GetSingle(), y = subToks[07].GetSingle(), z = subToks[08].GetSingle() }, frontw = 0,
-                posit = new Vector3D() { x = subToks[09].GetSingle(), y = subToks[10].GetSingle(), z = subToks[11].GetSingle() }, positw = 0
+                right = new Vector3D() { x = subToks[ 0].GetSingle(), y = subToks[ 1].GetSingle(), z = subToks[ 2].GetSingle() }, rightw = 0,
+                up    = new Vector3D() { x = subToks[ 3].GetSingle(), y = subToks[ 4].GetSingle(), z = subToks[ 5].GetSingle() }, upw    = 0,
+                front = new Vector3D() { x = subToks[ 6].GetSingle(), y = subToks[ 7].GetSingle(), z = subToks[ 8].GetSingle() }, frontw = 0,
+                posit = new Vector3D() { x = subToks[ 9].GetSingle(), y = subToks[10].GetSingle(), z = subToks[11].GetSingle() }, positw = 0
             };
         }
         public Matrix GetMatrix(int index = 0)
         {
             IBZNToken[] subToks = values[index];
-            if (/*!subToks[ 0].Validate("right_x") && */!subToks[ 0].Validate("right.X")) throw new Exception("Failed to parse right_x");
+            if (/*!subToks[ 0].Validate("right_x") && */!subToks[ 0].Validate("right.x")) throw new Exception("Failed to parse right_x");
             if (/*!subToks[ 1].Validate("right_y") && */!subToks[ 1].Validate("right.y")) throw new Exception("Failed to parse right_y");
-            if (/*!subToks[ 2].Validate("right_z") && */!subToks[ 2].Validate("right.Z")) throw new Exception("Failed to parse right_z");
-            if (/*!subToks[ 3].Validate(   "up_x") && */!subToks[ 3].Validate(   "up.X")) throw new Exception("Failed to parse up_x");
+            if (/*!subToks[ 2].Validate("right_z") && */!subToks[ 2].Validate("right.z")) throw new Exception("Failed to parse right_z");
+            if (/*!subToks[ 3].Validate(   "up_x") && */!subToks[ 3].Validate(   "up.x")) throw new Exception("Failed to parse up_x");
             if (/*!subToks[ 4].Validate(   "up_y") && */!subToks[ 4].Validate(   "up.y")) throw new Exception("Failed to parse up_y");
-            if (/*!subToks[ 5].Validate(   "up_z") && */!subToks[ 5].Validate(   "up.Z")) throw new Exception("Failed to parse up_z");
-            if (/*!subToks[ 6].Validate("front_x") && */!subToks[ 6].Validate("front.X")) throw new Exception("Failed to parse front_x");
+            if (/*!subToks[ 5].Validate(   "up_z") && */!subToks[ 5].Validate(   "up.z")) throw new Exception("Failed to parse up_z");
+            if (/*!subToks[ 6].Validate("front_x") && */!subToks[ 6].Validate("front.x")) throw new Exception("Failed to parse front_x");
             if (/*!subToks[ 7].Validate("front_y") && */!subToks[ 7].Validate("front.y")) throw new Exception("Failed to parse front_y");
-            if (/*!subToks[ 8].Validate("front_z") && */!subToks[ 8].Validate("front.Z")) throw new Exception("Failed to parse front_z");
-            if (/*!subToks[ 9].Validate("posit_x") && */!subToks[ 9].Validate("posit.X")) throw new Exception("Failed to parse posit_x");
+            if (/*!subToks[ 8].Validate("front_z") && */!subToks[ 8].Validate("front.z")) throw new Exception("Failed to parse front_z");
+            if (/*!subToks[ 9].Validate("posit_x") && */!subToks[ 9].Validate("posit.x")) throw new Exception("Failed to parse posit_x");
             if (/*!subToks[10].Validate("posit_y") && */!subToks[10].Validate("posit.y")) throw new Exception("Failed to parse posit_y");
-            if (/*!subToks[11].Validate("posit_z") && */!subToks[11].Validate("posit.Z")) throw new Exception("Failed to parse posit_z");
+            if (/*!subToks[11].Validate("posit_z") && */!subToks[11].Validate("posit.z")) throw new Exception("Failed to parse posit_z");
 
             return new Matrix()
             {

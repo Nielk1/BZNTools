@@ -564,7 +564,8 @@ namespace BZNParser.Tokenizer
 
             if (line[1] == "=")
             {
-                line = rawLine.Split(' ', 3);
+                //line = rawLine.Split(' ', 3);
+                line = SmartStringSplit(rawLine, 3);
                 string name = line[0];
 
                 int countIndentedLines = 0;
@@ -601,8 +602,8 @@ namespace BZNParser.Tokenizer
                 }
 
                 // fix for fucked up BZNs that removed leading spaces from complex ASCII tokens
-                if (countIndentedLines == 0 && ComplexStringTokenSizeMap.ContainsKey(name))
-                    countIndentedLines = ComplexStringTokenSizeMap[name];
+                if (countIndentedLines == 0 && ComplexStringTokenSizeMap.ContainsKey(name.Trim()))
+                    countIndentedLines = ComplexStringTokenSizeMap[name.Trim()];
 
                 if (countIndentedLines > 0)
                 {
@@ -656,7 +657,7 @@ namespace BZNParser.Tokenizer
                         string nextRawLine = ReadStringLine(filestream);
                         if (nextRawLine.StartsWith(" ") && nextRawLine.Contains("="))
                         {
-                            int countSpacesHead2 = nextRawLine.Length - nextRawLine/*.TrimStart()*/.Length;
+                            int countSpacesHead2 = nextRawLine.Length - nextRawLine.TrimStart().Length;
                             if (countSpacesHead == 0)
                                 countSpacesHead = countSpacesHead2;
                             string key = nextRawLine.Split(new char[] { '=', '[' })[0].TrimEnd();
@@ -680,8 +681,8 @@ namespace BZNParser.Tokenizer
                 }
 
                 // fix for fucked up BZNs that removed leading spaces from complex ASCII tokens
-                if (countIndentedLines == 0 && ComplexStringTokenSizeMap.ContainsKey(name))
-                    countIndentedLines = ComplexStringTokenSizeMap[name];
+                if (countIndentedLines == 0 && ComplexStringTokenSizeMap.ContainsKey(name.Trim()))
+                    countIndentedLines = ComplexStringTokenSizeMap[name.Trim()];
 
                 if (countIndentedLines > 0)
                 {
@@ -707,7 +708,8 @@ namespace BZNParser.Tokenizer
                     {
                         long new_pos = filestream.Position;
                         string new_rawLine = ReadStringLine(filestream).TrimEnd('\r', '\n');
-                        string[] new_line = new_rawLine/*.TrimStart()*/.Split(' ', 4);
+                        //string[] new_line = new_rawLine.TrimStart().Split(' ', 4);
+                        string[] new_line = SmartStringSplit(new_rawLine, 4);
 
                         if ((new_line.Length > 1 && new_line[1] == "=") || (new_line.Length > 2 && new_line[2] == "="))
                         {

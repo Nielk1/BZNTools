@@ -199,7 +199,7 @@ namespace BZNParser.Tokenizer
         public bool Validate(string? name, BinaryFieldType type = BinaryFieldType.DATA_UNKNOWN)
         {
             //return this.name == name;
-            if (this.name == name)
+            if (this.name.Trim() == name)
                 return true;
 
             // malformed extra line/space
@@ -215,12 +215,13 @@ namespace BZNParser.Tokenizer
 
         private static bool MatchesAllButOne(string reference, string candidate)
         {
-            if (candidate.Length != reference.Length - 1)
+            string referenceT = reference.Trim();
+            if (candidate.Length != referenceT.Length - 1)
                 return false;
 
-            for (int i = 0; i < reference.Length; i++)
+            for (int i = 0; i < referenceT.Length; i++)
             {
-                string modified = reference.Remove(i, 1);
+                string modified = referenceT.Remove(i, 1);
                 if (modified == candidate)
                     return true;
             }

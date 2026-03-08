@@ -134,9 +134,9 @@ namespace BZNParser.Battlezone
                 {
                     // TODO encapsilate
                     if (SingleExtension.GetFloatTextFormat(tok.GetSubToken(j, 0).GetString()) != reader.FloatFormat)
-                        points[j].Malformations.AddIncorrectTextParse($"X", tok.GetSubToken(j, 0).GetString());
+                        points[j].Malformations.AddIncorrectTextParse($"x", tok.GetSubToken(j, 0).GetString());
                     if (SingleExtension.GetFloatTextFormat(tok.GetSubToken(j, 1).GetString()) != reader.FloatFormat)
-                        points[j].Malformations.AddIncorrectTextParse($"Z", tok.GetSubToken(j, 1).GetString());
+                        points[j].Malformations.AddIncorrectTextParse($"z", tok.GetSubToken(j, 1).GetString());
                 }
             }
             if (obj != null) obj.points = points;

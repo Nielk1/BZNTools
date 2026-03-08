@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace BZNParser.Tokenizer
 {
@@ -246,6 +247,16 @@ namespace BZNParser.Tokenizer
                     }
             }
             return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {BitConverter.ToString(data.Take(20).ToArray())}{(data.Length > 20 ? "..." : string.Empty)}";
+        }
+
+        public string GetName()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetRawName()
+        {
+            throw new NotImplementedException();
         }
 
         public bool Validate(string? name, BinaryFieldType type = BinaryFieldType.DATA_UNKNOWN)

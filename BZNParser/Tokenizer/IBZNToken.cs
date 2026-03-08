@@ -33,6 +33,9 @@ namespace BZNParser.Tokenizer
         byte[] GetBytes(int index = 0, int length = -1);
         byte[] GetRaw(int index = 0, int length = -1);
 
+        string GetName();
+        string GetRawName();
+
         bool IsValidationOnly();
         bool Validate(string? name, BinaryFieldType type = BinaryFieldType.DATA_UNKNOWN);
     }

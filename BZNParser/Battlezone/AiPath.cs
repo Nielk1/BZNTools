@@ -1,6 +1,7 @@
 ﻿using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -111,6 +112,20 @@ namespace BZNParser.Battlezone
                     if (!tok.Validate("label", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse label/CHAR");
                     label = tok.GetString();
+                    if (obj != null)
+                    {
+                        if (label.Length != labelSize)
+                        {
+                            if (labelSize > label.Length)
+                            {
+                                obj.Malformations.AddStringPad("label", labelSize);
+                            }
+                            else
+                            {
+                                obj.Malformations.AddIncorrectTextParse("label", label);
+                            }
+                        }
+                    }
                     if (label.Length > labelSize)
                         label = label.Substring(0, labelSize);
                 }
@@ -198,10 +213,27 @@ namespace BZNParser.Battlezone
             }
             else
             {
-                writer.WriteSignedValues("size", label.Length);
+                string textToWrite = label;
+                int lengthToWrite = label.Length;
 
-                if (label.Length > 0)
-                    writer.WriteChars("label", label);
+                var malText = Malformations.GetMalformations(Malformation.INCORRECT_TEXT, "label");
+                var malPad = Malformations.GetMalformations(Malformation.STRING_PAD, "label");
+                if (preserveMalformations && malText.Length > 0)
+                {
+                    // string was truncated
+                    textToWrite = (string)malText[0].Fields[0];
+                    lengthToWrite = textToWrite.Length;
+                }
+                if (preserveMalformations && malPad.Length > 0)
+                {
+                    // string reported as longer
+                    lengthToWrite = (int)malPad[0].Fields[0];
+                }
+                writer.WriteSignedValues("size", lengthToWrite);
+
+                //if (label.Length > 0)
+                if (lengthToWrite > 0)
+                    writer.WriteChars("label", textToWrite);
             }
 
             writer.WriteSignedValues("pointCount", points.Length);

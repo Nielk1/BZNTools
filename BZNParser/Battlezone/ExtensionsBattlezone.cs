@@ -580,14 +580,17 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_v = tok.GetVector3D();
+                    tok.CheckMalformationsVector3D(euler_v.Malformations);
 
                     tok = reader.ReadToken();
                     if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_omega = tok.GetVector3D();
+                    tok.CheckMalformationsVector3D(euler_omega.Malformations);
 
                     tok = reader.ReadToken();
                     if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_Accel = tok.GetVector3D();
+                    tok.CheckMalformationsVector3D(euler_Accel.Malformations);
 
                     Euler euler = new Euler()
                     {
@@ -608,8 +611,10 @@ namespace BZNParser.Battlezone
                 {
                     IBZNToken tok = reader.ReadToken();
                     if (!tok.Validate("euler")) throw new Exception("Failed to parse euler");
+                    
                     Euler euler = tok.GetEuler();
-
+                    tok.CheckMalformationsEuler(euler);
+                    
                     return euler;
                 }
             }
@@ -692,7 +697,7 @@ namespace BZNParser.Battlezone
             throw new NotImplementedException("Euler Save");
         }
 
-        public static void WriteEulerBZ(this BZNStreamWriter writer, SaveType saveType, Euler value)
+        public static void WriteEulerBZ(this BZNStreamWriter writer, SaveType saveType, bool preserveMalformations, Euler value)
         {
             if (writer.Format != BZNFormat.Battlezone2 || saveType == SaveType.BZN) // Battlezone 2 has side paths
             {
@@ -704,15 +709,15 @@ namespace BZNParser.Battlezone
                     writer.WriteFloats(null, value.v_mag_inv);
                     writer.WriteFloats(null, value.I);
                     writer.WriteFloats(null, value.I_inv);
-                    writer.WriteVector3Ds(null, value.v);
-                    writer.WriteVector3Ds(null, value.omega);
-                    writer.WriteVector3Ds(null, value.Accel);
+                    writer.WriteVector3Ds(null, preserveMalformations, value.v);
+                    writer.WriteVector3Ds(null, preserveMalformations, value.omega);
+                    writer.WriteVector3Ds(null, preserveMalformations, value.Accel);
 
                     return;
                 }
                 else
                 {
-                    writer.WriteEuler("euler", value);
+                    writer.WriteEuler("euler", preserveMalformations, value);
 
                     return;
                 }
@@ -744,17 +749,17 @@ namespace BZNParser.Battlezone
 
                     if (!canCompress)
                     {
-                        writer.WriteVector3Ds(" v", value.v);
-                        writer.WriteVector3Ds(" omega", value.omega);
-                        writer.WriteVector3Ds(" Accel", value.Accel);
-                        writer.WriteVector3Ds(" Alpha", value.Alpha);
+                        writer.WriteVector3Ds(" v", preserveMalformations, value.v);
+                        writer.WriteVector3Ds(" omega", preserveMalformations, value.omega);
+                        writer.WriteVector3Ds(" Accel", preserveMalformations, value.Accel);
+                        writer.WriteVector3Ds(" Alpha", preserveMalformations, value.Alpha);
                     }
                     else
                     {
                         writer.WriteBooleans(" small", true);
                     }
 
-                    writer.WriteVector3Ds(" Pos", value.Pos);
+                    writer.WriteVector3Ds(" Pos", preserveMalformations, value.Pos);
                     throw new NotImplementedException("Euler Save");
                     //writer.WriteQuat(" Att", value.Att); // no Quat saving written yet
                 }

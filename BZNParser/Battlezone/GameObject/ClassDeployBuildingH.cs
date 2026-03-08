@@ -46,7 +46,7 @@ namespace BZNParser.Battlezone.GameObject
         public static void Dehydrate(ClassDeployBuildingH obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
             if (parent.SaveType != SaveType.BZN) { }
-            writer.WriteMat3Ds("buildMatrix", obj.transform);
+            writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.transform);
             ClassDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }

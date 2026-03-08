@@ -94,6 +94,7 @@ namespace BZNParser.Tokenizer
 
             public void Pop()
             {
+                // use bookmark and remove it (return, we don't need it anymore)
                 if (_offsets.TryPop(out var pos))
                 {
                     _reader.BaseStream.Position = pos;
@@ -102,6 +103,7 @@ namespace BZNParser.Tokenizer
             }
             public void Peek()
             {
+                // use bookmark withoug removing it
                 if (_offsets.TryPeek(out var pos))
                 {
                     _reader.BaseStream.Position = pos;
@@ -111,6 +113,7 @@ namespace BZNParser.Tokenizer
 
             public void Discard()
             {
+                // keep the current position, so we don't need to do anything but remove the bookmark
                 _offsets.TryPop(out _);
             }
 

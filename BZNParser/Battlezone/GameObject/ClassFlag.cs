@@ -52,7 +52,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteMat3Ds("startMat", obj.startMat);
+                writer.WriteMat3Ds("startMat", preserveMalformations, obj.startMat);
                 writer.WriteUnsignedValues("holder", obj.holder);
             }
             ClassPowerUp.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

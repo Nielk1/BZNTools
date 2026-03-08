@@ -181,6 +181,16 @@ namespace BZNParser.Tokenizer
             return values[0].Skip(index).Take(length).Select(x => (byte)x).ToArray();
         }
 
+        public string GetName()
+        {
+            return name.Trim();
+        }
+
+        public string GetRawName()
+        {
+            return name;
+        }
+
         public bool IsValidationOnly() { return false; }
 
         public override string ToString()

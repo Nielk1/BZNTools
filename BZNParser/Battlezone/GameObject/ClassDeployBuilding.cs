@@ -58,7 +58,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version != 1047)
                 {
-                    writer.WriteMat3Ds("buildMatrix", obj.dropMat);
+                    writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.dropMat);
                 }
             }
             ClassTrackedDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

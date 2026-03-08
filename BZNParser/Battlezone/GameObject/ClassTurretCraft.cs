@@ -275,9 +275,9 @@ namespace BZNParser.Battlezone.GameObject
                     //if (*(this + 376))
                     if (!string.IsNullOrEmpty(obj.saveClass))
                     {
-                        if (obj.saveMatrix.HasValue)
+                        if (obj.saveMatrix != null)
                         {
-                            writer.WriteMat3Ds("saveMatrix", obj.saveMatrix.Value);
+                            writer.WriteMat3Ds("saveMatrix", preserveMalformations, obj.saveMatrix);
                         }
                         else
                         {

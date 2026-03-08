@@ -112,7 +112,7 @@ namespace BZNParser.Battlezone.GameObject
 
             writer.WriteBooleans("buildActive", obj.buildActive);
             writer.WriteFloats("buildTime", obj.buildTime);
-            writer.WriteMat3Ds("buildMatrix", obj.dropMat);
+            writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.dropMat);
 
             if (writer.Version == 1149 || writer.Version == 1151)
             {

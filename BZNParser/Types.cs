@@ -120,8 +120,18 @@ namespace BZNParser
 
 
 
-    public struct Vector3D
+    public struct Vector3D : IMalformable
     {
+        private readonly IMalformable.MalformationManager _malformationManager;
+        public IMalformable.MalformationManager Malformations => _malformationManager;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public Vector3D()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        {
+            this._malformationManager = new IMalformable.MalformationManager(this);
+        }
+
+
         public float x;
         public float y;
         public float z;
@@ -174,8 +184,17 @@ namespace BZNParser
         private float z;
     }
 
-    public struct Euler
+    public class Euler : IMalformable
     {
+        private readonly IMalformable.MalformationManager _malformationManager;
+        public IMalformable.MalformationManager Malformations => _malformationManager;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public Euler()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        {
+            this._malformationManager = new IMalformable.MalformationManager(this);
+        }
+
         public const float EPSILON = 1.0e-4f;
         public const float HUGE_NUMBER = 1.0e30f;
 
@@ -239,8 +258,18 @@ namespace BZNParser
         public Vector3D posit;
     }*/
 
-    public struct Matrix
+    public class Matrix : IMalformable
     {
+        private readonly IMalformable.MalformationManager _malformationManager;
+        public IMalformable.MalformationManager Malformations => _malformationManager;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public Matrix()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        {
+            this._malformationManager = new IMalformable.MalformationManager(this);
+        }
+
+
         public Vector3D right;
         public float rightw;
         public Vector3D up;
@@ -282,5 +311,96 @@ namespace BZNParser
         BattlezoneN64,
         StarTrekArmada,
         StarTrekArmada2,
+    }
+
+
+    public static class MalformationExtensions
+    {
+        public static void CheckMalformationsMatrix(this IBZNToken tok, IMalformable.MalformationManager malformations, int index = 0)
+        {
+            if (tok.IsBinary)
+            {
+                // check for malformations in the binary data and add to the token's malformation manager if found
+            }
+            else
+            {
+                IBZNToken subTok;
+                subTok = tok.GetSubToken(index,  0); if (subTok.GetRawName() != @"  right.x") { malformations.AddIncorrectName(@"  right.x", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  1); if (subTok.GetRawName() != @"  right.y") { malformations.AddIncorrectName(@"  right.y", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  2); if (subTok.GetRawName() != @"  right.z") { malformations.AddIncorrectName(@"  right.z", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  3); if (subTok.GetRawName() != @"  up.x"   ) { malformations.AddIncorrectName(@"  up.x"   , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  4); if (subTok.GetRawName() != @"  up.y"   ) { malformations.AddIncorrectName(@"  up.y"   , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  5); if (subTok.GetRawName() != @"  up.z"   ) { malformations.AddIncorrectName(@"  up.z"   , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  6); if (subTok.GetRawName() != @"  front.x") { malformations.AddIncorrectName(@"  front.x", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  7); if (subTok.GetRawName() != @"  front.y") { malformations.AddIncorrectName(@"  front.y", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  8); if (subTok.GetRawName() != @"  front.z") { malformations.AddIncorrectName(@"  front.z", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  9); if (subTok.GetRawName() != @"  posit.x") { malformations.AddIncorrectName(@"  posit.x", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 10); if (subTok.GetRawName() != @"  posit.y") { malformations.AddIncorrectName(@"  posit.y", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 11); if (subTok.GetRawName() != @"  posit.z") { malformations.AddIncorrectName(@"  posit.z", subTok.GetRawName()); }
+            }
+        }
+        public static void CheckMalformationsEuler(this IBZNToken tok, Euler euler, int index = 0)
+        {
+            if (tok.IsBinary)
+            {
+                // check for malformations in the binary data and add to the token's malformation manager if found
+            }
+            else
+            {
+                IBZNToken subTok;
+                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @" mass"     ) { euler.Malformations.AddIncorrectName(@" mass"     , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @" mass_inv" ) { euler.Malformations.AddIncorrectName(@" mass_inv" , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 2); if (subTok.GetRawName() != @" v_mag"    ) { euler.Malformations.AddIncorrectName(@" v_mag"    , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 3); if (subTok.GetRawName() != @" v_mag_inv") { euler.Malformations.AddIncorrectName(@" v_mag_inv", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 4); if (subTok.GetRawName() != @" I"        ) { euler.Malformations.AddIncorrectName(@" I"        , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 5); if (subTok.GetRawName() != @" k_i"      ) { euler.Malformations.AddIncorrectName(@" k_i"      , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 6); if (subTok.GetRawName() != @" v"        ) { euler.Malformations.AddIncorrectName(@" v"        , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.v.Malformations    );
+                subTok = tok.GetSubToken(index, 7); if (subTok.GetRawName() != @" omega"    ) { euler.Malformations.AddIncorrectName(@" omega"    , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.omega.Malformations);
+                subTok = tok.GetSubToken(index, 8); if (subTok.GetRawName() != @" Accel"    ) { euler.Malformations.AddIncorrectName(@" Accel"    , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.Accel.Malformations);
+            }
+        }
+
+        public static void CheckMalformationsVector2D(this IBZNToken tok, IMalformable.MalformationManager malformations, int index = 0)
+        {
+            if (tok.IsBinary)
+            {
+                // check for malformations in the binary data and add to the token's malformation manager if found
+            }
+            else
+            {
+                IBZNToken subTok;
+                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @"  x") { malformations.AddIncorrectName(@"  x", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @"  z") { malformations.AddIncorrectName(@"  z", subTok.GetRawName()); }
+            }
+        }
+
+        public static void CheckMalformationsVector3D(this IBZNToken tok, IMalformable.MalformationManager malformations, int index = 0)
+        {
+            if (tok.IsBinary)
+            {
+                // check for malformations in the binary data and add to the token's malformation manager if found
+            }
+            else
+            {
+                IBZNToken subTok;
+                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @"  x") { malformations.AddIncorrectName(@"  x", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @"  y") { malformations.AddIncorrectName(@"  y", subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 2); if (subTok.GetRawName() != @"  z") { malformations.AddIncorrectName(@"  z", subTok.GetRawName()); }
+            }
+        }
+
+        public static string CorrectName(this IMalformable.MalformationManager malformations, bool preserveMalformations, string name)
+        {
+            if (preserveMalformations)
+            {
+                var malIncorrectName = malformations.GetMalformations(Malformation.INCORRECT_NAME, name);
+                if (malIncorrectName.Any())
+                {
+                    var mal = malIncorrectName.First();
+                    name = (string)mal.Fields[0];
+                }
+            }
+            return name;
+        }
     }
 }

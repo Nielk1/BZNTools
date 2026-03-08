@@ -310,7 +310,11 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate("transform", BinaryFieldType.DATA_MAT3D))
                     throw new Exception("Failed to parse transform/MAT3D");
-                if (obj != null) obj.transform = tok.GetMatrix();
+                if (obj != null)
+                {
+                    obj.transform = tok.GetMatrix();
+                    tok.CheckMalformationsMatrix(obj.transform.Malformations);
+                }
             }
             if ((reader.Format == BZNFormat.Battlezone && reader.Version > 1001) || reader.Format == BZNFormat.BattlezoneN64)
             {
@@ -551,7 +555,7 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteVector3Ds("pos", pos);
+                writer.WriteVector3Ds("pos", preserveMalformations, pos);
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
@@ -675,7 +679,7 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteMat3Ds("transform", transform);
+                writer.WriteMat3Ds("transform", preserveMalformations, transform);
             }
             if ((writer.Format == BZNFormat.Battlezone && writer.Version > 1001) || writer.Format == BZNFormat.BattlezoneN64)
             {

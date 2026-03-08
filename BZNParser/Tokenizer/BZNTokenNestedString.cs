@@ -159,6 +159,16 @@ namespace BZNParser.Tokenizer
         public byte[] GetBytes(int index = 0, int length = -1) { throw new InvalidOperationException(); }
         public byte[] GetRaw(int index = 0, int length = -1) { throw new InvalidOperationException(); }
 
+        public string GetName()
+        {
+            return name.Trim();
+        }
+
+        public string GetRawName()
+        {
+            return name;
+        }
+
         public bool IsValidationOnly() { return false; }
 
         public override string ToString()

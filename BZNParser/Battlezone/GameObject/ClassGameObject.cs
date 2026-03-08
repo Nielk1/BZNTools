@@ -854,18 +854,10 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteVector3Ds("pos", obj.pos);
+                writer.WriteVector3Ds("pos", preserveMalformations, obj.pos);
             }
 
-            if (obj != null)
-            {
-                writer.WriteEulerBZ(parent.SaveType, obj.euler);
-            }
-            else
-            {
-                // this wasn't saved before, dummy Euler?
-                writer.WriteEulerBZ(parent.SaveType, obj.euler);
-            }
+            writer.WriteEulerBZ(parent.SaveType, preserveMalformations, obj.euler);
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {

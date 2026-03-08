@@ -41,6 +41,16 @@ namespace BZNParser.Tokenizer
         public byte[] GetBytes(int index = 0, int length = -1) { throw new InvalidOperationException("Validation Tokens have no data, check IsValidationOnly() before processing"); }
         public byte[] GetRaw(int index = 0, int length = -1) { throw new InvalidOperationException("Validation Tokens have no data, check IsValidationOnly() before processing"); }
 
+        public string GetName()
+        {
+            return name.Trim();
+        }
+
+        public string GetRawName()
+        {
+            return name;
+        }
+
         public bool IsValidationOnly() { return true; }
 
         public override string ToString()

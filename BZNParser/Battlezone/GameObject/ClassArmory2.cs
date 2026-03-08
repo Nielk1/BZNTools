@@ -114,10 +114,10 @@ namespace BZNParser.Battlezone.GameObject
             if (parent.SaveType != SaveType.BZN)
             {
                 writer.WriteBooleans("buildStall", obj.buildStall);
-                writer.WriteVector3Ds("buildRally", obj.buildRally);
+                writer.WriteVector3Ds("buildRally", preserveMalformations, obj.buildRally);
                 writer.WriteSignedValues("navHandle", obj.navHandle);
                 writer.WriteSignedValues("launchHandle", obj.launchHandle);
-                writer.WriteVector3Ds("launchTarget", obj.launchTarget);
+                writer.WriteVector3Ds("launchTarget", preserveMalformations, obj.launchTarget);
             }
 
             if (parent.SaveType == 0)

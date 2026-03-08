@@ -121,7 +121,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 if (writer.Version >= 1109)
                 {
-                    writer.WriteMat3Ds("buildMatrix", obj.buildMatrix); // type unconfirmed
+                    writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.buildMatrix); // type unconfirmed
                 }
                 if (writer.Version >= 1148)
                 {

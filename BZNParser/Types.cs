@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BZNParser.Tokenizer;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace BZNParser
             {
                 if (fromType2 || !EqualityComparer<T1>.Default.Equals(value, internalType1))
                 {
-                    originalValue = null;
+                    // reset malformations
                 }
                 internalType1 = value;
                 fromType2 = false;
@@ -48,7 +49,7 @@ namespace BZNParser
             {
                 if (!fromType2 || !EqualityComparer<T2>.Default.Equals(value, internalType2))
                 {
-                    originalValue = null;
+                    // reset malformations
                 }
                 internalType2 = value;
                 fromType2 = true;
@@ -99,53 +100,25 @@ namespace BZNParser
             }
         }
 
-        public string? OriginalValue => originalValue;
 
         private T1 internalType1;
         private T2 internalType2;
         private bool fromType2;
-        private string? originalValue;
 
-        public DualModeValue(T1 value, string? originalValue = null)
+        public DualModeValue(T1 value)
         {
             this.internalType1 = value;
             this.fromType2 = false;
-            this.originalValue = originalValue;
         }
 
-        public DualModeValue(T2 value, string? originalValue = null)
+        public DualModeValue(T2 value)
         {
             this.internalType2 = value;
             this.fromType2 = true;
-            this.originalValue = originalValue;
         }
     }
 
-    public class TextAnnotatedType<T>
-    {
-        public T Value
-        {
-            get { return internalValue; }
-            set
-            {
-                if (!EqualityComparer<T>.Default.Equals(value, internalValue))
-                    originalValue = null;
-                internalValue = value;
-            }
-        }
 
-        public string? OriginalValue => originalValue;
-
-
-        private T internalValue;
-        public string? originalValue;
-
-        public TextAnnotatedType(T value, string? originalValue)
-        {
-            this.internalValue = value;
-            this.originalValue = originalValue;
-        }
-    }
 
     public struct Vector3D
     {
@@ -159,10 +132,46 @@ namespace BZNParser
         }
     }
 
-    public struct Vector2D
+    public class Vector2D : IMalformable
     {
-        public float x;
-        public float z;
+        private readonly IMalformable.MalformationManager _malformationManager;
+        public IMalformable.MalformationManager Malformations => _malformationManager;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public Vector2D()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        {
+            this._malformationManager = new IMalformable.MalformationManager(this);
+        }
+
+
+
+        public float X
+        {
+            get { return x; }
+            set
+            {
+                if (value != x)
+                {
+                    // reset malformations
+                }
+                x = value;
+            }
+        }
+        public float Z
+        {
+            get { return z; }
+            set
+            {
+                if (value != z)
+                {
+                    // reset malformations
+                }
+                z = value;
+            }
+        }
+
+        private float x;
+        private float z;
     }
 
     public struct Euler

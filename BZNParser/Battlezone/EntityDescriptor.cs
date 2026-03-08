@@ -57,12 +57,12 @@ namespace BZNParser.Battlezone
                     throw new Exception("Failed to parse [GameObject]");
             }
 
-            string? PrjID = null;
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
                 UInt16 ItemID = tok.GetUInt16();
-                PrjID = parent.Hints?.EnumerationPrjID?[ItemID] ?? string.Format("bzn64prjid_{0,4:X4}", ItemID);
+                string PrjID = parent.Hints?.EnumerationPrjID?[ItemID] ?? string.Format("bzn64prjid_{0,4:X4}", ItemID);
+                if (obj != null) obj.PrjID = PrjID;
             }
             else if (reader.Format == BZNFormat.Battlezone)
             {
@@ -70,11 +70,14 @@ namespace BZNParser.Battlezone
                 if (!tok.Validate("PrjID", BinaryFieldType.DATA_ID))
                     throw new Exception("Failed to parse PrjID/ID");
                 //if (!tok.Validate("PrjID", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse PrjID/ID");
-                PrjID = tok.GetString();
+                string PrjID = tok.GetString();
                 if (reader.Version == 1001)
                 {
-                    PrjID = PrjID.Split('\0')[0];
-                    // might need to keep a malformation here to be able to reverse this
+                    if (obj != null) obj.PrjID = PrjID = obj.Malformations.AddBinaryMessString("PrjID", PrjID);
+                }
+                else
+                {
+                    if (obj != null) obj.PrjID = PrjID;
                 }
             }
             else if (reader.Format == BZNFormat.Battlezone2)
@@ -88,6 +91,7 @@ namespace BZNParser.Battlezone
                 //    byte odfLength = tok.GetUInt8();
                 //}
 
+                string PrjID = null;
                 //if (reader.Version < 1145)
                 if (reader.Version < 1155)
                 {
@@ -112,10 +116,10 @@ namespace BZNParser.Battlezone
                         }
                     }
                 }
+                if (PrjID == null)
+                    throw new Exception("Failed to parse PrjID/ID");
+                if (obj != null) obj.PrjID = PrjID;
             }
-            if (PrjID == null)
-                throw new Exception("Failed to parse PrjID/ID");
-            if (obj != null) obj.PrjID = PrjID;
 
             uint seqNo = 0;
             if (reader.Format == BZNFormat.Battlezone2)

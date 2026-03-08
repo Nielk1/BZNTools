@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
+using static BZNParser.Tokenizer.BZNStreamReader;
 
 namespace BZNParser.Battlezone
 {
@@ -129,6 +130,14 @@ namespace BZNParser.Battlezone
             for (int j = 0; j < pointCount; j++)
             {
                 points[j] = tok.GetVector2D(j);
+                if (!tok.IsBinary && reader.FloatFormatUnreliable)
+                {
+                    // TODO encapsilate
+                    if (SingleExtension.GetFloatTextFormat(tok.GetSubToken(j, 0).GetString()) != reader.FloatFormat)
+                        points[j].Malformations.AddIncorrectTextParse($"X", tok.GetSubToken(j, 0).GetString());
+                    if (SingleExtension.GetFloatTextFormat(tok.GetSubToken(j, 1).GetString()) != reader.FloatFormat)
+                        points[j].Malformations.AddIncorrectTextParse($"Z", tok.GetSubToken(j, 1).GetString());
+                }
             }
             if (obj != null) obj.points = points;
 
@@ -196,7 +205,7 @@ namespace BZNParser.Battlezone
             }
 
             writer.WriteSignedValues("pointCount", points.Length);
-            writer.WriteVector2Ds("points", points);
+            writer.WriteVector2Ds("points", preserveMalformations, points);
             writer.WriteVoidBytes("pathType", pathType);
         }
     }

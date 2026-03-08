@@ -897,7 +897,7 @@ namespace BZNParser.Battlezone
                             throw new Exception("Tokens left after last known token");
                         }
                         Vector2D point = tok.GetVector2D();
-                        if (point.x != 0 || point.z != 0)
+                        if (point.X != 0 || point.Z != 0)
                             throw new Exception("Tokens left after last known token");
                         Malformations.AddExtraField("FILE_END", tok);
                     }

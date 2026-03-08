@@ -510,11 +510,11 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("curHealth", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curHealth/LONG");
-                if (obj != null) obj.curHealth = new DualModeValue<Int32, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
+                if (obj != null) obj.curHealth = new DualModeValue<Int32, float>(tok.GetInt32());
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("maxHealth", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxHealth/LONG");
-                if (obj != null) obj.maxHealth = new DualModeValue<Int32, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
+                if (obj != null) obj.maxHealth = new DualModeValue<Int32, float>(tok.GetInt32());
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -537,11 +537,11 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("curHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse curHealth/FLOAT");
-                    if (obj != null) obj.curHealth = new DualModeValue<Int32, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
+                    if (obj != null) obj.curHealth = new DualModeValue<Int32, float>(tok.GetSingle());
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("maxHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse maxHealth/FLOAT");
-                    if (obj != null) obj.maxHealth = new DualModeValue<Int32, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
+                    if (obj != null) obj.maxHealth = new DualModeValue<Int32, float>(tok.GetSingle());
 
                     if (reader.Version != 1041 && reader.Version != 1047)
                     {
@@ -578,11 +578,11 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("curAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curAmmo/LONG");
-                if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
+                if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetInt32());
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxAmmo/LONG");
-                if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
+                if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetInt32());
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -597,21 +597,21 @@ namespace BZNParser.Battlezone.GameObject
                         // these probably should be floats not longs
                         tok = reader.ReadToken();
                         if (!tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse curAmmo/FLOAT");
-                        if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
+                        if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle());
 
                         tok = reader.ReadToken();
                         if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse maxAmmo/FLOAT");
-                        if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
+                        if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle());
                     }
                     else
                     {
                         tok = reader.ReadToken();
                         if (!tok.Validate("curAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curAmmo/LONG");
-                        if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
+                        if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetInt32());
 
                         tok = reader.ReadToken();
                         if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxAmmo/LONG");
-                        if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
+                        if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetInt32());
                     }
 
                     if (reader.Version >= 1070)
@@ -619,13 +619,13 @@ namespace BZNParser.Battlezone.GameObject
                         // probably should be a float
                         tok = reader.ReadToken();
                         if (!tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse addAmmo/FLOAT");
-                        if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle(), tok.IsBinary ? null : tok.GetString());
+                        if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle());
                     }
                     else if (reader.Version != 1041 && reader.Version != 1047) // avoid bz2001.bzn != 1041
                     {
                         tok = reader.ReadToken();
                         if (!tok.Validate("addAmmo", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse addAmmo/LONG");
-                        if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetInt32(), tok.IsBinary ? null : tok.GetString());
+                        if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetInt32());
                     }
                 }
             }

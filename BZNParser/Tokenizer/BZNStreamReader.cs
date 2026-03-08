@@ -436,9 +436,6 @@ namespace BZNParser.Tokenizer
                             { FloatTextFormat._9e3, 0 }
                         };
 
-                        Regex pattern_9e2 = new Regex(@"^-?[0-9]\.[0-9]{8}e[+-][0-9]{2}$");
-                        Regex pattern_9e3 = new Regex(@"^-?[0-9]\.[0-9]{8}e[+-][0-9]{3}$");
-
                         IBZNToken tok;
                         while ((tok = ReadToken()) != null)
                         {
@@ -451,18 +448,7 @@ namespace BZNParser.Tokenizer
                                     if (float.TryParse(s, out _) && s.Contains(".")) // so we ignore integers to be safe
                                     {
                                         float v = tok.GetSingle(i);
-                                        if (pattern_9e2.IsMatch(s))
-                                        {
-                                            FloatCounts[FloatTextFormat._9e2]++;
-                                        }
-                                        else if (pattern_9e3.IsMatch(s))
-                                        {
-                                            FloatCounts[FloatTextFormat._9e3]++;
-                                        }
-                                        else
-                                        {
-                                            FloatCounts[FloatTextFormat.G]++;
-                                        }
+                                        FloatCounts[SingleExtension.GetFloatTextFormat(s)]++;
                                     }
                                 }
                                 else
@@ -480,18 +466,7 @@ namespace BZNParser.Tokenizer
                                                 if (float.TryParse(s, out _) && s.Contains(".")) // so we ignore integers to be safe
                                                 {
                                                     float v = subTok.GetSingle(k); // so we throw an exception if it's not a float
-                                                    if (pattern_9e2.IsMatch(s))
-                                                    {
-                                                        FloatCounts[FloatTextFormat._9e2]++;
-                                                    }
-                                                    else if (pattern_9e3.IsMatch(s))
-                                                    {
-                                                        FloatCounts[FloatTextFormat._9e3]++;
-                                                    }
-                                                    else
-                                                    {
-                                                        FloatCounts[FloatTextFormat.G]++;
-                                                    }
+                                                    FloatCounts[SingleExtension.GetFloatTextFormat(s)]++;
                                                 }
                                             }
                                             else
@@ -505,18 +480,7 @@ namespace BZNParser.Tokenizer
                                                         if (float.TryParse(s2, out _) && s2.Contains(".")) // so we ignore integers to be safe
                                                         {
                                                             float v2 = subTok2.GetSingle(i2);
-                                                            if (pattern_9e2.IsMatch(s2))
-                                                            {
-                                                                FloatCounts[FloatTextFormat._9e2]++;
-                                                            }
-                                                            else if (pattern_9e3.IsMatch(s2))
-                                                            {
-                                                                FloatCounts[FloatTextFormat._9e3]++;
-                                                            }
-                                                            else
-                                                            {
-                                                                FloatCounts[FloatTextFormat.G]++;
-                                                            }
+                                                            FloatCounts[SingleExtension.GetFloatTextFormat(s2)]++;
                                                         }
                                                     }
                                                 }

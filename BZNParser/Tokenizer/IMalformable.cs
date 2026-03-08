@@ -12,7 +12,8 @@ namespace BZNParser.Tokenizer
         MISINTERPRET,    // <fieldName>,       <interpretedAs>  // Misinterpreted by game but thus is loadable
         OVERCOUNT,       // <fieldName>                         // Too many objects of this type, maximum may have changed
         NOT_IMPLEMENTED, // <fieldName>                         // Field not implemented, but it probably won't break the BZN read
-        INCORRECT,       // <fieldName>,       <incorrectValue> // Value is incorrect and has been corrected
+        INCORRECT,       // <fieldName>,       <incorrectValue> // Value is incorrect and has been corrected; incorrectValue is the correct type
+        INCORRECT_TEXT,  // <fieldName>,       <incorrectValue> // Value is incorrect and has been corrected; incorrectValue is unparsed text
         LINE_ENDING,     // "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
         STRING_PAD,      // <fieldName>,       <length>         // String is padded by nuls to reach this length
         INCORRECT_NAME,  // <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
@@ -92,6 +93,9 @@ namespace BZNParser.Tokenizer
         /// <param name="incorrectValue">The value that is considered incorrect for the specified field. Can be <c>null</c> if the field's incorrect state is due to a missing or invalid value.</param>
         public static void AddIncorrect(this MalformationManager manager, string fieldName, object incorrectValue) =>
             manager.Add(Malformation.INCORRECT, fieldName, incorrectValue);
+
+        public static void AddIncorrectTextParse(this MalformationManager manager, string fieldName, object incorrectValue) =>
+            manager.Add(Malformation.INCORRECT_TEXT, fieldName, incorrectValue);
 
         /// <summary>
         /// Adds an entry indicating that the line ending count is incorrect and has been corrected.

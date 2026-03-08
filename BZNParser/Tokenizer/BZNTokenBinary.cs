@@ -142,7 +142,7 @@ namespace BZNParser.Tokenizer
         public Vector2D GetVector2D(int index = 0)
         {
             if (index >= data.Length / sizeof(Single) / 2) throw new ArgumentOutOfRangeException();
-            return new Vector2D() { x = GetSingle(index * 2), z = GetSingle(index * 2 + 1) };
+            return new Vector2D() { X = GetSingle(index * 2), Z = GetSingle(index * 2 + 1) };
         }
 
         public Matrix GetMatrixOld(int index = 0)
@@ -221,7 +221,7 @@ namespace BZNParser.Tokenizer
                 case BinaryFieldType.DATA_VEC2D:
                     {
                         Vector2D v = GetVector2D();
-                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {v.x}, {v.z} }}";
+                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {v.X}, {v.Z} }}";
                     }
                 case BinaryFieldType.DATA_VEC3D:
                     {

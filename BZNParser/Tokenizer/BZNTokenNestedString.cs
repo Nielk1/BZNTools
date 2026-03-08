@@ -168,7 +168,7 @@ namespace BZNParser.Tokenizer
 
         public bool Validate(string? name, BinaryFieldType type = BinaryFieldType.DATA_UNKNOWN)
         {
-            return this.name == name;
+            return this.name.Trim() == name;
         }
     }
 }

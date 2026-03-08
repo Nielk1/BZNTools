@@ -439,56 +439,7 @@ namespace BZNParser.Tokenizer
                         IBZNToken tok;
                         while ((tok = ReadToken()) != null)
                         {
-                            for (int i = 0; i < tok.GetCount(); i++)
-                            {
-                                if (tok.GetSubCount(i) == 0)
-                                {
-                                    // 0 subtokens, so it must be a normal field, check if it has singles
-                                    string s = tok.GetString(i);
-                                    if (float.TryParse(s, out _) && s.Contains(".")) // so we ignore integers to be safe
-                                    {
-                                        float v = tok.GetSingle(i);
-                                        FloatCounts[SingleExtension.GetFloatTextFormat(s)]++;
-                                    }
-                                }
-                                else
-                                {
-                                    for (int j = 0; j < tok.GetSubCount(i); j++)
-                                    {
-                                        IBZNToken subTok = tok.GetSubToken(i, j);
-
-                                        for (int k = 0; k < subTok.GetCount(); k++)
-                                        {
-                                            if (subTok.GetSubCount(k) == 0)
-                                            {
-                                                string s = subTok.GetString(k);
-
-                                                if (float.TryParse(s, out _) && s.Contains(".")) // so we ignore integers to be safe
-                                                {
-                                                    float v = subTok.GetSingle(k); // so we throw an exception if it's not a float
-                                                    FloatCounts[SingleExtension.GetFloatTextFormat(s)]++;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                for (int l = 0; l < subTok.GetSubCount(k); l++)
-                                                {
-                                                    IBZNToken subTok2 = subTok.GetSubToken(k, l);
-                                                    for (int i2 = 0; i2 < subTok2.GetCount(); i2++)
-                                                    {
-                                                        string s2 = subTok2.GetString(i2);
-                                                        if (float.TryParse(s2, out _) && s2.Contains(".")) // so we ignore integers to be safe
-                                                        {
-                                                            float v2 = subTok2.GetSingle(i2);
-                                                            FloatCounts[SingleExtension.GetFloatTextFormat(s2)]++;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            ProcessTokenForFloats(tok, FloatCounts);
                         }
 
                         // if more than one float count is greater than 0, mark a flag that float confusion exists
@@ -502,6 +453,31 @@ namespace BZNParser.Tokenizer
                 }
 
                 stream.Position = startPosition;
+            }
+        }
+
+        private void ProcessTokenForFloats(IBZNToken token, Dictionary<FloatTextFormat, uint> floatCounts)
+        {
+            for (int i = 0; i < token.GetCount(); i++)
+            {
+                if (token.GetSubCount(i) == 0)
+                {
+                    // 0 subtokens, so it must be a normal field, check if it has singles
+                    string s = token.GetString(i);
+                    if (float.TryParse(s, out _) && s.Contains(".")) // so we ignore integers to be safe
+                    {
+                        float v = token.GetSingle(i);
+                        floatCounts[SingleExtension.GetFloatTextFormat(s)]++;
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < token.GetSubCount(i); j++)
+                    {
+                        IBZNToken subTok = token.GetSubToken(i, j);
+                        ProcessTokenForFloats(subTok, floatCounts);
+                    }
+                }
             }
         }
 
@@ -601,7 +577,7 @@ namespace BZNParser.Tokenizer
                         string nextRawLine = ReadStringLine(filestream);
                         if (nextRawLine.StartsWith(" ") && nextRawLine.Contains("="))
                         {
-                            int countSpacesHead2 = nextRawLine.Length - nextRawLine.TrimStart().Length;
+                            int countSpacesHead2 = nextRawLine.Length - nextRawLine/*.TrimStart()*/.Length;
                             if (countSpacesHead == 0)
                                 countSpacesHead = countSpacesHead2;
                             string key = nextRawLine.Split(new char[] { '=', '[' })[0].TrimEnd();
@@ -638,7 +614,7 @@ namespace BZNParser.Tokenizer
                         values[subSectionCounter] = new IBZNToken[countIndentedLines];
                         for (int constructCounter = 0; constructCounter < countIndentedLines; constructCounter++)
                         {
-                            string rawLineInner = ReadStringLine(filestream).TrimEnd('\r', '\n').TrimStart();
+                            string rawLineInner = ReadStringLine(filestream).TrimEnd('\r', '\n')/*.TrimStart()*/;
                             if (rawLineInner.Length != 0)
                                 values[subSectionCounter][constructCounter] = ReadStringValueToken(filestream, rawLineInner);
                         }
@@ -680,12 +656,12 @@ namespace BZNParser.Tokenizer
                         string nextRawLine = ReadStringLine(filestream);
                         if (nextRawLine.StartsWith(" ") && nextRawLine.Contains("="))
                         {
-                            int countSpacesHead2 = nextRawLine.Length - nextRawLine.TrimStart().Length;
+                            int countSpacesHead2 = nextRawLine.Length - nextRawLine/*.TrimStart()*/.Length;
                             if (countSpacesHead == 0)
                                 countSpacesHead = countSpacesHead2;
                             string key = nextRawLine.Split(new char[] { '=', '[' })[0].TrimEnd();
                             if (countSpacesHead == countSpacesHead2 && SeenBeforeKeys.Add(key))
-                                {
+                            {
                                 countIndentedLines++;
                                 IBZNToken tok = ReadStringValueToken(filestream, nextRawLine);
                             }
@@ -715,7 +691,7 @@ namespace BZNParser.Tokenizer
                         values[subSectionCounter] = new IBZNToken[countIndentedLines];
                         for (int constructCounter = 0; constructCounter < countIndentedLines; constructCounter++)
                         {
-                            string rawLineInner = ReadStringLine(filestream).TrimEnd('\r', '\n').TrimStart();
+                            string rawLineInner = ReadStringLine(filestream).TrimEnd('\r', '\n')/*.TrimStart()*/;
                             if (rawLineInner.Length != 0)
                                 values[subSectionCounter][constructCounter] = ReadStringValueToken(filestream, rawLineInner);
                         }
@@ -731,7 +707,7 @@ namespace BZNParser.Tokenizer
                     {
                         long new_pos = filestream.Position;
                         string new_rawLine = ReadStringLine(filestream).TrimEnd('\r', '\n');
-                        string[] new_line = new_rawLine.TrimStart().Split(' ', 4);
+                        string[] new_line = new_rawLine/*.TrimStart()*/.Split(' ', 4);
 
                         if ((new_line.Length > 1 && new_line[1] == "=") || (new_line.Length > 2 && new_line[2] == "="))
                         {

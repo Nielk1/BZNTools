@@ -61,7 +61,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone && writer.Version > 1001 && writer.Version < 1026)
             {
-
+                throw new NotImplementedException();
             }
 
             ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

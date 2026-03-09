@@ -48,7 +48,11 @@ namespace BZNParser.Battlezone.GameObject
 
             tok = reader.ReadToken();
             if (!tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
-            if (obj != null) obj.dropMat = tok.GetMatrix();
+            if (obj != null)
+            {
+                obj.dropMat = tok.GetMatrix();
+                tok.CheckMalformationsMatrix(obj.dropMat.Malformations, reader.FloatFormat);
+            }
 
             //tok = reader.ReadToken();
             //if (!tok.Validate("buildClass", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse buildClass/ID");
@@ -56,11 +60,11 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Version == 1149 || reader.Version == 1151)
             //if (reader.Version < 1155) // Doesn't seem to be true here
             {
-                if (obj != null) obj.dropClass = reader.ReadGameObjectClass_BZ2(parent, "config");
+                if (obj != null) obj.dropClass = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
             }
             else
             {
-                if (obj != null) obj.dropClass = reader.ReadGameObjectClass_BZ2(parent, "buildClass");
+                if (obj != null) obj.dropClass = reader.ReadGameObjectClass_BZ2(parent, "buildClass", obj?.Malformations);
             }
 
             if (reader.Version >= 1150)
@@ -116,11 +120,11 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Version == 1149 || writer.Version == 1151)
             {
-                writer.WriteGameObjectClass_BZ2(parent, "config", obj.dropClass);
+                writer.WriteGameObjectClass_BZ2(parent, "config", obj.dropClass, obj.Malformations);
             }
             else
             {
-                writer.WriteGameObjectClass_BZ2(parent, "buildClass", obj.dropClass ?? string.Empty);
+                writer.WriteGameObjectClass_BZ2(parent, "buildClass", obj.dropClass ?? string.Empty, obj.Malformations);
             }
 
             if (writer.Version >= 1150)

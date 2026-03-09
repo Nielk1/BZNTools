@@ -48,7 +48,7 @@ namespace BZNParser.Battlezone
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                string? name = reader.ReadSizedString_BZ2_1145("name", 40);
+                string? name = reader.ReadSizedString_BZ2_1145("name", 40, obj?.Malformations);
                 if (name != "AiPath")
                 {
                     throw new Exception("Failed to parse AiPath");
@@ -166,12 +166,14 @@ namespace BZNParser.Battlezone
             // 1100
             // 1192
             // 1194
-            if (writer.Version < 1041 || writer.Version > 1194)
+            // 1196
+            // We haven't seen 1197 which is current, but we are going to just unbound the upper end
+            if (writer.Version < 1041)//sssss || writer.Version > 1196)
                 writer.WriteValidation("AiPath");
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteSizedString_BZ2_1145("name", 40, "AiPath");
+                writer.WriteSizedString_BZ2_1145("name", 40, "AiPath", Malformations);
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
@@ -217,7 +219,7 @@ namespace BZNParser.Battlezone
                 {
                     // string was truncated
                     textToWrite = (string)malText[0].Fields[0];
-                    lengthToWrite = textToWrite.Length;
+                    //lengthToWrite = textToWrite.Length;
                 }
                 if (preserveMalformations && malPad.Length > 0)
                 {
@@ -228,7 +230,7 @@ namespace BZNParser.Battlezone
 
                 //if (label.Length > 0)
                 if (lengthToWrite > 0)
-                    writer.WriteChars("label", textToWrite);
+                    writer.WriteChars("label", textToWrite, Malformations);
             }
 
             writer.WriteSignedValues("pointCount", points.Length);

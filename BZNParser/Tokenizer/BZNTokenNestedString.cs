@@ -63,7 +63,7 @@ namespace BZNParser.Tokenizer
             if (!subToks[1].Validate("y")) throw new Exception("Failed to parse y");
             if (!subToks[2].Validate("z")) throw new Exception("Failed to parse z");
 
-            return new Vector3D() { x = subToks[0].GetSingle(), y = subToks[1].GetSingle(), z = subToks[2].GetSingle() };
+            return new Vector3D() { X = subToks[0].GetSingle(), Y = subToks[1].GetSingle(), Z = subToks[2].GetSingle() };
         }
 
         public Vector2D GetVector2D(int index = 0)
@@ -95,10 +95,10 @@ namespace BZNParser.Tokenizer
 
             return new Matrix()
             {
-                right = new Vector3D() { x = subToks[ 0].GetSingle(), y = subToks[ 1].GetSingle(), z = subToks[ 2].GetSingle() }, rightw = 0,
-                up    = new Vector3D() { x = subToks[ 3].GetSingle(), y = subToks[ 4].GetSingle(), z = subToks[ 5].GetSingle() }, upw    = 0,
-                front = new Vector3D() { x = subToks[ 6].GetSingle(), y = subToks[ 7].GetSingle(), z = subToks[ 8].GetSingle() }, frontw = 0,
-                posit = new Vector3D() { x = subToks[ 9].GetSingle(), y = subToks[10].GetSingle(), z = subToks[11].GetSingle() }, positw = 0
+                right = new Vector3D() { X = subToks[ 0].GetSingle(), Y = subToks[ 1].GetSingle(), Z = subToks[ 2].GetSingle() }, rightw = 0,
+                up    = new Vector3D() { X = subToks[ 3].GetSingle(), Y = subToks[ 4].GetSingle(), Z = subToks[ 5].GetSingle() }, upw    = 0,
+                front = new Vector3D() { X = subToks[ 6].GetSingle(), Y = subToks[ 7].GetSingle(), Z = subToks[ 8].GetSingle() }, frontw = 0,
+                posit = new Vector3D() { X = subToks[ 9].GetSingle(), Y = subToks[10].GetSingle(), Z = subToks[11].GetSingle() }, positw = 0
             };
         }
         public Matrix GetMatrix(int index = 0)
@@ -119,13 +119,13 @@ namespace BZNParser.Tokenizer
 
             return new Matrix()
             {
-                right = new Vector3D() { x = subToks[00].GetSingle(), y = subToks[01].GetSingle(), z = subToks[02].GetSingle() },
+                right = new Vector3D() { X = subToks[00].GetSingle(), Y = subToks[01].GetSingle(), Z = subToks[02].GetSingle() },
                 rightw = 0,
-                up = new Vector3D() { x = subToks[03].GetSingle(), y = subToks[04].GetSingle(), z = subToks[05].GetSingle() },
+                up = new Vector3D() { X = subToks[03].GetSingle(), Y = subToks[04].GetSingle(), Z = subToks[05].GetSingle() },
                 upw = 0,
-                front = new Vector3D() { x = subToks[06].GetSingle(), y = subToks[07].GetSingle(), z = subToks[08].GetSingle() },
+                front = new Vector3D() { X = subToks[06].GetSingle(), Y = subToks[07].GetSingle(), Z = subToks[08].GetSingle() },
                 frontw = 0,
-                posit = new Vector3D() { x = subToks[09].GetSingle(), y = subToks[10].GetSingle(), z = subToks[11].GetSingle() },
+                posit = new Vector3D() { X = subToks[09].GetSingle(), Y = subToks[10].GetSingle(), Z = subToks[11].GetSingle() },
                 positw = 1
             };
         }

@@ -51,7 +51,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassNavBeacon obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteChars("name", obj.name);
+            writer.WriteChars("name", obj.name, obj.Malformations);
             writer.WriteSignedValues("navSlot", obj.navSlot);
 
             if (writer.Version > 1104)

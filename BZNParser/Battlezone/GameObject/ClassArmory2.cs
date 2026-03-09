@@ -51,7 +51,7 @@ namespace BZNParser.Battlezone.GameObject
 
             for (int i = 0; i < buildCount; i++)
             {
-                string? item = reader.ReadGameObjectClass_BZ2(parent, "buildItem");
+                string? item = reader.ReadGameObjectClass_BZ2(parent, "buildItem", obj?.Malformations); // TODO this isn't optimal for malformation reading since we're not dealing with indexes
                 if (obj != null) obj.buildQueue.Enqueue(item);
             }
             if (parent.SaveType != SaveType.BZN)
@@ -109,7 +109,7 @@ namespace BZNParser.Battlezone.GameObject
 
             foreach (string? item in obj.buildQueue)
             {
-                writer.WriteGameObjectClass_BZ2(parent, item, "buildItem");
+                writer.WriteGameObjectClass_BZ2(parent, item, "buildItem", obj.Malformations);
             }
             if (parent.SaveType != SaveType.BZN)
             {

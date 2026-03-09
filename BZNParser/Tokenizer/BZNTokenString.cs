@@ -13,6 +13,11 @@ namespace BZNParser.Tokenizer
         private string[] values;
         private string name;
 
+        /// <summary>
+        /// This is a one-liner token with an empty value, but is missing the space between the value and '=' as it was right trimmed.
+        /// </summary>
+        public bool RightTrimmedOneLiner { get; set; }
+
         public BZNTokenString(string name, string[] values)
         {
             this.name = name;

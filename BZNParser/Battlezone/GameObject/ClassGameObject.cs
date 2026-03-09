@@ -145,7 +145,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                string name = reader.ReadSizedString_BZ2_1145("name", 32);
+                string name = reader.ReadSizedString_BZ2_1145("name", 32, obj?.Malformations);
                 if (obj != null) obj.name = name;
             }
 
@@ -217,7 +217,7 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         throw new Exception("Failed to parse isDamped/SHORT");
                     }
-                    if (obj != null) obj.isDamped = (UInt16)tok.GetUInt32H();
+                    if (obj != null) obj.isDamped = (UInt16)tok.GetUInt32();
                 }
                 else
                 {
@@ -261,7 +261,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("isSeen", BinaryFieldType.DATA_SHORT)) throw new Exception("Failed to parse isSeen/SHORT");
-                    if (new int[] { 1180, 1183, 1192 }.Contains(reader.Version))
+                    if (reader.Version >= 1165)
                     {
                         if (obj != null) obj.seen = tok.GetUInt16(); // seen should be 16bit shouldn't it?
                     }
@@ -873,7 +873,7 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteChars("name", obj.name);
+                writer.WriteChars("name", obj.name, obj.Malformations);
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
@@ -881,16 +881,16 @@ namespace BZNParser.Battlezone.GameObject
                 if (writer.Version > 1030)
                     if (writer.Version < 1145)
                     {
-                        writer.WriteChars("name", obj.name);
+                        writer.WriteChars("name", obj.name, obj.Malformations);
                     }
                     else
                     {
-                        writer.WriteChars("name", obj.name);
+                        writer.WriteChars("name", obj.name, obj.Malformations);
                     }
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteSizedString_BZ2_1145("name", 32, obj.name ?? string.Empty);
+                writer.WriteSizedString_BZ2_1145("name", 32, obj.name ?? string.Empty, obj.Malformations);
             }
 
             // if save type != 0, msgString
@@ -947,7 +947,8 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version >= 1197)
                 {
-                    writer.WriteUnsignedHexLValues("isDamped", obj.isDamped);
+                    //writer.WriteUnsignedHexLValues("isDamped", obj.isDamped);
+                    writer.WriteUnsignedValues("isDamped", obj.isDamped);
                 }
                 else
                 {
@@ -980,7 +981,8 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    if (new int[] { 1180, 1183, 1192 }.Contains(writer.Version))
+                    // 1165 1180, 1183, 1192, 1197
+                    if (writer.Version >= 1165)
                     {
                         writer.WriteUnsignedValues("isSeen", (UInt16)obj.seen);
                     }
@@ -1361,7 +1363,7 @@ namespace BZNParser.Battlezone.GameObject
                     // "game object read"
                     if (writer.Version < 1145)
                     {
-                        writer.WriteChars("curPilot", obj.curPilot);
+                        writer.WriteChars("curPilot", obj.curPilot, obj.Malformations);
                     }
                 }
             }

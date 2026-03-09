@@ -40,7 +40,11 @@ namespace BZNParser.Battlezone.GameObject
                     //(a2->vftable->field_1C)(a2, this + 2592, 64, "buildMatrix");
                     tok = reader.ReadToken();
                     if (!tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
-                    if (obj != null) obj.dropMat = tok.GetMatrix();
+                    if (obj != null)
+                    {
+                        obj.dropMat = tok.GetMatrix();
+                        tok.CheckMalformationsMatrix(obj.dropMat.Malformations, reader.FloatFormat);
+                    }
                 }
             }
 

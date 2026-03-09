@@ -89,7 +89,7 @@ namespace BZNParser.Battlezone
         public static void WriteBZ1_PtrDepricated(this BZNStreamWriter writer, string name, uint value)
         {
             // untested
-            writer.WriteVoidBytes(name, BitConverter.GetBytes(value));
+            writer.WriteVoidBytes(name, BitConverter.GetBytes(value).Reverse().ToArray()); // not sure if this is right, probably wrong for binary and god knows what it does to BigEndian
         }
         public static uint ReadBZ1_Ptr(this BZNStreamReader reader, string name)
         {
@@ -143,7 +143,7 @@ namespace BZNParser.Battlezone
                 writer.WriteUnsignedValues(null, value);
             }
         }
-        public static string? ReadBZ2InputString(this BZNStreamReader reader, string name)
+        public static string? ReadBZ2InputString(this BZNStreamReader reader, string name, IMalformable.MalformationManager? malformations)
         {
             IBZNToken tok;
             if (reader.InBinary)
@@ -163,6 +163,15 @@ namespace BZNParser.Battlezone
 
             tok = reader.ReadToken();
             if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+            if (malformations != null)
+            {
+                var tmp = tok as BZNTokenString;
+                if (tmp != null)
+                {
+                    if (tmp.RightTrimmedOneLiner)
+                        malformations.AddRightTrimmed(name);
+                }
+            }
             return tok.GetString();
         }
         public static string? ReadBZ2StringInSized(this BZNStreamReader reader, string name, int bufferSize)
@@ -186,11 +195,11 @@ namespace BZNParser.Battlezone
             return tok.GetString();
         }
 
-        public static string? ReadGameObjectClass_BZ2(this BZNStreamReader reader, BZNFileBattlezone parent, string name, [System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")
+        public static string? ReadGameObjectClass_BZ2(this BZNStreamReader reader, BZNFileBattlezone parent, string name, IMalformable.MalformationManager? malformations, [System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")
         {
             if (reader.Version < 1145)
             {
-                return reader.ReadSizedString_BZ2_1145(name, 16);
+                return reader.ReadSizedString_BZ2_1145(name, 16, malformations);
             }
             else
             {
@@ -200,16 +209,16 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    return reader.ReadBZ2InputString(name);
+                    return reader.ReadBZ2InputString(name, malformations);
                 }
             }
         }
 
-        public static void WriteGameObjectClass_BZ2(this BZNStreamWriter writer, BZNFileBattlezone parent, string name, string value, [System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")
+        public static void WriteGameObjectClass_BZ2(this BZNStreamWriter writer, BZNFileBattlezone parent, string name, string value, IMalformable.MalformationManager malformations, [System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")
         {
             if (writer.Version < 1145)
             {
-                writer.WriteSizedString_BZ2_1145(name, 16, value);
+                writer.WriteSizedString_BZ2_1145(name, 16, value, malformations);
             }
             else
             {
@@ -219,7 +228,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    writer.WriteBZ2InputString(name, value);
+                    writer.WriteBZ2InputString(name, value, malformations);
                 }
             }
         }
@@ -276,7 +285,7 @@ namespace BZNParser.Battlezone
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         /// <exception cref="Exception"></exception>
-        public static string? ReadSizedString_BZ2_1145(this BZNStreamReader reader, string name, int bufferSize)
+        public static string? ReadSizedString_BZ2_1145(this BZNStreamReader reader, string name, int bufferSize, IMalformable.MalformationManager? malformations)// = null)
         {
             if (reader.Format != BZNFormat.Battlezone2)
                 throw new NotImplementedException();
@@ -299,11 +308,11 @@ namespace BZNParser.Battlezone
             else
             {
                 // inputstring
-                return reader.ReadBZ2InputString(name);
+                return reader.ReadBZ2InputString(name, malformations);
             }
         }
 
-        public static void WriteSizedString_BZ2_1145(this BZNStreamWriter writer, string name, int bufferSize, string value)
+        public static void WriteSizedString_BZ2_1145(this BZNStreamWriter writer, string name, int bufferSize, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.Format != BZNFormat.Battlezone2)
                 throw new NotImplementedException();
@@ -312,64 +321,64 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Version == 1101)
                 {
-                    writer.WriteChars(name, value.PadRight(Math.Max(bufferSize, value.Length), '\0'));
+                    writer.WriteChars(name, value.PadRight(Math.Max(bufferSize, value.Length), '\0'), malformations);
                 }
                 else
                 {
-                    writer.WriteChars(name, value);
+                    writer.WriteChars(name, value, malformations);
                 }
             }
             else if (writer.Version < 1145)
             {
                 // bufferSize applies in this branch
                 // in
-                writer.WriteBZ2StringInSized(name, bufferSize, value);
+                writer.WriteBZ2StringInSized(name, bufferSize, value, malformations);
             }
             else
             {
                 // inputstring
-                writer.WriteBZ2InputString(name, value);
+                writer.WriteBZ2InputString(name, value, malformations);
             }
         }
 
-        public static void WriteBZ2StringInSized(this BZNStreamWriter writer, string name, string value)
+        public static void WriteBZ2StringInSized(this BZNStreamWriter writer, string name, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.InBinary)
             {
                 writer.WriteUnsignedValues(null, (byte)value.Length);
 
                 if (value.Length > 0)
-                    writer.WriteChars(null, value);
+                    writer.WriteChars(null, value, malformations);
                 return;
             }
-            writer.WriteChars(name, value);
+            writer.WriteChars(name, value, malformations);
         }
-        public static void WriteBZ2StringInSized(this BZNStreamWriter writer, string name, int bufferSize, string value)
+        public static void WriteBZ2StringInSized(this BZNStreamWriter writer, string name, int bufferSize, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.InBinary)
             {
                 writer.WriteCompressedNumberFromBinary((uint)value.Length);
 
                 if (value.Length > 0)
-                    writer.WriteChars(null, value);
+                    writer.WriteChars(null, value, malformations);
                 return;
             }
-            writer.WriteChars(name, value);
+            writer.WriteChars(name, value, malformations);
         }
-        public static void WriteBZ2InputString(this BZNStreamWriter writer, string name, int bufferSize, string value)
+        public static void WriteBZ2InputString(this BZNStreamWriter writer, string name, int bufferSize, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.InBinary)
             {
                 writer.WriteCompressedNumberFromBinary((uint)value.Length);
 
                 if (value.Length > 0)
-                    writer.WriteChars(name, value);
+                    writer.WriteChars(name, value, malformations);
                 return;
             }
-            writer.WriteChars(name, value);
+            writer.WriteChars(name, value, malformations);
         }
 
-        public static void WriteBZ2InputString(this BZNStreamWriter writer, string name, string value)
+        public static void WriteBZ2InputString(this BZNStreamWriter writer, string name, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.InBinary)
             {
@@ -377,12 +386,12 @@ namespace BZNParser.Battlezone
 
                 if (value.Length > 0)
                 {
-                    writer.WriteChars(null, value);
+                    writer.WriteChars(null, value, malformations);
                 }
                 return;
             }
 
-            writer.WriteChars(name, value);
+            writer.WriteChars(name, value, malformations);
         }
 
         public static AiCmdInfo GetAiCmdInfo(this BZNStreamReader reader)
@@ -496,7 +505,7 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        writer.WriteVoidBytes("what", value.what);
+                        writer.WriteVoidBytesL("what", value.what);
                     }
                 }
                 else

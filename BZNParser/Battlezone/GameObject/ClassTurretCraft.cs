@@ -169,7 +169,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // saveClass must have a CHAR token as its first token if it's in binary mode, meaning the above loop consuming all LONGs is fine
                     // if the version was lower we might have had a LONG conflict
-                    string saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass");
+                    string saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass", obj?.Malformations);
                     if (obj != null) obj.saveClass = saveClass;
 
                     //if (*(this + 376))
@@ -181,7 +181,11 @@ namespace BZNParser.Battlezone.GameObject
                         {
                             reader.Bookmark.Discard();
                             Matrix saveMatrix = tok.GetMatrix();
-                            if (obj != null) obj.saveMatrix = saveMatrix;
+                            if (obj != null)
+                            {
+                                obj.saveMatrix = saveMatrix;
+                                tok.CheckMalformationsMatrix(obj.saveMatrix.Malformations, reader.FloatFormat);
+                            }
                         }
                         else
                         {
@@ -201,13 +205,13 @@ namespace BZNParser.Battlezone.GameObject
                         //tok = reader.ReadToken();
                         //if (!tok.Validate("saveLabel", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveLabel/CHAR");
                         //tok.GetString();
-                        string saveLabel = reader.ReadBZ2InputString("saveLabel");
+                        string saveLabel = reader.ReadBZ2InputString("saveLabel", obj?.Malformations);
                         if (obj != null) obj.saveLabel = saveLabel;
 
                         //tok = reader.ReadToken();
                         //if (!tok.Validate("saveName", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveName/CHAR");
                         //tok.GetString();
-                        string saveName = reader.ReadBZ2InputString("saveName");
+                        string saveName = reader.ReadBZ2InputString("saveName", obj?.Malformations);
                         if (obj != null) obj.saveName = saveName;
                     }
                 }
@@ -270,7 +274,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // saveClass must have a CHAR token as its first token if it's in binary mode, meaning the above loop consuming all LONGs is fine
                     // if the version was lower we might have had a LONG conflict
-                    writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty);
+                    writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty, obj.Malformations);
 
                     //if (*(this + 376))
                     if (!string.IsNullOrEmpty(obj.saveClass))
@@ -286,8 +290,8 @@ namespace BZNParser.Battlezone.GameObject
 
                         writer.WriteUnsignedValues("saveTeam", obj.saveTeam ?? 0);
                         writer.WriteUnsignedHexLValues("saveSeqno", obj.saveSeqno ?? 0);
-                        writer.WriteBZ2InputString("saveLabel", obj.saveLabel);
-                        writer.WriteBZ2InputString("saveName", obj.saveName);
+                        writer.WriteBZ2InputString("saveLabel", obj.saveLabel, obj.Malformations);
+                        writer.WriteBZ2InputString("saveName", obj.saveName, obj.Malformations);
                     }
                 }
 

@@ -65,11 +65,11 @@ namespace BZNParser.Battlezone.GameObject
                     //if (reader.Version == 1147 || reader.Version == 1148 || reader.Version == 1149 || reader.Version == 1151 || reader.Version == 1154)
                     if (reader.Version < 1155)
                     {
-                        saveClass = reader.ReadGameObjectClass_BZ2(parent, "config");
+                        saveClass = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
                     }
                     else
                     {
-                        saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass");
+                        saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass", obj?.Malformations);
                     }
                     if (obj != null) obj.saveClass = saveClass;
 
@@ -82,7 +82,11 @@ namespace BZNParser.Battlezone.GameObject
                             if (tok.Validate("saveMatrix", BinaryFieldType.DATA_MAT3D))
                             {
                                 reader.Bookmark.Discard();
-                                if (obj != null) obj.saveMatrix = tok.GetMatrix();
+                                if (obj != null)
+                                {
+                                    obj.saveMatrix = tok.GetMatrix();
+                                    tok.CheckMalformationsMatrix(obj.saveMatrix.Malformations, reader.FloatFormat);
+                                }
                             }
                             else
                             {
@@ -101,9 +105,9 @@ namespace BZNParser.Battlezone.GameObject
                         if (!tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
                         if (obj != null) obj.saveSeqno = tok.GetInt32H();
 
-                        string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32);
+                        string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32, obj?.Malformations);
                         if (obj != null) obj.saveLabel = saveLabel;
-                        string saveName = reader.ReadSizedString_BZ2_1145("saveName", 32);
+                        string saveName = reader.ReadSizedString_BZ2_1145("saveName", 32, obj?.Malformations);
                         if (obj != null) obj.saveName = saveName;
                     }
                 }
@@ -116,7 +120,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (obj != null) obj.CLASS_loadAsDummy = loadAsDummy;
                 if (loadAsDummy)
                 {
-                    string name = reader.ReadSizedString_BZ2_1145("name", 32);
+                    string name = reader.ReadSizedString_BZ2_1145("name", 32, obj?.Malformations);
                     if (obj != null) obj.name = name;
                     return;
                 }
@@ -161,11 +165,11 @@ namespace BZNParser.Battlezone.GameObject
                     //if (reader.Version == 1147 || reader.Version == 1148 || reader.Version == 1149 || reader.Version == 1151 || reader.Version == 1154)
                     if (writer.Version < 1155)
                     {
-                        writer.WriteGameObjectClass_BZ2(parent, "config", obj.saveClass);
+                        writer.WriteGameObjectClass_BZ2(parent, "config", obj.saveClass, obj.Malformations);
                     }
                     else
                     {
-                        writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty);
+                        writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty, obj.Malformations);
                     }
 
                     if (!string.IsNullOrEmpty(obj.saveClass))
@@ -184,14 +188,14 @@ namespace BZNParser.Battlezone.GameObject
 
                         writer.WriteSignedValues("saveTeam", obj.saveTeam);
                         writer.WriteUnsignedHexLValues("saveSeqno", (UInt32)obj.saveSeqno);
-                        writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel);
-                        writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName);
+                        writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel, obj.Malformations);
+                        writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName, obj.Malformations);
                     }
                 }
 
                 if (obj.CLASS_loadAsDummy)
                 {
-                    writer.WriteSizedString_BZ2_1145("name", 32, obj.name);
+                    writer.WriteSizedString_BZ2_1145("name", 32, obj.name, obj.Malformations);
                     return;
                 }
 

@@ -183,6 +183,7 @@ namespace BZNParser.Battlezone.GameObject
                         throw new Exception("Failed to parse addAmmo/FLOAT");
                     if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle());
 
+                    // TODO this entire CurPilot section might be able to use our existing SaveClass logic for both binary and ASCII
                     if (reader.InBinary)
                     {
                         tok = reader.ReadToken();
@@ -200,18 +201,26 @@ namespace BZNParser.Battlezone.GameObject
                     }
                     else
                     {
-                        tok = reader.ReadToken();
                         if (reader.Version == 1145 || reader.Version == 1147 || reader.Version == 1148 || reader.Version == 1149 || reader.Version == 1151 || reader.Version == 1154)
                         {
-                            if (!tok.Validate("config", BinaryFieldType.DATA_CHAR))
-                                throw new Exception("Failed to parse curPilot/CHAR");
+                            //tok = reader.ReadToken();
+                            //if (!tok.Validate("config", BinaryFieldType.DATA_CHAR))
+                            //    throw new Exception("Failed to parse curPilot/CHAR");
+                            //if (obj != null) obj.curPilot = tok.GetString();
+
+                            string curPilot = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
+                            if (obj != null) obj.curPilot = curPilot;
                         }
                         else
                         {
-                            if (!tok.Validate("curPilot", BinaryFieldType.DATA_CHAR))
-                                throw new Exception("Failed to parse curPilot/CHAR");
+                            //tok = reader.ReadToken();
+                            //if (!tok.Validate("curPilot", BinaryFieldType.DATA_CHAR))
+                            //    throw new Exception("Failed to parse curPilot/CHAR");
+                            //if (obj != null) obj.curPilot = tok.GetString();
+
+                            string curPilot = reader.ReadGameObjectClass_BZ2(parent, "curPilot", obj?.Malformations);
+                            if (obj != null) obj.curPilot = curPilot;
                         }
-                        if (obj != null) obj.curPilot = tok.GetString();
                     }
 
                     if (reader.Version == 1195)
@@ -286,7 +295,7 @@ namespace BZNParser.Battlezone.GameObject
 
                             if (obj.curPilot.Length > 0)
                             {
-                                writer.WriteChars("curPilot", obj.curPilot);
+                                writer.WriteChars("curPilot", obj.curPilot, obj.Malformations);
                             }
                         }
                         else
@@ -298,11 +307,13 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         if (writer.Version == 1145 || writer.Version == 1147 || writer.Version == 1148 || writer.Version == 1149 || writer.Version == 1151 || writer.Version == 1154)
                         {
-                            writer.WriteChars("config", obj.curPilot);
+                            //writer.WriteChars("config", obj.curPilot, obj.Malformations);
+                            writer.WriteGameObjectClass_BZ2(parent, "config", obj.curPilot, obj.Malformations);
                         }
                         else
                         {
-                            writer.WriteChars("curPilot", obj.curPilot);
+                            //writer.WriteChars("curPilot", obj.curPilot, obj.Malformations);
+                            writer.WriteGameObjectClass_BZ2(parent, "curPilot", obj.curPilot, obj.Malformations);
                         }
                     }
 

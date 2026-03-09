@@ -61,7 +61,7 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             tok = reader.ReadToken();
-            if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
+            if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                 throw new Exception("Failed to parse dropoff/PTR");
             if (obj != null) obj.undefptr2 = tok.GetUInt32H(); // powerSource
 
@@ -143,7 +143,7 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
             }
 
-            writer.WritePtr("dropoff", obj.undefptr2);
+            writer.WritePtr("undefptr", obj.undefptr2);
             writer.WriteVoidBytes("state", obj.state);
             writer.WriteFloats("delayTimer", obj.delayTimer);
             writer.WriteFloats("nextRepair", obj.nextRepair);

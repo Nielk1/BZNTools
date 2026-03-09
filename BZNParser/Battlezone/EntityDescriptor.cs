@@ -95,7 +95,7 @@ namespace BZNParser.Battlezone
                 //if (reader.Version < 1145)
                 if (reader.Version < 1155)
                 {
-                    PrjID = reader.ReadGameObjectClass_BZ2(parent, "config");
+                    PrjID = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
                 }
                 else
                 {
@@ -107,12 +107,12 @@ namespace BZNParser.Battlezone
                     {
                         if (reader.Version == 1180)
                         {
-                            PrjID = reader.ReadGameObjectClass_BZ2(parent, "GetClass()");
+                            PrjID = reader.ReadGameObjectClass_BZ2(parent, "GetClass()", obj?.Malformations);
                         }
                         else
                         {
                             // 1183 1187 1188 1192
-                            PrjID = reader.ReadGameObjectClass_BZ2(parent, "objClass");
+                            PrjID = reader.ReadGameObjectClass_BZ2(parent, "objClass", obj?.Malformations);
                         }
                     }
                 }
@@ -213,7 +213,7 @@ namespace BZNParser.Battlezone
                     //    throw new Exception("Failed to parse label/CHAR");
                     //label = tok.GetString();
 
-                    string label = reader.ReadSizedString_BZ2_1145("label", 40);
+                    string label = reader.ReadSizedString_BZ2_1145("label", 40, obj?.Malformations);
                     if (obj != null) obj.label = label;
                 }
                 else
@@ -234,7 +234,7 @@ namespace BZNParser.Battlezone
                         //if (!tok.Validate("label", BinaryFieldType.DATA_CHAR))
                         //    throw new Exception("Failed to parse label/CHAR");
                         //label = tok.GetString();
-                        string label = reader.ReadSizedString_BZ2_1145("label", 40);
+                        string label = reader.ReadSizedString_BZ2_1145("label", 40, obj?.Malformations);
                         if (obj != null) obj.label = label;
                     }
                 }
@@ -514,7 +514,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Version < 1155)
                 {
-                    writer.WriteGameObjectClass_BZ2(parent, "config", PrjID);
+                    writer.WriteGameObjectClass_BZ2(parent, "config", PrjID, Malformations);
                 }
                 else
                 {
@@ -526,11 +526,11 @@ namespace BZNParser.Battlezone
                     {
                         if (writer.Version == 1180)
                         {
-                             writer.WriteGameObjectClass_BZ2(parent, "GetClass()", PrjID);
+                             writer.WriteGameObjectClass_BZ2(parent, "GetClass()", PrjID, Malformations);
                         }
                         else
                         {
-                            writer.WriteGameObjectClass_BZ2(parent, "objClass", PrjID);
+                            writer.WriteGameObjectClass_BZ2(parent, "objClass", PrjID, Malformations);
                         }
                     }
                 }
@@ -595,13 +595,13 @@ namespace BZNParser.Battlezone
             }
             else if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WriteChars("label", label);
+                writer.WriteChars("label", label, Malformations);
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1145)
                 {
-                    writer.WriteSizedString_BZ2_1145("label", 40, label);
+                    writer.WriteSizedString_BZ2_1145("label", 40, label, Malformations);
                 }
                 else
                 {
@@ -614,7 +614,7 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        writer.WriteSizedString_BZ2_1145("label", 40, label);
+                        writer.WriteSizedString_BZ2_1145("label", 40, label, Malformations);
                     }
                 }
             }

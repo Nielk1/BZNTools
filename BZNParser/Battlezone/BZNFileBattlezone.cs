@@ -325,7 +325,8 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse msn_filename/CHAR");
-                    Console.WriteLine($"msn_filename: \"{tok.GetString()}\"");
+                    msn_filename = tok.GetString();
+                    Console.WriteLine($"msn_filename: \"{msn_filename}\"");
                 }
             }
 
@@ -336,7 +337,7 @@ namespace BZNParser.Battlezone
                     throw new Exception("Failed to parse binarySave/BOOL");
                 Console.WriteLine($"binarySave: {tok.GetBoolean()}");
 
-                msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16);
+                msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16, Malformations);
                 Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
 
@@ -951,7 +952,7 @@ namespace BZNParser.Battlezone
                     if (binary)
                         writer.SetBinary();
 
-                    writer.WriteChars("msn_filename", msn_filename);
+                    writer.WriteChars("msn_filename", msn_filename, Malformations);
                 }
             }
 
@@ -961,7 +962,7 @@ namespace BZNParser.Battlezone
                 if (binary)
                     writer.SetBinary();
 
-                writer.WriteSizedString_BZ2_1145("msn_filename", 16, msn_filename);
+                writer.WriteSizedString_BZ2_1145("msn_filename", 16, msn_filename, Malformations);
             }
 
             // todo this is oddly messy, clean it up and confirm
@@ -1016,10 +1017,10 @@ namespace BZNParser.Battlezone
                         switch (SaveType)
                         {
                             case SaveType.BZN:
-                                writer.WriteBooleans("missionSave", false);
+                                writer.WriteBooleans("missionSave", true);
                                 break;
                             case SaveType.SAVE:
-                                writer.WriteBooleans("missionSave", true);
+                                writer.WriteBooleans("missionSave", false);
                                 break;
                             default:
                                 throw new NotImplementedException();
@@ -1032,7 +1033,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1001)
                 {
-                    writer.WriteChars("TerrainName", TerrainName);
+                    writer.WriteChars("TerrainName", TerrainName, Malformations);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)
@@ -1041,25 +1042,25 @@ namespace BZNParser.Battlezone
                 {
                     // BZ2: 1123 1124s
                     if (preserveMalformations)
-                        writer.WriteChars("TerrainName", Malformations.CheckBinaryMessString("TerrainName", TerrainName));
+                        writer.WriteChars("TerrainName", Malformations.CheckBinaryMessString("TerrainName", TerrainName), Malformations);
                     else
-                        writer.WriteChars("TerrainName", TerrainName);
+                        writer.WriteChars("TerrainName", TerrainName, Malformations);
                 }
                 else if (writer.Version == 1171)
                 {
                     var mal = Malformations.GetMalformations(Malformation.INCORRECT_NAME, "g_TerrainName");
                     if (preserveMalformations && mal.Length > 0)
                     {
-                        writer.WriteChars((string)mal[0].Fields[0], TerrainName);
+                        writer.WriteChars((string)mal[0].Fields[0], TerrainName, Malformations);
                     }
                     else
                     {
-                        writer.WriteChars("g_TerrainName", TerrainName);
+                        writer.WriteChars("g_TerrainName", TerrainName, Malformations);
                     }
                 }
                 else
                 {
-                    writer.WriteChars("g_TerrainName", TerrainName);
+                    writer.WriteChars("g_TerrainName", TerrainName, Malformations);
                 }
             }
 
@@ -1089,12 +1090,12 @@ namespace BZNParser.Battlezone
                 }
                 if (writer.Version == 1100 || writer.Version == 1041 || writer.Version == 1047 || writer.Version == 1070) // not sure what versions this happens
                 {
-                    writer.WriteChars("name", Malformations.CheckBinaryMessString("name", Mission));
+                    writer.WriteChars("name", Malformations.CheckBinaryMessString("name", Mission), Malformations);
                 }
                 else if (writer.Version < 1145)
                 {
                     // max length 40
-                    writer.WriteChars("dllName", Malformations.CheckBinaryMessString("dllName", Mission));
+                    writer.WriteChars("dllName", Malformations.CheckBinaryMessString("dllName", Mission), Malformations);
                 }
                 else
                 {
@@ -1102,7 +1103,7 @@ namespace BZNParser.Battlezone
                     {
                         writer.WriteUnsignedValues(null, (byte)Mission.Length);
                     }
-                    writer.WriteChars("dllName", Malformations.CheckBinaryMessString("dllName", Mission));
+                    writer.WriteChars("dllName", Malformations.CheckBinaryMessString("dllName", Mission), Malformations);
                 }
             }
             if (writer.Format == BZNFormat.BattlezoneN64)
@@ -1117,7 +1118,7 @@ namespace BZNParser.Battlezone
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WriteChars("name", Mission);
+                writer.WriteChars("name", Mission, Malformations);
 
                 // read the old sObject ptr, not sure what can be done with it
                 if (writer.Version < 1002)
@@ -1158,7 +1159,7 @@ namespace BZNParser.Battlezone
             {
                 // this might also be due to the above count being 1 instead of 0, unknown, for now we're using the version
                 
-                writer.WriteChars("name", "AiMission");
+                writer.WriteChars("name", "AiMission", Malformations);
 
                 // read the old sObject ptr, not sure what can be done with it
                 if (writer.Version < 1002)

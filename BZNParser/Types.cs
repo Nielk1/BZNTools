@@ -122,7 +122,7 @@ namespace BZNParser
 
 
 
-    public struct Vector3D : IMalformable
+    public class Vector3D : IMalformable
     {
         private readonly IMalformable.MalformationManager _malformationManager;
         public IMalformable.MalformationManager Malformations => _malformationManager;
@@ -134,9 +134,46 @@ namespace BZNParser
         }
 
 
-        public float x;
-        public float y;
-        public float z;
+        public float X
+        {
+            get { return x; }
+            set
+            {
+                if (value != x)
+                {
+                    // reset malformations
+                }
+                x = value;
+            }
+        }
+        public float Y
+        {
+            get { return y; }
+            set
+            {
+                if (value != y)
+                {
+                    // reset malformations
+                }
+                y = value;
+            }
+        }
+        public float Z
+        {
+            get { return z; }
+            set
+            {
+                if (value != z)
+                {
+                    // reset malformations
+                }
+                z = value;
+            }
+        }
+
+        private float x;
+        private float y;
+        private float z;
 
         internal float Magnitude()
         {
@@ -399,7 +436,7 @@ namespace BZNParser
             }
             else
             {
-                if (SingleExtension.GetFloatTextFormat(tok.GetString(index)) != floatFormat)
+                if (SingleExtension.GetFloatTextFormat(tok.GetString(index)) != floatFormat || tok.GetSingle(index).ToBZNString(floatFormat) != tok.GetString(index))
                     malformations.AddIncorrectTextParse(name, tok.GetString(index));
             }
         }

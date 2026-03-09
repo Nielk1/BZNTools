@@ -137,7 +137,7 @@ namespace BZNParser.Tokenizer
         public Vector3D GetVector3D(int index = 0)
         {
             if (index >= data.Length / sizeof(Single) / 3) throw new ArgumentOutOfRangeException();
-            return new Vector3D() { x = GetSingle(index * 3), y = GetSingle(index * 3 + 1), z = GetSingle(index * 3 + 2) };
+            return new Vector3D() { X = GetSingle(index * 3), Y = GetSingle(index * 3 + 1), Z = GetSingle(index * 3 + 2) };
         }
 
         public Vector2D GetVector2D(int index = 0)
@@ -160,21 +160,21 @@ namespace BZNParser.Tokenizer
         {
             return new Matrix()
             {
-                right  = new Vector3D() { x = GetSingle(index * 16 +  0),
-                                          y = GetSingle(index * 16 +  1),
-                                          z = GetSingle(index * 16 +  2) },
+                right  = new Vector3D() { X = GetSingle(index * 16 +  0),
+                                          Y = GetSingle(index * 16 +  1),
+                                          Z = GetSingle(index * 16 +  2) },
                 rightw =                      GetSingle(index * 16 +  3),
-                up     = new Vector3D() { x = GetSingle(index * 16 +  4),
-                                          y = GetSingle(index * 16 +  5),
-                                          z = GetSingle(index * 16 +  6) },
+                up     = new Vector3D() { X = GetSingle(index * 16 +  4),
+                                          Y = GetSingle(index * 16 +  5),
+                                          Z = GetSingle(index * 16 +  6) },
                 upw    =                      GetSingle(index * 16 +  7),
-                front  = new Vector3D() { x = GetSingle(index * 16 +  8),
-                                          y = GetSingle(index * 16 +  9),
-                                          z = GetSingle(index * 16 + 10) },
+                front  = new Vector3D() { X = GetSingle(index * 16 +  8),
+                                          Y = GetSingle(index * 16 +  9),
+                                          Z = GetSingle(index * 16 + 10) },
                 frontw =                      GetSingle(index * 16 + 11),
-                posit  = new Vector3D() { x = GetSingle(index * 16 + 12),
-                                          y = GetSingle(index * 16 + 13),
-                                          z = GetSingle(index * 16 + 14) },
+                posit  = new Vector3D() { X = GetSingle(index * 16 + 12),
+                                          Y = GetSingle(index * 16 + 13),
+                                          Z = GetSingle(index * 16 + 14) },
                 positw =                      GetSingle(index * 16 + 15)
             };
         }
@@ -227,23 +227,23 @@ namespace BZNParser.Tokenizer
                 case BinaryFieldType.DATA_VEC3D:
                     {
                         Vector3D v = GetVector3D();
-                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {v.x}, {v.y}, {v.z} }}";
+                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {v.X}, {v.Y}, {v.Z} }}";
                     }
                 case BinaryFieldType.DATA_MAT3DOLD:
                     {
                         Matrix m = GetMatrixOld();
-                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.right.x,10:0.00}, {m.right.y,10:0.00}, {m.right.z,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.up.x,10:0.00}, {m.up.y,10:0.00}, {m.up.z,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.front.x,10:0.00}, {m.front.y,10:0.00}, {m.front.z,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.posit.x,10:0.00}, {m.posit.y,10:0.00}, {m.posit.z,10:0.00} }} }}";
+                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.right.X,10:0.00}, {m.right.Y,10:0.00}, {m.right.Z,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.up.X,10:0.00}, {m.up.Y,10:0.00}, {m.up.Z,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.front.X,10:0.00}, {m.front.Y,10:0.00}, {m.front.Z,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.posit.X,10:0.00}, {m.posit.Y,10:0.00}, {m.posit.Z,10:0.00} }} }}";
                     }
                 case BinaryFieldType.DATA_MAT3D:
                     {
                         Matrix m = GetMatrix();
-                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.right.x,10:0.00}, {m.right.y,10:0.00}, {m.right.z,10:0.00}, {m.rightw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.up.x,10:0.00}, {m.up.y,10:0.00}, {m.up.z,10:0.00}, {m.upw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.front.x,10:0.00}, {m.front.y,10:0.00}, {m.front.z,10:0.00}, {m.frontw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.posit.x,10:0.00}, {m.posit.y,10:0.00}, {m.posit.z,10:0.00}, {m.positw,10:0.00} }} }}";
+                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.right.X,10:0.00}, {m.right.Y,10:0.00}, {m.right.Z,10:0.00}, {m.rightw,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.up.X,10:0.00}, {m.up.Y,10:0.00}, {m.up.Z,10:0.00}, {m.upw,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.front.X,10:0.00}, {m.front.Y,10:0.00}, {m.front.Z,10:0.00}, {m.frontw,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.posit.X,10:0.00}, {m.posit.Y,10:0.00}, {m.posit.Z,10:0.00}, {m.positw,10:0.00} }} }}";
                     }
             }
             return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {BitConverter.ToString(data.Take(20).ToArray())}{(data.Length > 20 ? "..." : string.Empty)}";

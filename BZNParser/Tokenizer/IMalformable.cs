@@ -18,6 +18,7 @@ namespace BZNParser.Tokenizer
         STRING_PAD,      // <fieldName>,       <length>         // String is padded by nuls to reach this length
         INCORRECT_NAME,  // <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
         FLOAT_FORMAT,    // "ALL:FLOAT_TEXT",  <formatApplied>  // Float is in an unexpected text format
+        RIGHT_TRIM,      // <fieldName>                         // Field is a 1-liner with an empty field that got Right-Trimmed
     }
 
     public static class MalformationExtensions
@@ -126,6 +127,8 @@ namespace BZNParser.Tokenizer
         public static void AddFloatFormat(this MalformationManager manager, FloatTextFormat formatUsed) =>//, FloatTextFormat formatExpected) =>
             manager.Add(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT", formatUsed);
 
+        public static void AddRightTrimmed(this MalformationManager manager, string filedName) =>
+            manager.Add(Malformation.RIGHT_TRIM, filedName);
         public static FloatTextFormat? GetFloatTextFormat(this MalformationManager manager)
         {
             var mals = manager.GetMalformations(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT");

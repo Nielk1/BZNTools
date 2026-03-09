@@ -51,9 +51,9 @@ namespace BZNParser.Battlezone.GameObject
                     if (!tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
                     if (obj != null) obj.saveSeqno = tok.GetInt32H();
 
-                    string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32);
+                    string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32, obj?.Malformations);
                     if (obj != null) obj.saveLabel = saveLabel;
-                    string saveName = reader.ReadSizedString_BZ2_1145("saveName", 32);
+                    string saveName = reader.ReadSizedString_BZ2_1145("saveName", 32, obj?.Malformations);
                     if (obj != null) obj.saveName = saveName;
                 }
             }
@@ -78,13 +78,13 @@ namespace BZNParser.Battlezone.GameObject
             writer.WriteFloats("scrapTimer", obj.scrapTimer);
             if (writer.Version < 1147)
             {
-                writer.WriteChars("saveClass", obj.saveClass);
+                writer.WriteChars("saveClass", obj.saveClass, obj.Malformations);
                 if (!string.IsNullOrEmpty(obj.saveClass))
                 {
                     writer.WriteSignedValues("saveTeam", obj.saveTeam);
                     writer.WriteUnsignedHexLValues("saveSeqno", (UInt16)obj.saveSeqno); // unsure if this down-cast is safe, if bool writes LONG instead of SHORT it doesn't
-                    writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel); // TODO: figure out what this actually does
-                    writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName); // TODO: figure out what this actually does
+                    writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel, obj.Malformations); // TODO: figure out what this actually does
+                    writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName, obj.Malformations); // TODO: figure out what this actually does
                 }
             }
             if (writer.Version > 1102)

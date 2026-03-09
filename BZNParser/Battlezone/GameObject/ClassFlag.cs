@@ -33,7 +33,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("startMat", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse startMat/MAT3D"); // type not confirmed
-                if (obj != null) obj.startMat = tok.GetMatrix();
+                if (obj != null)
+                {
+                    obj.startMat = tok.GetMatrix();
+                    tok.CheckMalformationsMatrix(obj.startMat.Malformations, reader.FloatFormat);
+                }
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("holder", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse holder/LONG"); // type not confirmed

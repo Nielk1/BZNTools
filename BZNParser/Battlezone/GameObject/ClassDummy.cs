@@ -55,7 +55,7 @@ namespace BZNParser.Battlezone.GameObject
                 return;
             }
 
-            writer.WriteChars("name", obj.name);
+            writer.WriteChars("name", obj.name, obj.Malformations);
         }
     }
 }

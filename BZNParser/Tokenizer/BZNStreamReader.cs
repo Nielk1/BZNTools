@@ -671,8 +671,11 @@ namespace BZNParser.Tokenizer
                 else
                 {
                     if (line.Length == 2)
+                    {
                         // because there is no array size indicator we assume the value is on the same line, and there isn't one
-                        return new BZNTokenString(name, new string[] { string.Empty });
+                        // this is basically a badly written file where a no-value single-liner has the end trimed
+                        return new BZNTokenString(name, new string[] { string.Empty }) { RightTrimmedOneLiner = true };
+                    }
 
                     string value = line[2];
                     if (QuoteStrings)

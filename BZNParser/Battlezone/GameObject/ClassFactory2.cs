@@ -55,7 +55,7 @@ namespace BZNParser.Battlezone.GameObject
                 //v5 = std::deque < GameObjectClass const *>::operator[] (v4);
                 //ILoadSaveVisitor::out(a2, *v5, "buildItem");
                 //++v4;
-                string item = reader.ReadGameObjectClass_BZ2(parent, "buildItem");
+                string item = reader.ReadGameObjectClass_BZ2(parent, "buildItem", obj?.Malformations);
                 if (obj != null) obj.buildItems[i] = item;
             }
 
@@ -95,7 +95,7 @@ namespace BZNParser.Battlezone.GameObject
             writer.WriteSignedValues("buildCount", obj.buildItems.Length);
             for (int i = 0; i < obj.buildItems.Length; i++)
             {
-                writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem");
+                writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem", obj.Malformations);
             }
 
             if (parent.SaveType == 0)

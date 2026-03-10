@@ -205,6 +205,12 @@ namespace BZNParser.Battlezone
         private readonly Dictionary<string, IClassFactory> _classLabelMap;
         public Dictionary<string, IClassFactory> ClassLabelMap => _classLabelMap;
 
+
+        /// <summary>
+        /// Version this file was loaded from
+        /// </summary>
+        public UInt32 Version { get; private set; }
+        public bool Binary { get; private set; }
         public SaveType SaveType { get; private set; }
 
         public string msn_filename { get; set; }
@@ -298,12 +304,13 @@ namespace BZNParser.Battlezone
             if (reader.Format != BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                Console.WriteLine($"Version: {tok.GetUInt32()}"); // don't bother validating first field maybe?
+                Version = tok.GetUInt32();
+                Console.WriteLine($"Version: {Version}"); // don't bother validating first field maybe?
                 if (!tok.IsBinary)
                 {
                     string fieldName = (tok as BZNTokenString).Name;
-                    if (fieldName != "Version")
-                        Malformations.AddIncorrectName("version", fieldName);
+                    if (fieldName != "version")
+                        Malformations.AddIncorrectName<BZNFileBattlezone, UInt32>(x => x.Version, fieldName);
                 }
             }
 
@@ -324,7 +331,8 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("binarySave", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse binarySave/BOOL");
-                    Console.WriteLine($"binarySave: {tok.GetBoolean()}");
+                    tok.ReadBoolean<BZNFileBattlezone, bool>(this, x => x.Binary);
+                    Console.WriteLine($"binarySave: {Binary}");
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
@@ -340,7 +348,8 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate("binarySave", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse binarySave/BOOL");
-                Console.WriteLine($"binarySave: {tok.GetBoolean()}");
+                tok.ReadBoolean<BZNFileBattlezone, bool>(this, x => x.Binary);
+                Console.WriteLine($"binarySave: {Binary}");
 
                 msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16, Malformations);
                 Console.WriteLine($"msn_filename: \"{msn_filename}\"");
@@ -371,7 +380,7 @@ namespace BZNParser.Battlezone
                     if (!tok.Validate("saveType", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse saveType/LONG");
                     Int32 saveType2 = tok.GetInt32();
-                    Console.WriteLine($"saveType (redundant?): {saveType2}");
+                    Console.WriteLine($"saveType (redundant?): {saveType2}"); // maybe not if the first one is missing
                 }
             }
 
@@ -379,8 +388,8 @@ namespace BZNParser.Battlezone
             {
                 if (reader.Format == BZNFormat.Battlezone && reader.Version < 1016)
                 {
-                    //bool missionSave = false;
-                    Console.WriteLine($"missionSave: false (assumed)");
+                    //bool missionSave = true;
+                    Console.WriteLine($"missionSave: true (assumed)");
                     SaveType = SaveType.BZN;
                 }
                 //if ((1017 <= reader.Version && reader.Version <= 1037) || reader.Version == 1043 || reader.Version == 1045 || reader.Version == 2003 || reader.Version == 2016)
@@ -389,9 +398,8 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("missionSave", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse missionSave/BOOL");
-                    bool missionSave = tok.GetBoolean();
+                    (_, bool missionSave) = tok.ReadBoolean<BZNFileBattlezone, SaveType>(this, x => x.SaveType, 0, x => x ? SaveType.BZN : SaveType.SAVE);
                     Console.WriteLine($"missionSave: {missionSave}");
-                    SaveType = missionSave ? SaveType.BZN : SaveType.SAVE;
                 }
             }
 
@@ -426,7 +434,7 @@ namespace BZNParser.Battlezone
                     {
                         if (!tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR)) // saw this on a 1171 once, why?
                             throw new Exception("Failed to parse g_TerrainName/CHAR"); // might need to note a safe malformation here
-                        Malformations.AddIncorrectName("g_TerrainName", "TerrainName");
+                        Malformations.AddIncorrectName<BZNFileBattlezone, string>(x => x.TerrainName, "TerrainName");
                     }
                     TerrainName = tok.GetString();
                     Console.WriteLine($"TerrainName: {TerrainName}");
@@ -509,15 +517,15 @@ namespace BZNParser.Battlezone
             {
                 if (reader.CountCR == 0 && reader.CountLF > 0)
                 {
-                    Malformations.AddLineEnding("LF");
+                    Malformations.SetLineEnding("\n");
                 }
                 else if (reader.CountLF == 0 && reader.CountCR > 0)
                 {
-                    Malformations.AddLineEnding("CR");
+                    Malformations.SetLineEnding("\r");
                 }
                 else
                 {
-                    Malformations.AddLineEnding("?");
+                    Malformations.SetLineEnding(null);
                 }
             }
 
@@ -936,11 +944,10 @@ namespace BZNParser.Battlezone
                     writer.FloatFormat = floatTextFormat.Value;
                 }
 
-                string? newLine = Malformations.GetNewLine();
-                switch (newLine)
+                string? newLine = Malformations.GetLineEnding();
+                if (newLine != null)
                 {
-                    case "CR": writer.NewLine = "\r"; break;
-                    case "LF": writer.NewLine = "\n"; break;
+                    writer.NewLine = newLine;
                 }
             }
 

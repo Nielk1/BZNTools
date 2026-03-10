@@ -621,7 +621,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 string mission = string.Format("BZn64Mission_{0,4:X4}", tok.GetUInt16());
                 Console.WriteLine($"Mission: {mission}");
-                this.Mission = tok.GetString();
+                this.Mission = mission;
 
                 sObject = reader.ReadBZ1_PtrDepricated("sObject");
             }
@@ -630,8 +630,8 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate("name", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse name/CHAR");
-                Console.WriteLine($"Mission: {tok.GetString()}");
-                this.Mission = tok.GetString();
+                this.Mission = Malformations.AddBinaryMessString("name", tok.GetString());
+                Console.WriteLine($"Mission: {this.Mission}");
 
                 // read the old sObject ptr, not sure what can be done with it
                 if (reader.Version < 1002)
@@ -1138,7 +1138,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("sObject", sObject, writer.Version);
+                    writer.WriteBZ1_Ptr("sObject", sObject);
                 }
             }
 
@@ -1179,7 +1179,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("sObject", sObject, writer.Version);
+                    writer.WriteBZ1_Ptr("sObject", sObject);
                 }
 
                 writer.WriteValidation("UserProcess");

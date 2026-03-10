@@ -8,7 +8,7 @@ namespace BZNParser.Tokenizer
     public interface IBZNToken
     {
         bool IsBinary { get; }
-        int GetCount(int PtrSize);
+        int GetCount();
         int GetSubCount(int index = 0);
         IBZNToken GetSubToken(int index = 0, int subIndex = 0);
         bool GetBoolean(int index = 0);

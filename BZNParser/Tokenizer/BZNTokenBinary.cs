@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 
@@ -20,21 +21,24 @@ namespace BZNParser.Tokenizer
         private BinaryFieldType type;
         private byte[] data;
         private bool IsBigEndian;
-
+        private int PtrSize;
+        private bool BigPosit;
 
         public uint? rawType { get; set; } // TODO figure out how to show this nicer as this is a carrier defect if it doesn't equal type
 
-        public BZNTokenBinary(BinaryFieldType fieldType, byte[] data, bool isBigEndian)
+        public BZNTokenBinary(BinaryFieldType fieldType, byte[] data, bool isBigEndian, int ptrSize, bool bigPosit)
         {
             // TODO: Complete member initialization
             this.type = fieldType;
             this.data = data;
             this.IsBigEndian = isBigEndian;
+            this.PtrSize = ptrSize;
+            this.BigPosit = bigPosit;
         }
         public bool IsBinary => true;
-        public int GetCount(int PtrSize)
+        public int GetCount()
         {
-            switch(type)
+            switch (type)
             {
                 case BinaryFieldType.DATA_VOID: return data.Length / 4;
                 case BinaryFieldType.DATA_BOOL: return data.Length / 1;
@@ -42,12 +46,12 @@ namespace BZNParser.Tokenizer
                 case BinaryFieldType.DATA_SHORT: return data.Length / 2;
                 case BinaryFieldType.DATA_LONG: return data.Length / 4;
                 case BinaryFieldType.DATA_FLOAT: return data.Length / 4;
-                case BinaryFieldType.DATA_DOUBLE: throw new NotImplementedException();
+                case BinaryFieldType.DATA_DOUBLE: return data.Length / 8;
                 case BinaryFieldType.DATA_ID: return data.Length / 4;
                 case BinaryFieldType.DATA_PTR: return data.Length / PtrSize;
                 case BinaryFieldType.DATA_VEC3D: throw new NotImplementedException();
                 case BinaryFieldType.DATA_VEC2D: throw new NotImplementedException();
-                case BinaryFieldType.DATA_MAT3DOLD: throw new NotImplementedException();
+                case BinaryFieldType.DATA_MAT3DOLD: throw new NotImplementedException(); // make sure you account for bigPosit if you implement this
                 case BinaryFieldType.DATA_MAT3D: throw new NotImplementedException();
                 case BinaryFieldType.DATA_STRING: throw new NotImplementedException();
                 case BinaryFieldType.DATA_QUAT: throw new NotImplementedException();
@@ -155,37 +159,98 @@ namespace BZNParser.Tokenizer
             if (index >= data.Length / sizeof(Single) / 2) throw new ArgumentOutOfRangeException();
             return new Vector2D() { X = GetSingle(index * 2), Z = GetSingle(index * 2 + 1) };
         }
-
+        private UInt32 GetUInt32Internal(int offset)
+        {
+            if (offset + sizeof(UInt32) > data.Length) throw new ArgumentOutOfRangeException();
+            byte[] buffer = new byte[sizeof(UInt32)];
+            Array.Copy(data, offset, buffer, 0, buffer.Length);
+            if (IsBigEndian) Array.Reverse(buffer);
+            return BitConverter.ToUInt32(buffer);
+        }
+        private float GetFloatInternal(int offset)
+        {
+            if (offset + sizeof(float) > data.Length) throw new ArgumentOutOfRangeException();
+            byte[] buffer = new byte[sizeof(float)];
+            Array.Copy(data, offset, buffer, 0, buffer.Length);
+            if (IsBigEndian) Array.Reverse(buffer);
+            return BitConverter.ToSingle(buffer);
+        }
+        private double GetDoubleInternal(int offset)
+        {
+            if (offset + sizeof(double) > data.Length) throw new ArgumentOutOfRangeException();
+            byte[] buffer = new byte[sizeof(double)];
+            Array.Copy(data, offset, buffer, 0, buffer.Length);
+            if (IsBigEndian) Array.Reverse(buffer);
+            return BitConverter.ToDouble(buffer);
+        }
         public Matrix GetMatrixOld(int index = 0)
         {
+            if (BigPosit)
+                return GetMatrixDoubleOld(index);
             return new Matrix()
             {
-                right = GetVector3D(index * 4 + 0), rightw = 0,
-                up    = GetVector3D(index * 4 + 1), upw    = 0,
-                front = GetVector3D(index * 4 + 2), frontw = 0,
-                posit = GetVector3D(index * 4 + 3), positw = 1
+                rightx = GetSingle(index * 12 +  0),
+                righty = GetSingle(index * 12 +  1),
+                rightz = GetSingle(index * 12 +  2),
+                rightw = 0,
+                upx    = GetSingle(index * 12 +  3),
+                upy    = GetSingle(index * 12 +  4),
+                upz    = GetSingle(index * 12 +  5),
+                upw    = 0,
+                frontx = GetSingle(index * 12 +  6),
+                fronty = GetSingle(index * 12 +  7),
+                frontz = GetSingle(index * 12 +  8),
+                frontw = 0,
+                positx = GetSingle(index * 12 +  9),
+                posity = GetSingle(index * 12 + 10),
+                positz = GetSingle(index * 12 + 11),
+                positw = 1,
+            };
+        }
+        private Matrix GetMatrixDoubleOld(int index = 0)
+        {
+            int stride = sizeof(float) * 8 + sizeof(UInt32) + sizeof(double) * 3;
+            return new Matrix()
+            {
+                rightx = GetFloatInternal(stride * index + 0 * sizeof(float)),
+                righty = GetFloatInternal(stride * index + 1 * sizeof(float)),
+                rightz = GetFloatInternal(stride * index + 2 * sizeof(float)),
+                rightw = 0,
+                upx    = GetFloatInternal(stride * index + 3 * sizeof(float)),
+                upy    = GetFloatInternal(stride * index + 4 * sizeof(float)),
+                upz    = GetFloatInternal(stride * index + 5 * sizeof(float)),
+                upw    = 0,
+                frontx = GetFloatInternal(stride * index + 6 * sizeof(float)),
+                fronty = GetFloatInternal(stride * index + 7 * sizeof(float)),
+                frontz = GetFloatInternal(stride * index + 8 * sizeof(float)),
+                frontw = 0,
+                junk   = GetUInt32Internal(stride * index + 9 * sizeof(float) + 0 * sizeof(UInt32)), // junk padding
+                positx = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 0 * sizeof(double)),
+                posity = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 1 * sizeof(double)),
+                positz = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 2 * sizeof(double)),
+                positw = 1,
             };
         }
         public Matrix GetMatrix(int index = 0)
         {
             return new Matrix()
             {
-                right  = new Vector3D() { X = GetSingle(index * 16 +  0),
-                                          Y = GetSingle(index * 16 +  1),
-                                          Z = GetSingle(index * 16 +  2) },
-                rightw =                      GetSingle(index * 16 +  3),
-                up     = new Vector3D() { X = GetSingle(index * 16 +  4),
-                                          Y = GetSingle(index * 16 +  5),
-                                          Z = GetSingle(index * 16 +  6) },
-                upw    =                      GetSingle(index * 16 +  7),
-                front  = new Vector3D() { X = GetSingle(index * 16 +  8),
-                                          Y = GetSingle(index * 16 +  9),
-                                          Z = GetSingle(index * 16 + 10) },
-                frontw =                      GetSingle(index * 16 + 11),
-                posit  = new Vector3D() { X = GetSingle(index * 16 + 12),
-                                          Y = GetSingle(index * 16 + 13),
-                                          Z = GetSingle(index * 16 + 14) },
-                positw =                      GetSingle(index * 16 + 15)
+               rightx = GetSingle(index * 16 +  0),
+               righty = GetSingle(index * 16 +  1),
+               rightz = GetSingle(index * 16 +  2),
+               rightw = GetSingle(index * 16 +  3),
+               upx    = GetSingle(index * 16 +  4),
+               upy    = GetSingle(index * 16 +  5),
+               upz    = GetSingle(index * 16 +  6),
+               upw    = GetSingle(index * 16 +  7),
+               frontx = GetSingle(index * 16 +  8),
+               fronty = GetSingle(index * 16 +  9),
+               frontz = GetSingle(index * 16 + 10),
+               frontw = GetSingle(index * 16 + 11),
+               positx = GetSingle(index * 16 + 12),
+               posity = GetSingle(index * 16 + 13),
+               positz = GetSingle(index * 16 + 14),
+               positw = GetSingle(index * 16 + 15),
             };
         }
 
@@ -242,18 +307,18 @@ namespace BZNParser.Tokenizer
                 case BinaryFieldType.DATA_MAT3DOLD:
                     {
                         Matrix m = GetMatrixOld();
-                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.right.X,10:0.00}, {m.right.Y,10:0.00}, {m.right.Z,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.up.X,10:0.00}, {m.up.Y,10:0.00}, {m.up.Z,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.front.X,10:0.00}, {m.front.Y,10:0.00}, {m.front.Z,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.posit.X,10:0.00}, {m.posit.Y,10:0.00}, {m.posit.Z,10:0.00} }} }}";
+                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.rightx,10:0.00}, {m.righty,10:0.00}, {m.rightz,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.upx,10:0.00}, {m.upy,10:0.00}, {m.upz,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.frontx,10:0.00}, {m.fronty,10:0.00}, {m.frontz,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.positx,10:0.00}, {m.posity,10:0.00}, {m.positz,10:0.00} }} }}";
                     }
                 case BinaryFieldType.DATA_MAT3D:
                     {
                         Matrix m = GetMatrix();
-                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.right.X,10:0.00}, {m.right.Y,10:0.00}, {m.right.Z,10:0.00}, {m.rightw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.up.X,10:0.00}, {m.up.Y,10:0.00}, {m.up.Z,10:0.00}, {m.upw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.front.X,10:0.00}, {m.front.Y,10:0.00}, {m.front.Z,10:0.00}, {m.frontw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.posit.X,10:0.00}, {m.posit.Y,10:0.00}, {m.posit.Z,10:0.00}, {m.positw,10:0.00} }} }}";
+                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.rightx,10:0.00}, {m.righty,10:0.00}, {m.rightz,10:0.00}, {m.rightw,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.upx,10:0.00}, {m.upy,10:0.00}, {m.upz,10:0.00}, {m.upw,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.frontx,10:0.00}, {m.fronty,10:0.00}, {m.frontz,10:0.00}, {m.frontw,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.positx,10:0.00}, {m.posity,10:0.00}, {m.positz,10:0.00}, {m.positw,10:0.00} }} }}";
                     }
             }
             return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {BitConverter.ToString(data.Take(20).ToArray())}{(data.Length > 20 ? "..." : string.Empty)}";

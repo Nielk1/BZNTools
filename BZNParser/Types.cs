@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Numerics;
 using System.Reflection.PortableExecutable;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using static BZNParser.Tokenizer.BZNStreamReader;
 
@@ -309,14 +310,23 @@ namespace BZNParser
         }
 
 
-        public Vector3D right;
+        public float rightx;
+        public float righty;
+        public float rightz;
         public float rightw;
-        public Vector3D up;
+        public float upx;
+        public float upy;
+        public float upz;
         public float upw;
-        public Vector3D front;
+        public float frontx;
+        public float fronty;
+        public float frontz;
         public float frontw;
-        public Vector3D posit;
-        public float positw;
+        public UInt32 junk; // used only in double-posit mode
+        public double positx;
+        public double posity;
+        public double positz;
+        public double positw;
     }
 
     public struct Quaternion

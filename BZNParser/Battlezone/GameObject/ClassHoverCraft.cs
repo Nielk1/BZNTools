@@ -169,7 +169,7 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteFloats("thrustRatio", obj.thrustRatio);
                 writer.WriteFloats("throttle", obj.throttle);
                 writer.WriteFloats("airBorne", obj.airBorne);
-    }
+            }
 
             ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

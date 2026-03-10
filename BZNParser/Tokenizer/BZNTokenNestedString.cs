@@ -16,7 +16,7 @@ namespace BZNParser.Tokenizer
             this.values = values;
         }
         public bool IsBinary => false;
-        public int GetCount(int PtrSize)
+        public int GetCount()
         {
             //throw new InvalidOperationException();
             return 1;
@@ -82,53 +82,50 @@ namespace BZNParser.Tokenizer
         public Matrix GetMatrixOld(int index = 0)
         {
             IBZNToken[] subToks = values[index];
-            if (!subToks[ 0].Validate("right_x")/* && !subToks[ 0].Validate("right.x")*/) throw new Exception("Failed to parse right_x");
-            if (!subToks[ 1].Validate("right_y")/* && !subToks[ 1].Validate("right.y")*/) throw new Exception("Failed to parse right_y");
-            if (!subToks[ 2].Validate("right_z")/* && !subToks[ 2].Validate("right.z")*/) throw new Exception("Failed to parse right_z");
-            if (!subToks[ 3].Validate(   "up_x")/* && !subToks[ 3].Validate(   "up.x")*/) throw new Exception("Failed to parse up_x");
-            if (!subToks[ 4].Validate(   "up_y")/* && !subToks[ 4].Validate(   "up.y")*/) throw new Exception("Failed to parse up_y");
-            if (!subToks[ 5].Validate(   "up_z")/* && !subToks[ 5].Validate(   "up.z")*/) throw new Exception("Failed to parse up_z");
-            if (!subToks[ 6].Validate("front_x")/* && !subToks[ 6].Validate("front.x")*/) throw new Exception("Failed to parse front_x");
-            if (!subToks[ 7].Validate("front_y")/* && !subToks[ 7].Validate("front.y")*/) throw new Exception("Failed to parse front_y");
-            if (!subToks[ 8].Validate("front_z")/* && !subToks[ 8].Validate("front.z")*/) throw new Exception("Failed to parse front_z");
-            if (!subToks[ 9].Validate("posit_x")/* && !subToks[ 9].Validate("posit.x")*/) throw new Exception("Failed to parse posit_x");
-            if (!subToks[10].Validate("posit_y")/* && !subToks[10].Validate("posit.y")*/) throw new Exception("Failed to parse posit_y");
-            if (!subToks[11].Validate("posit_z")/* && !subToks[11].Validate("posit.z")*/) throw new Exception("Failed to parse posit_z");
+            if (!subToks[ 0].Validate("right_x")) throw new Exception("Failed to parse right_x");
+            if (!subToks[ 1].Validate("right_y")) throw new Exception("Failed to parse right_y");
+            if (!subToks[ 2].Validate("right_z")) throw new Exception("Failed to parse right_z");
+            if (!subToks[ 3].Validate(   "up_x")) throw new Exception("Failed to parse up_x");
+            if (!subToks[ 4].Validate(   "up_y")) throw new Exception("Failed to parse up_y");
+            if (!subToks[ 5].Validate(   "up_z")) throw new Exception("Failed to parse up_z");
+            if (!subToks[ 6].Validate("front_x")) throw new Exception("Failed to parse front_x");
+            if (!subToks[ 7].Validate("front_y")) throw new Exception("Failed to parse front_y");
+            if (!subToks[ 8].Validate("front_z")) throw new Exception("Failed to parse front_z");
+            if (!subToks[ 9].Validate("posit_x")) throw new Exception("Failed to parse posit_x");
+            if (!subToks[10].Validate("posit_y")) throw new Exception("Failed to parse posit_y");
+            if (!subToks[11].Validate("posit_z")) throw new Exception("Failed to parse posit_z");
 
+            // TODO account for double posit items
             return new Matrix()
             {
-                right = new Vector3D() { X = subToks[ 0].GetSingle(), Y = subToks[ 1].GetSingle(), Z = subToks[ 2].GetSingle() }, rightw = 0,
-                up    = new Vector3D() { X = subToks[ 3].GetSingle(), Y = subToks[ 4].GetSingle(), Z = subToks[ 5].GetSingle() }, upw    = 0,
-                front = new Vector3D() { X = subToks[ 6].GetSingle(), Y = subToks[ 7].GetSingle(), Z = subToks[ 8].GetSingle() }, frontw = 0,
-                posit = new Vector3D() { X = subToks[ 9].GetSingle(), Y = subToks[10].GetSingle(), Z = subToks[11].GetSingle() }, positw = 0
+                rightx = subToks[ 0].GetSingle(), righty = subToks[ 1].GetSingle(), rightz = subToks[ 2].GetSingle(), rightw = 0,
+                upx    = subToks[ 3].GetSingle(), upy    = subToks[ 4].GetSingle(), upz    = subToks[ 5].GetSingle(), upw    = 0,
+                frontx = subToks[ 6].GetSingle(), fronty = subToks[ 7].GetSingle(), frontz = subToks[ 8].GetSingle(), frontw = 0,
+                positx = subToks[ 9].GetSingle(), posity = subToks[10].GetSingle(), positz = subToks[11].GetSingle(), positw = 0,
             };
         }
         public Matrix GetMatrix(int index = 0)
         {
             IBZNToken[] subToks = values[index];
-            if (/*!subToks[ 0].Validate("right_x") && */!subToks[ 0].Validate("right.x")) throw new Exception("Failed to parse right_x");
-            if (/*!subToks[ 1].Validate("right_y") && */!subToks[ 1].Validate("right.y")) throw new Exception("Failed to parse right_y");
-            if (/*!subToks[ 2].Validate("right_z") && */!subToks[ 2].Validate("right.z")) throw new Exception("Failed to parse right_z");
-            if (/*!subToks[ 3].Validate(   "up_x") && */!subToks[ 3].Validate(   "up.x")) throw new Exception("Failed to parse up_x");
-            if (/*!subToks[ 4].Validate(   "up_y") && */!subToks[ 4].Validate(   "up.y")) throw new Exception("Failed to parse up_y");
-            if (/*!subToks[ 5].Validate(   "up_z") && */!subToks[ 5].Validate(   "up.z")) throw new Exception("Failed to parse up_z");
-            if (/*!subToks[ 6].Validate("front_x") && */!subToks[ 6].Validate("front.x")) throw new Exception("Failed to parse front_x");
-            if (/*!subToks[ 7].Validate("front_y") && */!subToks[ 7].Validate("front.y")) throw new Exception("Failed to parse front_y");
-            if (/*!subToks[ 8].Validate("front_z") && */!subToks[ 8].Validate("front.z")) throw new Exception("Failed to parse front_z");
-            if (/*!subToks[ 9].Validate("posit_x") && */!subToks[ 9].Validate("posit.x")) throw new Exception("Failed to parse posit_x");
-            if (/*!subToks[10].Validate("posit_y") && */!subToks[10].Validate("posit.y")) throw new Exception("Failed to parse posit_y");
-            if (/*!subToks[11].Validate("posit_z") && */!subToks[11].Validate("posit.z")) throw new Exception("Failed to parse posit_z");
+            if (!subToks[ 0].Validate("right.x")) throw new Exception("Failed to parse right_x");
+            if (!subToks[ 1].Validate("right.y")) throw new Exception("Failed to parse right_y");
+            if (!subToks[ 2].Validate("right.z")) throw new Exception("Failed to parse right_z");
+            if (!subToks[ 3].Validate(   "up.x")) throw new Exception("Failed to parse up_x");
+            if (!subToks[ 4].Validate(   "up.y")) throw new Exception("Failed to parse up_y");
+            if (!subToks[ 5].Validate(   "up.z")) throw new Exception("Failed to parse up_z");
+            if (!subToks[ 6].Validate("front.x")) throw new Exception("Failed to parse front_x");
+            if (!subToks[ 7].Validate("front.y")) throw new Exception("Failed to parse front_y");
+            if (!subToks[ 8].Validate("front.z")) throw new Exception("Failed to parse front_z");
+            if (!subToks[ 9].Validate("posit.x")) throw new Exception("Failed to parse posit_x");
+            if (!subToks[10].Validate("posit.y")) throw new Exception("Failed to parse posit_y");
+            if (!subToks[11].Validate("posit.z")) throw new Exception("Failed to parse posit_z");
 
             return new Matrix()
             {
-                right = new Vector3D() { X = subToks[00].GetSingle(), Y = subToks[01].GetSingle(), Z = subToks[02].GetSingle() },
-                rightw = 0,
-                up = new Vector3D() { X = subToks[03].GetSingle(), Y = subToks[04].GetSingle(), Z = subToks[05].GetSingle() },
-                upw = 0,
-                front = new Vector3D() { X = subToks[06].GetSingle(), Y = subToks[07].GetSingle(), Z = subToks[08].GetSingle() },
-                frontw = 0,
-                posit = new Vector3D() { X = subToks[09].GetSingle(), Y = subToks[10].GetSingle(), Z = subToks[11].GetSingle() },
-                positw = 1
+                rightx = subToks[00].GetSingle(), righty = subToks[01].GetSingle(), rightz = subToks[02].GetSingle(), rightw = 0,
+                upx    = subToks[03].GetSingle(), upy    = subToks[04].GetSingle(), upz    = subToks[05].GetSingle(), upw    = 0,
+                frontx = subToks[06].GetSingle(), fronty = subToks[07].GetSingle(), frontz = subToks[08].GetSingle(), frontw = 0,
+                positx = subToks[09].GetSingle(), posity = subToks[10].GetSingle(), positz = subToks[11].GetSingle(), positw = 1,
             };
         }
         public Euler GetEuler(int index = 0)

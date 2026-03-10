@@ -26,7 +26,7 @@ namespace BZNParser.Tokenizer
 
         public bool IsBinary => false;
 
-        public int GetCount(int PtrSize)
+        public int GetCount()
         {
             return values.Length;
         }

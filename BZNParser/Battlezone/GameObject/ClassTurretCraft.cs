@@ -123,7 +123,7 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                         {
-                            if (obj != null) obj.powerHandles = Enumerable.Range(0, tok.GetCount(reader.Format == BZNFormat.Battlezone && reader.Version >= 2012 ? 8 : 4)).Select(i => tok.GetUInt32(i)).ToArray();
+                            if (obj != null) obj.powerHandles = Enumerable.Range(0, tok.GetCount()).Select(i => tok.GetUInt32(i)).ToArray();
                             reader.Bookmark.Commit();
                         }
                         else

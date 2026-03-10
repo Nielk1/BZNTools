@@ -285,6 +285,7 @@ namespace BZNParser.Battlezone
                     UInt64 obj_addr = reader.ReadBZ1_Ptr("obj_addr", reader.Version);
                     if (obj != null) obj.obj_addr = obj_addr;
                 }
+                // might have posit x,y,z here
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -657,7 +658,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("obj_addr", obj_addr, writer.Version);
+                    writer.WriteBZ1_Ptr("obj_addr", obj_addr);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)
@@ -671,7 +672,14 @@ namespace BZNParser.Battlezone
             }
             if ((writer.Format == BZNFormat.Battlezone && writer.Version > 1001) || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteMat3DOlds("transform", transform);
+                if (writer.Version >= 2012)
+                {
+                    writer.WriteMat3DOldEnhanceds("transform", transform);
+                }
+                else
+                {
+                    writer.WriteMat3DOlds("transform", transform);
+                }
             }
 
 

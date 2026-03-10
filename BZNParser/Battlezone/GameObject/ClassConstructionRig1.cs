@@ -75,7 +75,14 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1030)
             {
-                writer.WriteMat3DOlds("dropMat", obj.dropMat);
+                if (writer.Version >= 2012)
+                {
+                    writer.WriteMat3DOldEnhanceds("dropMat", obj.dropMat);
+                }
+                else
+                {
+                    writer.WriteMat3DOlds("dropMat", obj.dropMat);
+                }
 
                 if (writer.Format == BZNFormat.BattlezoneN64)
                 {

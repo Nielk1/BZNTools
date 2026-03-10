@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -525,7 +526,7 @@ namespace BZNParser.Tokenizer
         private void ProcessTokenForFloats(IBZNToken token, Dictionary<FloatTextFormat, uint> floatCounts)
         {
             // TODO for now always assume 32bit, it will chew some garbage but it will do for now
-            for (int i = 0; i < token.GetCount(4); i++)
+            for (int i = 0; i < token.GetCount(); i++)
             {
                 if (token.GetSubCount(i) == 0)
                 {
@@ -907,7 +908,8 @@ namespace BZNParser.Tokenizer
                     filestream.ReadByte(); // deal with padding
             }
 
-            IBZNToken tok = new BZNTokenBinary((BinaryFieldType)typeClean, data, IsBigEndian) { rawType = type != typeClean ? type : null };
+            // early tokens will probably read with the wrong byte BitSize, but it's ok since it can read binary tokens without it, it only affects the var counter
+            IBZNToken tok = new BZNTokenBinary((BinaryFieldType)typeClean, data, IsBigEndian, Format == BZNFormat.Battlezone && Version >= 2012 ? 8 : 4, Format == BZNFormat.Battlezone && Version >= 2010) { rawType = type != typeClean ? type : null };
             ad.Length = filestream.Position - ad.Offset;
             ad.IsBinary = true;
             if (type != typeClean)

@@ -117,7 +117,7 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WritePtr32("undefptr", path);
+                writer.WriteBZ1_Ptr("undefptr", path);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {

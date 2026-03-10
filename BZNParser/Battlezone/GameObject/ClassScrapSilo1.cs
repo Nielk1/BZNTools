@@ -46,7 +46,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1020)
             {
-                writer.WritePtr32("undefptr", obj.undefptr);
+                writer.WriteBZ1_Ptr("undefptr", obj.undefptr);
             }
             ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

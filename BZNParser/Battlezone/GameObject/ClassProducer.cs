@@ -143,7 +143,7 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
             }
 
-            writer.WritePtr32("undefptr", obj.undefptr2);
+            writer.WriteBZ1_Ptr("undefptr", obj.undefptr2);
             writer.WriteVoidBytes("state", obj.state);
             writer.WriteFloats("delayTimer", obj.delayTimer);
             writer.WriteFloats("nextRepair", obj.nextRepair);

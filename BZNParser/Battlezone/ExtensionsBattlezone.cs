@@ -108,9 +108,9 @@ namespace BZNParser.Battlezone
                 return (UInt64)tok.GetUInt32H();
             return tok.GetUInt64H();
         }
-        public static void WriteBZ1_Ptr(this BZNStreamWriter writer, string name, UInt64 value, int version)
+        public static void WriteBZ1_Ptr(this BZNStreamWriter writer, string name, UInt64 value)
         {
-            if (version < 2012)
+            if (writer.Version < 2012)
             {
                 writer.WritePtr32(name, (UInt32)value);
             }
@@ -555,11 +555,11 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
                 {
-                    writer.WritePtr32("undefptr", value.where);
+                    writer.WriteBZ1_Ptr("undefptr", value.where);
                 }
                 else
                 {
-                    writer.WritePtr32("where", value.where);
+                    writer.WriteBZ1_Ptr("where", value.where);
                 }
 
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)

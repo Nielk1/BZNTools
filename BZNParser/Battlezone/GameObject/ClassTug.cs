@@ -107,7 +107,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    writer.WritePtr32("undefptr", obj.cargo);
+                    writer.WriteBZ1_Ptr("undefptr", obj.cargo);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)

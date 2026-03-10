@@ -54,13 +54,13 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1038 && parent.SaveType != SaveType.BZN)
                 {
-                    writer.WriteFloats("lifeTimer", obj.lifeTimer);
+                    writer.WriteFloats("lifeTimer", preserveMalformations ? obj.Malformations : null, obj.lifeTimer);
                 }
             }
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteFloats("undeffloat", obj.lifeTimer);
+                writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.lifeTimer);
             }
 
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

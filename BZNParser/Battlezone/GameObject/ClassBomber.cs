@@ -48,7 +48,7 @@ namespace BZNParser.Battlezone.GameObject
 
             if (parent.SaveType != SaveType.BZN)
             {
-                writer.WriteFloats("m_ReloadTime", obj.m_ReloadTime);
+                writer.WriteFloats("m_ReloadTime", preserveMalformations ? obj.Malformations : null, obj.m_ReloadTime);
             }
 
             ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

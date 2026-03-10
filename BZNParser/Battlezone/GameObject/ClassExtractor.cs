@@ -77,7 +77,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassExtractor obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("scrapTimer", obj.scrapTimer);
+            writer.WriteFloats("scrapTimer", preserveMalformations ? obj.Malformations : null, obj.scrapTimer);
             if (writer.Version < 1147)
             {
                 //writer.WriteChars("saveClass", obj.saveClass, obj.Malformations);
@@ -96,7 +96,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (writer.Version > 1102)
             {
-                writer.WriteBooleans("animStart", obj.animStart);
+                writer.WriteBooleans("animStart", preserveMalformations ? obj.Malformations : null, obj.animStart);
             }
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

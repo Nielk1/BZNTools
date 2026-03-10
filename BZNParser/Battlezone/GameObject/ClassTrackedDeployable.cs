@@ -56,7 +56,7 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 writer.WriteVoidBytes("state", (UInt32)obj.state);
-                writer.WriteFloats("deployTimer", obj.deployTimer);
+                writer.WriteFloats("deployTimer", preserveMalformations ? obj.Malformations : null, obj.deployTimer);
             }
             ClassTrackedVehicle.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

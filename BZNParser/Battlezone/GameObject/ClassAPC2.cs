@@ -115,10 +115,10 @@ namespace BZNParser.Battlezone.GameObject
 
             if (parent.SaveType != SaveType.BZN)
             {
-                writer.WriteFloats("nextSoldierDelay", obj.nextSoldierDelay);
-                writer.WriteFloats("nextSoldierAngle", obj.nextSoldierAngle);
-                writer.WriteFloats("nextReturnTimer", obj.nextReturnToAPC);
-                writer.WriteBooleans("DeployOnLanding", obj.DeployOnLanding);
+                writer.WriteFloats("nextSoldierDelay", preserveMalformations ? obj.Malformations : null, obj.nextSoldierDelay);
+                writer.WriteFloats("nextSoldierAngle", preserveMalformations ? obj.Malformations : null, obj.nextSoldierAngle);
+                writer.WriteFloats("nextReturnTimer", preserveMalformations ? obj.Malformations : null, obj.nextReturnToAPC);
+                writer.WriteBooleans("DeployOnLanding", preserveMalformations ? obj.Malformations : null, obj.DeployOnLanding);
                 writer.WriteSignedValues("undeployTimeout", obj.undeployTimeout);
             }
             

@@ -208,13 +208,13 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (parent.SaveType == SaveType.LOCKSTEP || parent.SaveType == SaveType.JOIN)
             {
-                writer.WriteFloats("omegaTurret", obj.omegaTurret);
-                writer.WriteFloats("timeDeploy", obj.timeDeploy);
-                writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
+                writer.WriteFloats("omegaTurret", preserveMalformations ? obj.Malformations : null, obj.omegaTurret);
+                writer.WriteFloats("timeDeploy", preserveMalformations ? obj.Malformations : null, obj.timeDeploy);
+                writer.WriteFloats("timeUndeploy", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy);
                 writer.WriteUnsignedValues("change_state", obj.change_state);
-                writer.WriteFloats("delayTimer", obj.delayTimer);
-                writer.WriteBooleans("turretAligned", obj.turretAligned);
-                writer.WriteFloats("prevYaw", obj.prevYaw);
+                writer.WriteFloats("delayTimer", preserveMalformations ? obj.Malformations : null, obj.delayTimer);
+                writer.WriteBooleans("turretAligned", preserveMalformations ? obj.Malformations : null, obj.turretAligned);
+                writer.WriteFloats("prevYaw", preserveMalformations ? obj.Malformations : null, obj.prevYaw);
 
                 throw new NotImplementedException("Turret Control loading loop needed here");
             }
@@ -230,35 +230,35 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    writer.WriteFloats("omegaTurret", obj.omegaTurret);
-                    writer.WriteFloats("alphaTurret", obj.alphaTurret); // obsolete
-                    writer.WriteFloats("timeDeploy", obj.timeDeploy);
-                    writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
+                    writer.WriteFloats("omegaTurret", preserveMalformations ? obj.Malformations : null, obj.omegaTurret);
+                    writer.WriteFloats("alphaTurret", preserveMalformations ? obj.Malformations : null, obj.alphaTurret); // obsolete
+                    writer.WriteFloats("timeDeploy", preserveMalformations ? obj.Malformations : null, obj.timeDeploy);
+                    writer.WriteFloats("timeUndeploy", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy);
                     writer.WriteVoidBytes("state", (UInt32)obj.state); // uses root's state instead of change_state, until later
-                    writer.WriteFloats("delayTimer", obj.delayTimer);
+                    writer.WriteFloats("delayTimer", preserveMalformations ? obj.Malformations : null, obj.delayTimer);
 
                     if (writer.Version == 1100)
                     {
                         var mal = obj.Malformations.GetMalformations(Malformation.MISINTERPRET, "wantTurret");
                         if (mal.Length > 0)
                         {
-                            writer.WriteBooleans("wantTurret", obj.turretAligned);
+                            writer.WriteBooleans("wantTurret", preserveMalformations ? obj.Malformations : null, obj.turretAligned);
                         }
                         else
                         {
-                            writer.WriteBooleans("wantTurret", obj.wantTurret);
+                            writer.WriteBooleans("wantTurret", preserveMalformations ? obj.Malformations : null, obj.wantTurret);
                         }
                     }
                     else
                     {
-                        writer.WriteBooleans("turretAligned", obj.turretAligned);
+                        writer.WriteBooleans("turretAligned", preserveMalformations ? obj.Malformations : null, obj.turretAligned);
                     }
 
                     if (parent.SaveType != SaveType.BZN && writer.Version >= 1140)
                     {
                         if (!obj.m_Use13Aim)
                         {
-                            writer.WriteFloats("prevYaw", obj.prevYaw);
+                            writer.WriteFloats("prevYaw", preserveMalformations ? obj.Malformations : null, obj.prevYaw);
                             writer.WriteUnsignedValues("change_state", obj.change_state);
                         }
                     }
@@ -272,7 +272,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (obj.m_Use13Aim)
                 {
-                    writer.WriteBooleans("turretAligned", obj.turretAligned);
+                    writer.WriteBooleans("turretAligned", preserveMalformations ? obj.Malformations : null, obj.turretAligned);
                 }
 
                 if (parent.SaveType != SaveType.BZN)

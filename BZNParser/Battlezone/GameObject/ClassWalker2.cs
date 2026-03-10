@@ -88,7 +88,7 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Version < 1067)
             {
                 writer.WriteVoidBytes("Pin_Foot", obj.Pin_Foot);
-                writer.WriteFloats("Current_Index", obj.Current_Index);
+                writer.WriteFloats("Current_Index", preserveMalformations ? obj.Malformations : null, obj.Current_Index);
                 writer.WriteVoidBytes("Anim_State", obj.Anim_State);
                 writer.WriteUnsignedValues("Lead", obj.Lead);
                 writer.WriteUnsignedValues("Tail", obj.Tail);

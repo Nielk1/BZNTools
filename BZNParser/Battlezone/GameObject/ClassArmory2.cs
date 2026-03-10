@@ -103,8 +103,8 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassArmory2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("buildDoneTime", obj.buildDoneTime);
-            writer.WriteBooleans("buildActive", obj.buildActive);
+            writer.WriteFloats("buildDoneTime", preserveMalformations ? obj.Malformations : null, obj.buildDoneTime);
+            writer.WriteBooleans("buildActive", preserveMalformations ? obj.Malformations : null, obj.buildActive);
             writer.WriteSignedValues("buildCount", obj.buildQueue.Count);
 
             foreach (string? item in obj.buildQueue)
@@ -113,7 +113,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (parent.SaveType != SaveType.BZN)
             {
-                writer.WriteBooleans("buildStall", obj.buildStall);
+                writer.WriteBooleans("buildStall", preserveMalformations ? obj.Malformations : null, obj.buildStall);
                 writer.WriteVector3Ds("buildRally", preserveMalformations, obj.buildRally);
                 writer.WriteSignedValues("navHandle", obj.navHandle);
                 writer.WriteSignedValues("launchHandle", obj.launchHandle);

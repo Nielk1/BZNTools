@@ -111,11 +111,11 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version >= 1114)
             {
-                writer.WriteBooleans("buildQueued", obj.buildQueued);
+                writer.WriteBooleans("buildQueued", preserveMalformations ? obj.Malformations : null, obj.buildQueued);
             }
 
-            writer.WriteBooleans("buildActive", obj.buildActive);
-            writer.WriteFloats("buildTime", obj.buildTime);
+            writer.WriteBooleans("buildActive", preserveMalformations ? obj.Malformations : null, obj.buildActive);
+            writer.WriteFloats("buildTime", preserveMalformations ? obj.Malformations : null, obj.buildTime);
             writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.dropMat);
 
             if (writer.Version == 1149 || writer.Version == 1151)

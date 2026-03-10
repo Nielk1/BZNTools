@@ -62,9 +62,9 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Version >= 2004)
             {
                 writer.WriteUnsignedValues("portalState", obj.portalState);
-                writer.WriteFloats("portalBeginTime", obj.portalBeginTime);
-                writer.WriteFloats("portalEndTime", obj.portalEndTime);
-                writer.WriteBooleans("isIn", obj.isIn);
+                writer.WriteFloats("portalBeginTime", preserveMalformations ? obj.Malformations : null, obj.portalBeginTime);
+                writer.WriteFloats("portalEndTime", preserveMalformations ? obj.Malformations : null, obj.portalEndTime);
+                writer.WriteBooleans("isIn", preserveMalformations ? obj.Malformations : null, obj.isIn);
             }
             ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

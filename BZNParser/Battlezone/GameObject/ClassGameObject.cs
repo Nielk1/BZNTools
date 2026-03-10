@@ -857,7 +857,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassGameObject obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("illumination", obj.illumination);
+            writer.WriteFloats("illumination", preserveMalformations ? obj.Malformations : null, obj.illumination);
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
@@ -912,7 +912,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version < 1145)
                 {
-                    writer.WriteBooleans("isObjective", obj.isObjective);
+                    writer.WriteBooleans("isObjective", preserveMalformations ? obj.Malformations : null, obj.isObjective);
                 }
                 else
                 {
@@ -921,7 +921,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version < 1145)
                 {
-                    writer.WriteBooleans("isSelected", obj.isSelected);
+                    writer.WriteBooleans("isSelected", preserveMalformations ? obj.Malformations : null, obj.isSelected);
                 }
                 else
                 {
@@ -1055,7 +1055,7 @@ namespace BZNParser.Battlezone.GameObject
                 // not sure if this is on the n64 build
                 if ((writer.Version >= 1046 && writer.Version < 2000) || writer.Version >= 2010)
                 {
-                    writer.WriteBooleans("isCritical", obj.isCritical);
+                    writer.WriteBooleans("isCritical", preserveMalformations ? obj.Malformations : null, obj.isCritical);
                 }
             }
 
@@ -1077,13 +1077,13 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteBooleans("isObjective", obj.isObjective);
+                writer.WriteBooleans("isObjective", preserveMalformations ? obj.Malformations : null, obj.isObjective);
 
                 // I seriously don't understand why this is a thing, it must be wrong, but this is where we get into BZ98R or 1.5 (unclear)
                 // code says it should always be read in???
                 //if (/*reader.Version != 2004 &&*/ reader.Version != 2003)
                 {
-                    writer.WriteBooleans("isSelected", obj.isSelected);
+                    writer.WriteBooleans("isSelected", preserveMalformations ? obj.Malformations : null, obj.isSelected);
                 }
 
                 writer.WriteUnsignedHexLValues("isVisible", obj.isVisible);
@@ -1159,7 +1159,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteFloats("healthRatio", obj.healthRatio);
+                writer.WriteFloats("healthRatio", preserveMalformations ? obj.Malformations : null, obj.healthRatio);
                 writer.WriteSignedValues("curHealth", obj.curHealth.Get<Int32>());
                 writer.WriteSignedValues("maxHealth", obj.maxHealth.Get<Int32>());
             }
@@ -1167,7 +1167,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1143)
                 {
-                    writer.WriteFloats("healthRatio", obj.healthRatio);
+                    writer.WriteFloats("healthRatio", preserveMalformations ? obj.Malformations : null, obj.healthRatio);
                 }
 
                 bool defaultHealth = writer.Version >= 1145 && ((obj.saveFlags & 0x08) != 0);
@@ -1178,12 +1178,12 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    writer.WriteFloats("curHealth", obj.curHealth.Get<Single>());
-                    writer.WriteFloats("maxHealth", obj.maxHealth.Get<Single>());
+                    writer.WriteFloats("curHealth", preserveMalformations ? obj.Malformations : null, obj.curHealth.Get<Single>());
+                    writer.WriteFloats("maxHealth", preserveMalformations ? obj.Malformations : null, obj.maxHealth.Get<Single>());
 
                     if (writer.Version != 1041 && writer.Version != 1047)
                     {
-                        writer.WriteFloats("addHealth", obj.addHealth);
+                        writer.WriteFloats("addHealth", preserveMalformations ? obj.Malformations : null, obj.addHealth);
                     }
                 }
             }
@@ -1210,7 +1210,7 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteFloats("ammoRatio", obj.ammoRatio);
+                writer.WriteFloats("ammoRatio", preserveMalformations ? obj.Malformations : null, obj.ammoRatio);
                 writer.WriteSignedValues("curAmmo", obj.curAmmo.Get<Int32>());
                 writer.WriteSignedValues("maxAmmo", obj.maxAmmo.Get<Int32>());
             }
@@ -1218,13 +1218,13 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1143)
                 {
-                    writer.WriteFloats("ammoRatio", obj.ammoRatio);
+                    writer.WriteFloats("ammoRatio", preserveMalformations ? obj.Malformations : null, obj.ammoRatio);
 
                     if (writer.Version >= 1070)
                     {
                         // these probably should be floats not longs
-                        writer.WriteFloats("curAmmo", obj.curAmmo.Get<Single>());
-                        writer.WriteFloats("maxAmmo", obj.maxAmmo.Get<Single>());
+                        writer.WriteFloats("curAmmo", preserveMalformations ? obj.Malformations : null, obj.curAmmo.Get<Single>());
+                        writer.WriteFloats("maxAmmo", preserveMalformations ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
                     }
                     else
                     {
@@ -1235,7 +1235,7 @@ namespace BZNParser.Battlezone.GameObject
                     if (writer.Version >= 1070)
                     {
                         // probably should be a float
-                        writer.WriteFloats("addAmmo", obj.addAmmo.Get<Single>());
+                        writer.WriteFloats("addAmmo", preserveMalformations ? obj.Malformations : null, obj.addAmmo.Get<Single>());
                     }
                     else if (writer.Version != 1041 && writer.Version != 1047) // avoid bz2001.bzn != 1041
                     {
@@ -1256,7 +1256,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (parent.SaveType == 0)
                 {
                     writer.WriteAiCmdInfo(obj.nextCmd, preserveMalformations);
-                    writer.WriteBooleans("aiProcess", obj.aiProcess);
+                    writer.WriteBooleans("aiProcess", preserveMalformations ? obj.Malformations : null, obj.aiProcess);
                 }
                 else
                 {
@@ -1281,17 +1281,17 @@ namespace BZNParser.Battlezone.GameObject
                     // aiProcess?
                     if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1011 || writer.Version == 1012))
                     {
-                        writer.WriteBooleans("aiProcess", obj.aiProcess);
+                        writer.WriteBooleans("aiProcess", preserveMalformations ? obj.Malformations : null, obj.aiProcess);
                     }
                     else if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001))
                     {
-                        writer.WriteBooleans("undefptr", obj.aiProcess);
+                        writer.WriteBooleans("undefptr", preserveMalformations ? obj.Malformations : null, obj.aiProcess);
                     }
                     else
                     {
                         if (writer.Format == BZNFormat.BattlezoneN64 || (writer.Version != 1017 && writer.Version != 1018))
                         {
-                            writer.WriteBooleans("aiProcess", obj.aiProcess);
+                            writer.WriteBooleans("aiProcess", preserveMalformations ? obj.Malformations : null, obj.aiProcess);
                         }
                     }
                 }
@@ -1309,14 +1309,14 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1007)
                 {
-                    writer.WriteBooleans("isCargo", obj.isCargo);
+                    writer.WriteBooleans("isCargo", preserveMalformations ? obj.Malformations : null, obj.isCargo);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1145)
                 {
-                    writer.WriteBooleans("isCargo", obj.isCargo);
+                    writer.WriteBooleans("isCargo", preserveMalformations ? obj.Malformations : null, obj.isCargo);
                 }
                 else
                 {
@@ -1389,7 +1389,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1030)
                 {
-                    writer.WriteBooleans("hasPilot", obj.curPilot.Length > 0);
+                    writer.WriteBooleans("hasPilot", preserveMalformations ? obj.Malformations : null, obj.curPilot.Length > 0);
                 }
                 else
                 {

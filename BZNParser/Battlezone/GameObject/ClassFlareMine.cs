@@ -49,7 +49,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteFloats("undeffloat", obj.Undeffloat); // type and name unconfirmed
+                writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.Undeffloat); // type and name unconfirmed
             }
             ClassMine.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

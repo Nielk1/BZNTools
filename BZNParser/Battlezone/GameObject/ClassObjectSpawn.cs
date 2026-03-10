@@ -52,7 +52,7 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 writer.WriteSignedValues("spawnHandle", obj.spawnHandle); // value not confirmed
-                writer.WriteFloats("spawnTimer", obj.spawnTimer); // value not confirmed
+                writer.WriteFloats("spawnTimer", preserveMalformations ? obj.Malformations : null, obj.spawnTimer); // value not confirmed
             }
 
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

@@ -37,7 +37,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassKingOfHill obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("scoreTimer", obj.scoreTimer);
+            writer.WriteFloats("scoreTimer", preserveMalformations ? obj.Malformations : null, obj.scoreTimer);
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }

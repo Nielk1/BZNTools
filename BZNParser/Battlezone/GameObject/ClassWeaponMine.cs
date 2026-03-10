@@ -55,9 +55,9 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1144)
                 {
-                    writer.WriteFloats("curAmmo", obj.curAmmo.Get<Single>());
-                    writer.WriteFloats("maxAmmo", obj.maxAmmo.Get<Single>());
-                    writer.WriteFloats("addAmmo", obj.addAmmo.Get<Single>());
+                    writer.WriteFloats("curAmmo", preserveMalformations ? obj.Malformations : null, obj.curAmmo.Get<Single>());
+                    writer.WriteFloats("maxAmmo", preserveMalformations ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
+                    writer.WriteFloats("addAmmo", preserveMalformations ? obj.Malformations : null, obj.addAmmo.Get<Single>());
                 }
             }
 

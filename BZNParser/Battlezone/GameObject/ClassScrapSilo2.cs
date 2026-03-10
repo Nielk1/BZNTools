@@ -37,7 +37,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassScrapSilo2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("scrapTimer", obj.scrapTimer);
+            writer.WriteFloats("scrapTimer", preserveMalformations ? obj.Malformations : null, obj.scrapTimer);
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }

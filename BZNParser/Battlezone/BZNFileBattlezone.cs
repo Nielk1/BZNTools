@@ -967,7 +967,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Version > 1022)
                 {
-                    writer.WriteBooleans("binarySave", binary);
+                    writer.WriteBooleans("binarySave", preserveMalformations ? Malformations : null, binary);
                     if (binary)
                         writer.SetBinary();
 
@@ -977,7 +977,7 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteBooleans("binarySave", binary);
+                writer.WriteBooleans("binarySave", preserveMalformations ? Malformations : null, binary);
                 if (binary)
                     writer.SetBinary();
 
@@ -1036,10 +1036,10 @@ namespace BZNParser.Battlezone
                         switch (SaveType)
                         {
                             case SaveType.BZN:
-                                writer.WriteBooleans("missionSave", true);
+                                writer.WriteBooleans("missionSave", preserveMalformations ? Malformations : null, true);
                                 break;
                             case SaveType.SAVE:
-                                writer.WriteBooleans("missionSave", false);
+                                writer.WriteBooleans("missionSave", preserveMalformations ? Malformations : null, false);
                                 break;
                             default:
                                 throw new NotImplementedException();
@@ -1087,7 +1087,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Version == 1011 || writer.Version == 1012)
                 {
-                    writer.WriteFloats("start_time", start_time ?? 0f);
+                    writer.WriteFloats("start_time", preserveMalformations ? Malformations : null, start_time ?? 0f);
                 }
             }
 
@@ -1162,7 +1162,7 @@ namespace BZNParser.Battlezone
                 {
                     if (SaveType == SaveType.BZN ? writer.Version == 1044 : writer.Version >= 1044)
                     {
-                        writer.WriteBooleans("undefbool", bz1_luamission_started ?? SaveType == SaveType.BZN);
+                        writer.WriteBooleans("undefbool", preserveMalformations ? Malformations : null, bz1_luamission_started ?? SaveType == SaveType.BZN);
 
                         // TODO other lua state values here?
                     }
@@ -1200,7 +1200,7 @@ namespace BZNParser.Battlezone
                 writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_1.Value);
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_2.Value);
-                writer.WriteBooleans("exited", UserProcess_exited.Value);
+                writer.WriteBooleans("exited", preserveMalformations ? Malformations : null, UserProcess_exited.Value);
             }
 
             writer.WriteValidation("AOIs");

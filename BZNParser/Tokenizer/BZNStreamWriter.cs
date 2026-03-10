@@ -491,7 +491,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
-        public void WriteBooleans(string name, params bool[] values)
+        public void WriteBooleans(string name, IMalformable.MalformationManager? malformations, params bool[] values)
         {
             if (InBinary)
             {
@@ -505,9 +505,22 @@ namespace BZNParser.Tokenizer
                 TokenIndex++;
                 return;
             }
+
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++) {
+                if (malformations != null)
+                {
+                    var mal = malformations.GetMalformations(Malformation.INCORRECT_TEXT, name);
+                    if (mal.Any())
+                    {
+                        // TODO index handling
+                        BaseStream.Write(win1252.GetBytes((string)mal.First().Fields[0]));
+                        InternalWriteNewline();
+                        continue;
+                    }
+                }
+
                 BaseStream.Write(win1252.GetBytes($"{(values[i] ? "true" : "false")}"));
                 InternalWriteNewline();
             }
@@ -871,12 +884,12 @@ namespace BZNParser.Tokenizer
             BaseStream.Write(win1252.GetBytes($"{name} ="));
             InternalWriteNewline();
 
-            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " mass"), value.mass);
-            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " mass_inv"), value.mass_inv);
-            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " v_mag"), value.v_mag);
-            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " v_mag_inv"), value.v_mag_inv);
-            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " I"), value.I);
-            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " k_i"), value.I_inv);
+            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " mass"), preserveMalformations ? value.Malformations : null, value.mass);
+            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " mass_inv"), preserveMalformations ? value.Malformations : null, value.mass_inv);
+            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " v_mag"), preserveMalformations ? value.Malformations : null, value.v_mag);
+            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " v_mag_inv"), preserveMalformations ? value.Malformations : null, value.v_mag_inv);
+            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " I"), preserveMalformations ? value.Malformations : null, value.I);
+            WriteFloats(value.Malformations.CorrectName(preserveMalformations, " k_i"), preserveMalformations ? value.Malformations : null, value.I_inv);
             WriteVector3Ds(value.Malformations.CorrectName(preserveMalformations, " v"    ), preserveMalformations, value.v    );
             WriteVector3Ds(value.Malformations.CorrectName(preserveMalformations, " omega"), preserveMalformations, value.omega);
             WriteVector3Ds(value.Malformations.CorrectName(preserveMalformations, " Accel"), preserveMalformations, value.Accel);
@@ -1140,7 +1153,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
-        public void WriteFloats(string name, params float[] values)
+        public void WriteFloats(string name, IMalformable.MalformationManager? malformations, params float[] values)
         {
             if (InBinary)
             {
@@ -1161,7 +1174,8 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
             for (int i = 0; i < values.Length; i++)
             {
-                BaseStream.Write(win1252.GetBytes(values[i].ToBZNString(FloatFormat)));
+                //BaseStream.Write(win1252.GetBytes(values[i].ToBZNString(FloatFormat)));
+                InternalWriteFloatValue(name, values[i], malformations != null, FloatFormat, malformations);
                 InternalWriteNewline();
             }
             TokenIndex++;

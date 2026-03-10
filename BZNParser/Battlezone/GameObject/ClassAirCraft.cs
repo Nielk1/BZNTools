@@ -94,19 +94,19 @@ namespace BZNParser.Battlezone.GameObject
             if (parent.SaveType != SaveType.BZN)
             {
                 writer.WriteVoidBytes("state", (UInt32)obj.state);
-                writer.WriteFloats("deployTimer", obj.deployTimer);
+                writer.WriteFloats("deployTimer", preserveMalformations ? obj.Malformations : null, obj.deployTimer);
 
                 if (parent.SaveType == SaveType.LOCKSTEP)
                 {
-                    writer.WriteFloats("lastSteer", obj.lastSteer);
-                    writer.WriteFloats("lastThrot", obj.lastThrot);
-                    writer.WriteFloats("lastStrafe", obj.lastSteer);
+                    writer.WriteFloats("lastSteer", preserveMalformations ? obj.Malformations : null, obj.lastSteer);
+                    writer.WriteFloats("lastThrot", preserveMalformations ? obj.Malformations : null, obj.lastThrot);
+                    writer.WriteFloats("lastStrafe", preserveMalformations ? obj.Malformations : null, obj.lastSteer);
                 }
 
                 if (writer.Version >= 1138)
                 {
-                    writer.WriteBooleans("lockMode", obj.m_bLockMode);
-                    writer.WriteBooleans("lockModeDeployed", obj.m_bLockModeDeployed);
+                    writer.WriteBooleans("lockMode", preserveMalformations ? obj.Malformations : null, obj.m_bLockMode);
+                    writer.WriteBooleans("lockModeDeployed", preserveMalformations ? obj.Malformations : null, obj.m_bLockModeDeployed);
                 }
             }
 

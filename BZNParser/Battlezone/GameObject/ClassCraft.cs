@@ -273,21 +273,21 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 2002)
                 {
-                    writer.WriteFloats("cloakTransitionTime", obj.cloakTransitionTime.Value);
+                    writer.WriteFloats("cloakTransitionTime", preserveMalformations ? obj.Malformations : null, obj.cloakTransitionTime.Value);
                 }
 
                 writer.WriteVoidBytes("cloakState", obj.cloakState.Value);
-                writer.WriteFloats("cloakTransBeginTime", obj.cloakTransBeginTime.Value);
-                writer.WriteFloats("cloakTransEndTime", obj.cloakTransEndTime.Value);
+                writer.WriteFloats("cloakTransBeginTime", preserveMalformations ? obj.Malformations : null, obj.cloakTransBeginTime.Value);
+                writer.WriteFloats("cloakTransEndTime", preserveMalformations ? obj.Malformations : null, obj.cloakTransEndTime.Value);
             }
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version >= 1143)
                 {
-                    writer.WriteFloats("curAmmo", obj.curAmmo.Get<Single>());
-                    writer.WriteFloats("maxAmmo", obj.maxAmmo.Get<Single>());
-                    writer.WriteFloats("addAmmo", obj.addAmmo.Get<Single>());
+                    writer.WriteFloats("curAmmo", preserveMalformations ? obj.Malformations : null, obj.curAmmo.Get<Single>());
+                    writer.WriteFloats("maxAmmo", preserveMalformations ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
+                    writer.WriteFloats("addAmmo", preserveMalformations ? obj.Malformations : null, obj.addAmmo.Get<Single>());
 
                     if (writer.InBinary)
                     {
@@ -321,11 +321,11 @@ namespace BZNParser.Battlezone.GameObject
 
                     if (writer.Version == 1195)
                     {
-                        writer.WriteFloats("m_ejectRatio", obj.m_ejectRatio);
+                        writer.WriteFloats("m_ejectRatio", preserveMalformations ? obj.Malformations : null, obj.m_ejectRatio);
                     }
                     else if (writer.Version >= 1196)
                     {
-                        writer.WriteFloats("ejectRatio", obj.m_ejectRatio);
+                        writer.WriteFloats("ejectRatio", preserveMalformations ? obj.Malformations : null, obj.m_ejectRatio);
                     }
                 }
             }

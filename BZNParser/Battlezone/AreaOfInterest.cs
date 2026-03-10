@@ -125,8 +125,8 @@ namespace BZNParser.Battlezone
             }
 
             writer.WriteUnsignedValues("team", team);
-            writer.WriteBooleans("interesting", interesting);
-            writer.WriteBooleans("inside", inside);
+            writer.WriteBooleans("interesting", preserveMalformations ? Malformations : null, interesting);
+            writer.WriteBooleans("inside", preserveMalformations ? Malformations : null, inside);
             writer.WriteSignedValues("value", value);
             writer.WriteUnsignedValues("force", force);
         }

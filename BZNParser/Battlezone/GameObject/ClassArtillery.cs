@@ -93,12 +93,12 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (parent.SaveType != SaveType.BZN)
                 {
-                    writer.WriteFloats("omegaTurret", obj.omegaTurret); // omegaTurret
-                    writer.WriteFloats("heightDeploy", obj.heightDeploy); // heightDeploy
-                    writer.WriteFloats("timeDeploy", obj.timeDeploy); // timeDeploy
-                    writer.WriteFloats("timeUndeploy", obj.timeUndeploy); // timeUndeploy
-                    writer.WriteFloats("deployTimer", obj.deployTimer);
-                    writer.WriteFloats("prevYaw", obj.prevYaw); // prevYaw
+                    writer.WriteFloats("omegaTurret", preserveMalformations ? obj.Malformations : null, obj.omegaTurret); // omegaTurret
+                    writer.WriteFloats("heightDeploy", preserveMalformations ? obj.Malformations : null, obj.heightDeploy); // heightDeploy
+                    writer.WriteFloats("timeDeploy", preserveMalformations ? obj.Malformations : null, obj.timeDeploy); // timeDeploy
+                    writer.WriteFloats("timeUndeploy", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy); // timeUndeploy
+                    writer.WriteFloats("deployTimer", preserveMalformations ? obj.Malformations : null, obj.deployTimer);
+                    writer.WriteFloats("prevYaw", preserveMalformations ? obj.Malformations : null, obj.prevYaw); // prevYaw
                 }
 
                 ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
@@ -107,7 +107,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (parent.SaveType != SaveType.BZN)
                 {
-                    writer.WriteFloats("prevYaw", obj.prevYaw); // prevYaw
+                    writer.WriteFloats("prevYaw", preserveMalformations ? obj.Malformations : null, obj.prevYaw); // prevYaw
                 }
 
                 ClassTurretTank2.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

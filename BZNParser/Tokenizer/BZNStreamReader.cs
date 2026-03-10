@@ -480,7 +480,7 @@ namespace BZNParser.Tokenizer
                 if (Format == BZNFormat.Battlezone)
                 {
                     PointerSize = Version >= 2012 ? (byte)8 : (byte)4;
-                    MatrixBigPosit = Version >= 2010;
+                    MatrixBigPosit = Version >= 0;
                 }
 
                 if (Format == BZNFormat.Battlezone2 && !HasBinary)

@@ -69,9 +69,9 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version == 1047)
             {
-                writer.WriteFloats("nextRepair", obj.nextRepair);
-                writer.WriteFloats("buildDoneTime", obj.buildDoneTime);
-                writer.WriteBooleans("buildActive", obj.buildActive);
+                writer.WriteFloats("nextRepair", preserveMalformations ? obj.Malformations : null, obj.nextRepair);
+                writer.WriteFloats("buildDoneTime", preserveMalformations ? obj.Malformations : null, obj.buildDoneTime);
+                writer.WriteBooleans("buildActive", preserveMalformations ? obj.Malformations : null, obj.buildActive);
                 writer.WriteSignedValues("buildCount", obj.buildItems.Length);
                 for (int i = 0; i < obj.buildItems.Length; i++)
                 {

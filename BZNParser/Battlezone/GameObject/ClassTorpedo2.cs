@@ -37,7 +37,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassTorpedo2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("lifeTimer", obj.lifeTimer);
+            writer.WriteFloats("lifeTimer", preserveMalformations ? obj.Malformations : null, obj.lifeTimer);
             ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }

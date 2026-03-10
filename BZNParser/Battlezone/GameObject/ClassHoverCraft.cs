@@ -148,27 +148,27 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone && writer.Version > 1001 && writer.Version < 1026)
             {
-                writer.WriteFloats("setAltitude", obj.setAltitude);
-                writer.WriteFloats("accelDragStop", obj.accelDragStop);
-                writer.WriteFloats("accelDragFull", obj.accelDragFull);
-                writer.WriteFloats("alphaTrack", obj.alphaTrack);
-                writer.WriteFloats("alphaDamp", obj.alphaDamp);
-                writer.WriteFloats("pitchPitch", obj.pitchPitch);
-                writer.WriteFloats("pitchThrust", obj.pitchThrust);
-                writer.WriteFloats("rollStrafe", obj.rollStrafe);
-                writer.WriteFloats("rollSteer", obj.rollSteer);
-                writer.WriteFloats("velocForward", obj.velocForward);
-                writer.WriteFloats("velocReverse", obj.velocReverse);
-                writer.WriteFloats("velocStrafe", obj.velocStrafe);
-                writer.WriteFloats("accelThrust", obj.accelThrust);
-                writer.WriteFloats("accelBrake", obj.accelBrake);
-                writer.WriteFloats("omegaSpin", obj.omegaSpin);
-                writer.WriteFloats("omegaTurn", obj.omegaTurn);
-                writer.WriteFloats("alphaSteer", obj.alphaSteer);
-                writer.WriteFloats("accelJump", obj.accelJump);
-                writer.WriteFloats("thrustRatio", obj.thrustRatio);
-                writer.WriteFloats("throttle", obj.throttle);
-                writer.WriteFloats("airBorne", obj.airBorne);
+                writer.WriteFloats("setAltitude", preserveMalformations ? obj.Malformations : null, obj.setAltitude);
+                writer.WriteFloats("accelDragStop", preserveMalformations ? obj.Malformations : null, obj.accelDragStop);
+                writer.WriteFloats("accelDragFull", preserveMalformations ? obj.Malformations : null, obj.accelDragFull);
+                writer.WriteFloats("alphaTrack", preserveMalformations ? obj.Malformations : null, obj.alphaTrack);
+                writer.WriteFloats("alphaDamp", preserveMalformations ? obj.Malformations : null, obj.alphaDamp);
+                writer.WriteFloats("pitchPitch", preserveMalformations ? obj.Malformations : null, obj.pitchPitch);
+                writer.WriteFloats("pitchThrust", preserveMalformations ? obj.Malformations : null, obj.pitchThrust);
+                writer.WriteFloats("rollStrafe", preserveMalformations ? obj.Malformations : null, obj.rollStrafe);
+                writer.WriteFloats("rollSteer", preserveMalformations ? obj.Malformations : null, obj.rollSteer);
+                writer.WriteFloats("velocForward", preserveMalformations ? obj.Malformations : null, obj.velocForward);
+                writer.WriteFloats("velocReverse", preserveMalformations ? obj.Malformations : null, obj.velocReverse);
+                writer.WriteFloats("velocStrafe", preserveMalformations ? obj.Malformations : null, obj.velocStrafe);
+                writer.WriteFloats("accelThrust", preserveMalformations ? obj.Malformations : null, obj.accelThrust);
+                writer.WriteFloats("accelBrake", preserveMalformations ? obj.Malformations : null, obj.accelBrake);
+                writer.WriteFloats("omegaSpin", preserveMalformations ? obj.Malformations : null, obj.omegaSpin);
+                writer.WriteFloats("omegaTurn", preserveMalformations ? obj.Malformations : null, obj.omegaTurn);
+                writer.WriteFloats("alphaSteer", preserveMalformations ? obj.Malformations : null, obj.alphaSteer);
+                writer.WriteFloats("accelJump", preserveMalformations ? obj.Malformations : null, obj.accelJump);
+                writer.WriteFloats("thrustRatio", preserveMalformations ? obj.Malformations : null, obj.thrustRatio);
+                writer.WriteFloats("throttle", preserveMalformations ? obj.Malformations : null, obj.throttle);
+                writer.WriteFloats("airBorne", preserveMalformations ? obj.Malformations : null, obj.airBorne);
             }
 
             ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

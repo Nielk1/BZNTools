@@ -637,7 +637,7 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        writer.WriteBooleans("isUser", isUser);
+                        writer.WriteBooleans("isUser", preserveMalformations ? Malformations : null, isUser);
                     }
                 }
                 //else{}
@@ -680,7 +680,7 @@ namespace BZNParser.Battlezone
             }
             if ((writer.Format == BZNFormat.Battlezone && writer.Version > 1001) || writer.Format == BZNFormat.BattlezoneN64)
             {
-                if (writer.Version >= 2010)
+                if (writer.Version >= 0)
                 {
                     writer.WriteMat3DOldEnhanceds("transform", preserveMalformations, transform);
                 }

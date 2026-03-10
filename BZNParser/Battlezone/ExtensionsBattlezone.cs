@@ -732,12 +732,12 @@ namespace BZNParser.Battlezone
             {
                 if (writer.InBinary)
                 {
-                    writer.WriteFloats(null, value.mass);
-                    writer.WriteFloats(null, value.mass_inv);
-                    writer.WriteFloats(null, value.v_mag);
-                    writer.WriteFloats(null, value.v_mag_inv);
-                    writer.WriteFloats(null, value.I);
-                    writer.WriteFloats(null, value.I_inv);
+                    writer.WriteFloats(null, null, value.mass);
+                    writer.WriteFloats(null, null, value.mass_inv);
+                    writer.WriteFloats(null, null, value.v_mag);
+                    writer.WriteFloats(null, null, value.v_mag_inv);
+                    writer.WriteFloats(null, null, value.I);
+                    writer.WriteFloats(null, null, value.I_inv);
                     writer.WriteVector3Ds(null, preserveMalformations, value.v);
                     writer.WriteVector3Ds(null, preserveMalformations, value.omega);
                     writer.WriteVector3Ds(null, preserveMalformations, value.Accel);
@@ -760,13 +760,13 @@ namespace BZNParser.Battlezone
             {
                 if (writer.InBinary)
                 {
-                    writer.WriteFloats("mass", value.mass);
+                    writer.WriteFloats("mass", preserveMalformations ? value.Malformations : null, value.mass);
 
                     //float euler_mass_inv = tok.GetSingle();
                     //float euler_v_mag = tok.GetSingle();
                     //float euler_v_mag_inv = tok.GetSingle();
 
-                    writer.WriteFloats("I", value.I);
+                    writer.WriteFloats("I", preserveMalformations ? value.Malformations : null, value.I);
 
                     //float euler_k_i = tok.GetSingle();
 
@@ -785,7 +785,7 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        writer.WriteBooleans(" small", true);
+                        writer.WriteBooleans(" small", preserveMalformations ? value.Malformations : null, true);
                     }
 
                     writer.WriteVector3Ds(" Pos", preserveMalformations, value.Pos);

@@ -85,13 +85,13 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version == 1100 || writer.Version == 1104 || writer.Version == 1105)
             {
-                writer.WriteFloats("buildDoneTime", obj.buildTime);
+                writer.WriteFloats("buildDoneTime", preserveMalformations ? obj.Malformations : null, obj.buildTime);
             }
             else
             {
-                writer.WriteFloats("buildTime", obj.buildTime);
+                writer.WriteFloats("buildTime", preserveMalformations ? obj.Malformations : null, obj.buildTime);
             }
-            writer.WriteBooleans("buildActive", obj.buildActive);
+            writer.WriteBooleans("buildActive", preserveMalformations ? obj.Malformations : null, obj.buildActive);
             writer.WriteSignedValues("buildCount", obj.buildItems.Length);
             for (int i = 0; i < obj.buildItems.Length; i++)
             {

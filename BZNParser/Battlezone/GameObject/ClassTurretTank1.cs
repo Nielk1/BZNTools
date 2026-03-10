@@ -71,7 +71,12 @@ namespace BZNParser.Battlezone.GameObject
 
                         tok = reader.ReadToken();
                         if (!tok.Validate("undefbool", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse undefbool/BOOL");
-                        if (obj != null) obj.wantTurret = tok.GetBoolean(); // wantTurret
+                        if (obj != null)
+                        {
+                            obj.wantTurret = tok.GetBoolean(); // wantTurret
+                            // TODO change malformations to use a unique key differnt from the field name, and include the index toos
+                            MalformationExtensions.CheckMalformationsBool(tok, "undefbool", obj.Malformations);
+                        }
                     }
                 }
             }
@@ -93,17 +98,17 @@ namespace BZNParser.Battlezone.GameObject
                     if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
                     {
                         // obsolete
-                        writer.WriteFloats("undeffloat", obj.omegaTurret); // omegaTurret
-                        writer.WriteFloats("undeffloat", obj.alphaTurret); // alphaTurret
-                        writer.WriteFloats("undeffloat", obj.timeDeploy); // timeDeploy
-                        writer.WriteFloats("undeffloat", obj.timeUndeploy); // timeUndeploy
+                        writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.omegaTurret); // omegaTurret
+                        writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.alphaTurret); // alphaTurret
+                        writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.timeDeploy); // timeDeploy
+                        writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy); // timeUndeploy
                     }
                     writer.WriteVoidBytes("undefraw", (UInt32)obj.state); // state
-                    writer.WriteFloats("undeffloat", obj.delayTimer); // delayTimer
+                    writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.delayTimer); // delayTimer
                     if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
                     {
                         // obsolete
-                        writer.WriteBooleans("undefbool", obj.wantTurret); // wantTurret
+                        writer.WriteBooleans("undefbool", preserveMalformations ? obj.Malformations : null, obj.wantTurret); // wantTurret
                     }
                 }
             }

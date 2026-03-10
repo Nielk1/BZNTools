@@ -450,6 +450,18 @@ namespace BZNParser
                     malformations.AddIncorrectTextParse(name, tok.GetString(index));
             }
         }
+        public static void CheckMalformationsBool(this IBZNToken tok, string name, IMalformable.MalformationManager malformations, int index = 0)
+        {
+            if (tok.IsBinary)
+            {
+                // check for malformations in the binary data and add to the token's malformation manager if found
+            }
+            else
+            {
+                if (tok.GetBoolean(index).ToString().ToLowerInvariant() != tok.GetString(index))
+                    malformations.AddIncorrectTextParse(name, tok.GetString(index));
+            }
+        }
 
         public static string CorrectName(this IMalformable.MalformationManager malformations, bool preserveMalformations, string name)
         {

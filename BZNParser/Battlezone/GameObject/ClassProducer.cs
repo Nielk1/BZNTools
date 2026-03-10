@@ -100,7 +100,11 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse buildDoneTime/FLOAT");
-                if (obj != null) obj.buildDoneTime = tok.GetSingle();
+                if (obj != null)
+                {
+                    obj.buildDoneTime = tok.GetSingle();
+                    MalformationExtensions.CheckMalformationsSingle(tok, "buildDoneTime", obj.Malformations, reader.FloatFormat);
+                }
                 // BZn64 might be invalid when it has CDCDCDCA here.
 
                 if (reader.Format == BZNFormat.Battlezone && reader.Version <= 1026)
@@ -134,19 +138,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone && writer.Version < 1011)
             {
-                writer.WriteFloats("setAltitude", obj.setAltitude);
+                writer.WriteFloats("setAltitude", preserveMalformations ? obj.Malformations : null, obj.setAltitude);
             }
 
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
             {
-                writer.WriteFloats("timeDeploy", obj.timeDeploy);
-                writer.WriteFloats("timeUndeploy", obj.timeUndeploy);
+                writer.WriteFloats("timeDeploy", preserveMalformations ? obj.Malformations : null, obj.timeDeploy);
+                writer.WriteFloats("timeUndeploy", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy);
             }
 
             writer.WriteBZ1_Ptr("undefptr", obj.undefptr2);
             writer.WriteVoidBytes("state", obj.state);
-            writer.WriteFloats("delayTimer", obj.delayTimer);
-            writer.WriteFloats("nextRepair", obj.nextRepair);
+            writer.WriteFloats("delayTimer", preserveMalformations ? obj.Malformations : null, obj.delayTimer);
+            writer.WriteFloats("nextRepair", preserveMalformations ? obj.Malformations : null, obj.nextRepair);
 
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version >= 1006)
             {
@@ -190,7 +194,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteIDs("buildClass", obj.buildClass);
                 }
 
-                writer.WriteFloats("buildDoneTime", obj.buildDoneTime);
+                writer.WriteFloats("buildDoneTime", preserveMalformations ? obj.Malformations : null, obj.buildDoneTime);
                 // BZn64 might be invalid when it has CDCDCDCA here.
 
                 if (writer.Format == BZNFormat.Battlezone && writer.Version <= 1026)

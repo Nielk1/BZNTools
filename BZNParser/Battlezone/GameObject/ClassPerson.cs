@@ -77,13 +77,13 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteFloats("nextScream", obj.nextScream);
+                writer.WriteFloats("nextScream", preserveMalformations ? obj.Malformations : null, obj.nextScream);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version == 1047)
                 {
-                    writer.WriteFloats("nextScream", obj.nextScream);
+                    writer.WriteFloats("nextScream", preserveMalformations ? obj.Malformations : null, obj.nextScream);
                 }
                 else
                 {

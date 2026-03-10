@@ -111,7 +111,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteUnsignedValues("curScrap", obj.curScrap);
                     writer.WriteUnsignedValues("maxScrap", obj.maxScrap);
                 }
-                writer.WriteBooleans("buildActive", obj.buildActive);
+                writer.WriteBooleans("buildActive", preserveMalformations ? obj.Malformations : null, obj.buildActive);
                 if (writer.Version < 1107)
                 {
                     // severe type missmatch must be resolved

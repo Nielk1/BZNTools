@@ -569,7 +569,7 @@ namespace BZNParser.Tokenizer
             // this is probably horribly inefficent but whatever
             return Atlas.Select((ad, index) => new { ad, index }).Where(x => x.ad.Defect != null).ToDictionary(x => x.index, x => x.ad.Defect!);
         }
-
+         
 
         /// <summary>
         /// Read the next token from the stream.
@@ -608,6 +608,11 @@ namespace BZNParser.Tokenizer
                 {
                     if (rawLine.StartsWith("[") && rawLine.EndsWith("]"))
                     {
+                        ad.Length = filestream.Position - ad.Offset;
+                        ad.IsBinary = false;
+                        if (TokenIndex == Atlas.Count)
+                            Atlas.Add(ad);
+                        TokenIndex++;
                         return new BZNTokenValidation(rawLine.Substring(1, rawLine.Length - 2));
                     }
 

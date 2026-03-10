@@ -2,6 +2,7 @@
 using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Transactions;
+using System.Xml.Linq;
 using static BZNParser.Tokenizer.BZNStreamReader;
 using static BZNParser.Tokenizer.IMalformable;
 
@@ -325,7 +327,8 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse msn_filename/CHAR");
-                    msn_filename = tok.GetString();
+                    //msn_filename = tok.GetString();
+                    msn_filename = Malformations.AddBinaryMessString("msn_filename", tok.GetString());
                     Console.WriteLine($"msn_filename: \"{msn_filename}\"");
                 }
             }
@@ -546,6 +549,8 @@ namespace BZNParser.Battlezone
 
             int CntPad = CountItems.ToString().Length;
             Dictionary<string, HashSet<string>> LongTermClassLabelLookupCache = new Dictionary<string, HashSet<string>>();
+            Stopwatch w = new Stopwatch();
+            w.Start();
             for (int gameObjectCounter = 0; gameObjectCounter < CountItems; gameObjectCounter++)
             {
                 //GameObjects[gameObjectCounter] = new BZNGameObjectWrapper(reader, (gameObjectCounter + 1) == CountItems);
@@ -553,9 +558,12 @@ namespace BZNParser.Battlezone
                 if (EntityDescriptor.Create(this, reader, CountItems - gameObjectCounter, out tmpObj, true, Hints: Hints) && tmpObj != null)
                 {
                     GameObjects[gameObjectCounter] = tmpObj;
-                    Console.WriteLine($"GameObject[{gameObjectCounter.ToString().PadLeft(CntPad)}]: {GameObjects[gameObjectCounter].seqNo.ToString("X8")} {GameObjects[gameObjectCounter].PrjID.ToString().PadRight(16)} {(GameObjects[gameObjectCounter].gameObject?.ClassLabel ?? string.Empty).PadRight(16)} {GameObjects[gameObjectCounter].gameObject?.ToString()?.Replace(@"BZNParser.Battlezone.GameObject.", string.Empty)}");
+                    if (w.Elapsed > TimeSpan.FromMilliseconds(100))
+                        Console.WriteLine($"GameObject[{gameObjectCounter.ToString().PadLeft(CntPad)}]: {GameObjects[gameObjectCounter].seqNo.ToString("X8")} {GameObjects[gameObjectCounter].PrjID.ToString().PadRight(16)} {(GameObjects[gameObjectCounter].gameObject?.ClassLabel ?? string.Empty).PadRight(16)} {GameObjects[gameObjectCounter].gameObject?.ToString()?.Replace(@"BZNParser.Battlezone.GameObject.", string.Empty)}");
+                    w.Restart();
                 }
             }
+            w.Stop();
 
             this.Entities = GameObjects;
 
@@ -711,8 +719,8 @@ namespace BZNParser.Battlezone
                 }
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse dropoff/PTR");
+                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
+                    throw new Exception("Failed to parse undefptr/PTR");
                 UserProcess_sObject = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
@@ -731,13 +739,13 @@ namespace BZNParser.Battlezone
                 UserProcess_selectList = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse dropoff/PTR");
+                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
+                    throw new Exception("Failed to parse undefptr/PTR");
                 UserProcess_undefptr_1 = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse dropoff/PTR");
+                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
+                    throw new Exception("Failed to parse undefptr/PTR");
                 UserProcess_undefptr_2 = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
@@ -1138,7 +1146,7 @@ namespace BZNParser.Battlezone
                 // LuaMission (which is invoked by many stock mission types)
                 if (new string[] { "LuaMission", "MultSTMission", "MultDMMission", "Inst4XMission", "Inst03Mission" }.Contains(Mission))
                 {
-                    if (SaveType == SaveType.SAVE ? writer.Version == 1044 : writer.Version >= 1044)
+                    if (SaveType == SaveType.BZN ? writer.Version == 1044 : writer.Version >= 1044)
                     {
                         writer.WriteBooleans("undefbool", bz1_luamission_started ?? SaveType == SaveType.BZN);
 
@@ -1172,12 +1180,12 @@ namespace BZNParser.Battlezone
                 }
 
                 writer.WriteValidation("UserProcess");
-                writer.WriteBZ1_PtrDepricated("dropoff", UserProcess_sObject.Value);
+                writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_sObject.Value);
                 writer.WriteSignedValues("cycle", UserProcess_cycle.Value);
                 writer.WriteSignedValues("cycleMax", UserProcess_cycleMax.Value);
                 writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
-                writer.WriteBZ1_PtrDepricated("dropoff", UserProcess_undefptr_1.Value);
-                writer.WriteBZ1_PtrDepricated("dropoff", UserProcess_undefptr_2.Value);
+                writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_1.Value);
+                writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_2.Value);
                 writer.WriteBooleans("exited", UserProcess_exited.Value);
             }
 

@@ -36,13 +36,14 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Format == BZNFormat.Battlezone && reader.Version == 1045)
                 {
                     // This is due to bvapc26, assumed to be a tug,in "bdmisn26.bzn"
-                    if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR))
+                    if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                         if (!tok.Validate("state", BinaryFieldType.DATA_PTR))
-                            throw new Exception("Failed to parse dropoff/state/PTR");
+                            throw new Exception("Failed to parse undefptr/state/PTR");
                 }
                 else
                 {
-                    if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/PTR");
+                    //if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/PTR");
+                    if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
                 }
                 if (obj != null) obj.cargo = tok.GetUInt32H(); // cargo
             }
@@ -102,12 +103,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Format == BZNFormat.Battlezone && writer.Version == 1045)
                 {
-                    throw new NotImplementedException("Can't write PTR types since we don't know what they point to"); // this is a confusion point we need to resolve
-                    writer.WritePtr("dropoff", obj.cargo); // dropoff
+                    writer.WritePtr("undefptr", obj.cargo); // dropoff
                 }
                 else
                 {
-                    writer.WritePtr("dropoff", obj.cargo); // dropoff
+                    writer.WritePtr("undefptr", obj.cargo);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)

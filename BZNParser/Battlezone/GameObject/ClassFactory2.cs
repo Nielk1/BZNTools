@@ -95,7 +95,7 @@ namespace BZNParser.Battlezone.GameObject
             writer.WriteSignedValues("buildCount", obj.buildItems.Length);
             for (int i = 0; i < obj.buildItems.Length; i++)
             {
-                writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem", obj.Malformations);
+                writer.WriteGameObjectClass_BZ2(parent, "buildItem", obj.buildItems[i], obj.Malformations);
             }
 
             if (parent.SaveType == 0)

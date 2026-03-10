@@ -62,14 +62,14 @@ namespace BZNParser.Battlezone.GameObject
 
             tok = reader.ReadToken();
             if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                throw new Exception("Failed to parse dropoff/PTR");
+                throw new Exception("Failed to parse undefptr/PTR");
             if (obj != null) obj.undefptr2 = tok.GetUInt32H(); // powerSource
 
             tok = reader.ReadToken();
             if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
                 throw new Exception("Failed to parse state/VOID");
             //state = tok.GetBytes(0, 4); // probably need to reverse for n64
-            if (obj != null) obj.state = tok.GetUInt32(); // probably need to reverse for n64
+            if (obj != null) obj.state = tok.GetUInt32HR(); // probably need to reverse for n64
 
             tok = reader.ReadToken();
             if (!tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))

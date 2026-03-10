@@ -69,7 +69,7 @@ namespace BZNParser.Tokenizer
             return BitConverter.ToInt32(data, index * sizeof(Int32));
         }
         public Int32 GetInt32H(int index = 0) => GetInt32(index);
-        public UInt32 GetUInt32HR(int index = 0) { throw new InvalidOperationException(); } // need to figure out if they're reversed or not in binary
+        public UInt32 GetUInt32HR(int index = 0) => GetUInt32(index);
 
         public UInt32 GetUInt32(int index = 0)
         {

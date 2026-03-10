@@ -77,6 +77,8 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("abandoned", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse abandoned/LONG");
+                if (tok.GetCount() != 1)
+                    throw new Exception("Failed to parse abandoned/LONG (wrong entry count)"); // vastly improves type auto-detect
 
                 if (obj != null) obj.abandoned = tok.GetInt32();
             }

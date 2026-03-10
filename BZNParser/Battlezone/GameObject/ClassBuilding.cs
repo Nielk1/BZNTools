@@ -165,7 +165,7 @@ namespace BZNParser.Battlezone.GameObject
                     //if (reader.Version == 1147 || reader.Version == 1148 || reader.Version == 1149 || reader.Version == 1151 || reader.Version == 1154)
                     if (writer.Version < 1155)
                     {
-                        writer.WriteGameObjectClass_BZ2(parent, "config", obj.saveClass, obj.Malformations);
+                        writer.WriteGameObjectClass_BZ2(parent, "config", obj.saveClass ?? string.Empty, obj.Malformations);
                     }
                     else
                     {

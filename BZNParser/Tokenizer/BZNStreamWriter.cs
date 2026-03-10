@@ -1,3 +1,4 @@
+using BZNParser.Battlezone;
 using System;
 using System.Globalization;
 using System.IO;
@@ -530,7 +531,7 @@ namespace BZNParser.Tokenizer
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
-                InternalWriteBinarySize(values.Length);
+                InternalWriteBinarySize(sizeof(UInt16) * values.Length);
                 foreach (UInt16 value in values)
                 {
                     byte[] bytes = BitConverter.GetBytes(value);
@@ -659,7 +660,7 @@ namespace BZNParser.Tokenizer
         {
             if (InBinary)
             {
-                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
+                InternalWriteBinaryType(BinaryFieldType.DATA_LONG);
                 InternalWriteBinarySize(sizeof(UInt32) * values.Length);
                 {
                     foreach (UInt32 value in values)
@@ -1038,7 +1039,12 @@ namespace BZNParser.Tokenizer
             }
             BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
             InternalWriteNewline();
-            BaseStream.Write(win1252.GetBytes(value.ToString("x")));
+            if (value != 0)
+            {
+                // this function is modified to deal with odd writing of these UInt64 values for BZ1, rename this function if needed
+                //BaseStream.Write(win1252.GetBytes(value.ToString("x")));
+                BaseStream.Write(BitConverter.GetBytes(value));
+            }
             InternalWriteNewline();
         }
 
@@ -1058,7 +1064,7 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
         }
 
-        public void WriteIDs(string name, string value)
+        public void WriteIDs(string name, string value, bool oneLiner = false)
         {
             if (InBinary)
             {
@@ -1068,22 +1074,31 @@ namespace BZNParser.Tokenizer
                 InternalAlignBinary();
                 return;
             }
-            BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
-            InternalWriteNewline();
+            if (oneLiner)
+            {
+                // maybe one-liner should be a general writer tool so it can use the malformation for no trailing space universally
+                BaseStream.Write(win1252.GetBytes($"{name} = "));
+            }
+            else
+            {
+                BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
+                InternalWriteNewline();
+            }
             BaseStream.Write(win1252.GetBytes(value));
             InternalWriteNewline();
         }
 
-        // 8 bit number
+        /// <summary>
+        /// UInt8 Processed Write
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="values"></param>
         public void WriteUnsignedValues(string name, params byte[] values)
         {
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
                 InternalWriteBinarySize(values.Length);
-                //byte[] bytes = values.ToArray();
-                //if (IsBigEndian)
-                //    Array.Reverse(bytes);
                 BaseStream.Write(values);
                 InternalAlignBinary();
                 return;
@@ -1097,12 +1112,39 @@ namespace BZNParser.Tokenizer
             }
         }
 
+        /// <summary>
+        /// UInt8 Raw write
+        /// </summary>
+        /// <remarks>
+        /// This is for when ASCII BZNs contains the raw bytes
+        /// </remarks>
+        /// <param name="name"></param>
+        /// <param name="values"></param>
+        public void WriteUnsignedRawValues(string name, params byte[] values)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
+                InternalWriteBinarySize(values.Length);
+                BaseStream.Write(values);
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
+            InternalWriteNewline();
+            for (int i = 0; i < values.Length; i++)
+            {
+                BaseStream.Write(new byte[] { values[i] }, 0, 1); // can be written more efficently but written this way for now for when we copypasta later
+                InternalWriteNewline();
+            }
+        }
+
         public void WriteChars(string name, string value, IMalformable.MalformationManager malformations)
         {
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
-                byte[] stringBytes = win1252.GetBytes(value);
+                byte[] stringBytes = malformations != null ? win1252.GetBytes(malformations.CheckBinaryMessString(name, value)) : win1252.GetBytes(value);
                 InternalWriteBinarySize(stringBytes.Length);
                 BaseStream.Write(stringBytes);
                 InternalAlignBinary();
@@ -1137,7 +1179,8 @@ namespace BZNParser.Tokenizer
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} = "));
-            InternalWriteStringValue(value.ToString("X8"));
+            //InternalWriteStringDirectValue(value.ToString("X8"));
+            BaseStream.Write(win1252.GetBytes(value.ToString("X8")));
             InternalWriteNewline();
         }
 
@@ -1162,7 +1205,8 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
             foreach (uint value in values)
             {
-                InternalWriteStringValue(value.ToString("X8"));
+                //InternalWriteStringValue(value.ToString("X8"));
+                BaseStream.Write(win1252.GetBytes(value.ToString("X8")));
                 InternalWriteNewline();
             }
         }
@@ -1191,7 +1235,8 @@ namespace BZNParser.Tokenizer
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} = "));
-            InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant());
+            //InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant());
+            BaseStream.Write(win1252.GetBytes(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant()));
             InternalWriteNewline();
         }
         public void WriteVoidBytes(string name, byte[] value)
@@ -1205,7 +1250,23 @@ namespace BZNParser.Tokenizer
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} = "));
-            InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty));
+            //InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty));
+            BaseStream.Write(win1252.GetBytes(BitConverter.ToString(value).Replace("-", string.Empty)));
+            InternalWriteNewline();
+        }
+
+        public void WriteVoidBytesRaw(string name, byte[] value)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_VOID);
+                InternalWriteBinarySize(value.Length);
+                BaseStream.Write(value);
+                InternalAlignBinary();
+                return;
+            }
+            BaseStream.Write(win1252.GetBytes($"{name} = "));
+            BaseStream.Write(value);
             InternalWriteNewline();
         }
 
@@ -1264,6 +1325,11 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(sizeBytes);
             }
         }
+
+        /// <summary>
+        /// For when a string is stored as a string, so if quotes are active we need quotes
+        /// </summary>
+        /// <param name="value"></param>
         private void InternalWriteStringValue(string value)
         {
             if (QuoteStrings)// || value.Contains(' ') || value.Contains('\t'))
@@ -1277,6 +1343,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(value));
             }
         }
+
         private void InternalWriteNewline()
         {
             // TODO deal with newline malformation here

@@ -124,24 +124,13 @@ namespace BZNParser.Battlezone
             uint seqNo = 0;
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                if (reader.InBinary)
+                if (reader.Version == 1101 || reader.Version == 1070)
                 {
-                    seqNo = reader.ReadCompressedNumberFromBinary();
+                    tok = reader.ReadToken();
+                    if (!tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
+                        throw new Exception("Failed to parse seqno/SHORT");
+                    seqNo = tok.GetUInt16H();
                 }
-                //else if (reader.Version >= 1145 && reader.InBinary && false)// && omitBinarySaveHeadsers)
-                //{
-                //    tok = reader.ReadToken();
-                //    if (tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
-                //        throw new Exception("Failed to parse seqno/SHORT");
-                //    UInt16 seqno2a = tok.GetUInt16();
-                //
-                //    tok = reader.ReadToken();
-                //    if (!tok.Validate("seqno", BinaryFieldType.DATA_CHAR))
-                //        throw new Exception("Failed to parse seqno/CHAR");
-                //    byte seqno2b = tok.GetUInt8();
-                //
-                //    seqNo = (uint)((seqno2b << 16) | (seqno2a));
-                //}
                 else
                 {
                     tok = reader.ReadToken();
@@ -506,9 +495,9 @@ namespace BZNParser.Battlezone
             else if (writer.Format == BZNFormat.Battlezone)
             {
                 if (preserveMalformations)
-                    writer.WriteIDs("PrjID", Malformations.CheckBinaryMessString("PrjID", PrjID));
+                    writer.WriteIDs("PrjID", Malformations.CheckBinaryMessString("PrjID", PrjID), oneLiner: writer.Version == 1001);
                 else
-                    writer.WriteIDs("PrjID", PrjID);
+                    writer.WriteIDs("PrjID", PrjID, oneLiner: writer.Version == 1001);
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -538,10 +527,9 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                if (writer.InBinary)
+                if (writer.Version == 1101 || writer.Version == 1070)
                 {
-                    //writer.WriteCompressedNumberFromBinary(seqNo);
-                    writer.WriteUnsignedValues(null, seqNo);
+                    writer.WriteUnsignedHexLValues("seqno", (UInt16)seqNo);
                 }
                 else
                 {
@@ -665,7 +653,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version < 1002)
                 {
-                    writer.WriteBZ1_PtrDepricated("obj_addr", obj_addr); // string name unconfirmed
+                    writer.WriteBZ1_PtrDepricated("obj_addr", obj_addr, raw: true); // string name unconfirmed
                 }
                 else
                 {

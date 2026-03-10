@@ -36,9 +36,11 @@ namespace BZNParser.Battlezone.GameObject
 
             if (reader.Version < 1147)
             {
-                tok = reader.ReadToken();
-                if (!tok.Validate("saveClass", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveClass/CHAR");
-                string saveClass = tok.GetString();
+                //tok = reader.ReadToken();
+                //if (!tok.Validate("saveClass", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveClass/CHAR");
+                //string saveClass = tok.GetString();
+                //if (obj != null) obj.saveClass = obj.Malformations.AddBinaryMessString("saveClass", saveClass);
+                string saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass", obj?.Malformations);
                 if (obj != null) obj.saveClass = saveClass;
 
                 if (!string.IsNullOrEmpty(saveClass))
@@ -78,11 +80,16 @@ namespace BZNParser.Battlezone.GameObject
             writer.WriteFloats("scrapTimer", obj.scrapTimer);
             if (writer.Version < 1147)
             {
-                writer.WriteChars("saveClass", obj.saveClass, obj.Malformations);
+                //writer.WriteChars("saveClass", obj.saveClass, obj.Malformations);
+                writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty, obj.Malformations);
+
                 if (!string.IsNullOrEmpty(obj.saveClass))
                 {
                     writer.WriteSignedValues("saveTeam", obj.saveTeam);
-                    writer.WriteUnsignedHexLValues("saveSeqno", (UInt16)obj.saveSeqno); // unsure if this down-cast is safe, if bool writes LONG instead of SHORT it doesn't
+
+                    // this was a short until a version 1128 file (going backwards) where it is a long
+                    writer.WriteUnsignedHexLValues("saveSeqno", (UInt32)obj.saveSeqno); // unsure if this down-cast is safe, if bool writes LONG instead of SHORT it doesn't
+
                     writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel, obj.Malformations); // TODO: figure out what this actually does
                     writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName, obj.Malformations); // TODO: figure out what this actually does
                 }

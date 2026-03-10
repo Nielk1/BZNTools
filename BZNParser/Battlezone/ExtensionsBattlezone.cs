@@ -86,8 +86,14 @@ namespace BZNParser.Battlezone
                 return tok.GetUInt32Raw(); // might be only version 1001 of BZ1
             }
         }
-        public static void WriteBZ1_PtrDepricated(this BZNStreamWriter writer, string name, uint value)
+        public static void WriteBZ1_PtrDepricated(this BZNStreamWriter writer, string name, uint value, bool raw = false)
         {
+            if (raw)
+            {
+                writer.WriteVoidBytesRaw(name, BitConverter.GetBytes(value).ToArray()); // not sure if this is right, probably wrong for binary and god knows what it does to BigEndian
+                return;
+            }
+
             // untested
             writer.WriteVoidBytes(name, BitConverter.GetBytes(value).Reverse().ToArray()); // not sure if this is right, probably wrong for binary and god knows what it does to BigEndian
         }
@@ -297,6 +303,10 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
                 string retVal = tok.GetString();
+                if (malformations != null)
+                {
+                    retVal = malformations.AddBinaryMessString(name, retVal);
+                }
                 return retVal;
             }
             else if (reader.Version < 1145)
@@ -321,6 +331,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Version == 1101)
                 {
+                    // this might be pointless now that we have malformations handling it
                     writer.WriteChars(name, value.PadRight(Math.Max(bufferSize, value.Length), '\0'), malformations);
                 }
                 else
@@ -406,7 +417,14 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 if (!tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
-                // we forgot to read the what
+                if (reader.Version == 1001)
+                {
+                    retVal.what = tok.GetUInt32Raw();
+                }
+                else
+                {
+                    retVal.what = tok.GetUInt32HR();
+                }
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -438,7 +456,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (reader.Format == BZNFormat.Battlezone && (reader.Version == 1001 || reader.Version == 1011 || reader.Version == 1012))
                 {
-                    if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/PTR");
+                    if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
                 }
                 else
                 {
@@ -493,7 +511,8 @@ namespace BZNParser.Battlezone
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
                 // can't write what we don't know how to read, breakpoint until we fix that
-                writer.WriteVoidBytes("what", new byte[1] { (byte)value.what });
+                //writer.WriteVoidBytes("what", new byte[1] { (byte)value.what });
+                writer.WriteVoidBytesL("what", value.what);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -527,7 +546,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
                 {
-                    writer.WritePtr("dropoff", value.where);
+                    writer.WritePtr("undefptr", value.where);
                 }
                 else
                 {

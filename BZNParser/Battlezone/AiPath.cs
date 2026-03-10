@@ -71,7 +71,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("old_ptr", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse old_ptr/VOID");
-                    if (obj != null) obj.sObject = tok.GetUInt32H(); // confirm correctness
+                    if (obj != null) obj.sObject = tok.GetUInt32HR(); // confirm correctness
                 }
                 //Int32 x = tok.GetUInt32H();
             }
@@ -154,6 +154,8 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (!tok.Validate("pathType", BinaryFieldType.DATA_VOID))
                 throw new Exception("Failed to parse pathType/VOID");
+            // 02 00 00 00 - binary for 2
+            // "02000000" - ASCII for 2
             if (obj != null) obj.pathType = tok.GetUInt32HR();
 
             return true;
@@ -161,15 +163,10 @@ namespace BZNParser.Battlezone
 
         public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            // 1041
-            // 1070
-            // 1100
-            // 1192
-            // 1194
-            // 1196
-            // We haven't seen 1197 which is current, but we are going to just unbound the upper end
-            if (writer.Version < 1041)//sssss || writer.Version > 1196)
+            if (writer.Format == BZNFormat.Battlezone)
+            {
                 writer.WriteValidation("AiPath");
+            }
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -186,7 +183,7 @@ namespace BZNParser.Battlezone
                 else
                 {
                     // 1030 1032 1034 1035 1037 1038 1039 1040 1043 1044 1045 1049 2003 2004 2010 2011
-                    writer.WriteVoidBytes("old_ptr", sObject.Value);
+                    writer.WriteVoidBytesL("old_ptr", sObject.Value);
                 }
                 //Int32 x = tok.GetUInt32H();
             }
@@ -235,7 +232,7 @@ namespace BZNParser.Battlezone
 
             writer.WriteSignedValues("pointCount", points.Length);
             writer.WriteVector2Ds("points", preserveMalformations, points);
-            writer.WriteVoidBytes("pathType", pathType);
+            writer.WriteVoidBytes("pathType", pathType); // BZ2 it's written as a hex-string
         }
     }
 }

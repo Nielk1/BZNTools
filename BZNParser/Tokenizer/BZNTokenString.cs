@@ -38,6 +38,10 @@ namespace BZNParser.Tokenizer
             if (index >= values.Length) throw new ArgumentOutOfRangeException();
             if (values[index] == "0") return false;
             if (values[index] == "1") return true;
+            if (values[index] == "00000000")
+                return false; // unlikely to be real so lets check for it
+            if (values[index] == "00000001")
+                return true; // unlikely to be real so lets check for it
             return bool.Parse(values[index]);
         }
 

@@ -10,11 +10,40 @@ using static BZNParser.Tokenizer.BZNStreamReader;
 
 namespace BZNParser.Tokenizer
 {
+    public class StreamDefect
+    {
+        public UInt32? TypeGarbage { get; set; }
+        public bool IsEmpty()
+        {
+            if (TypeGarbage.HasValue)
+                return false;
+            return true;
+        }
+    }
+
     public struct AtlasData
     {
         public long Offset { get; set; }
         public long Length { get; set; }
         public bool IsBinary { get; set; }
+
+
+        public StreamDefect? Defect { get; set; }
+        public UInt32? Defect_TypeGarbage
+        {
+            get
+            {
+                return Defect?.TypeGarbage;
+            }
+            set
+            {
+                if (Defect == null)
+                    Defect = new StreamDefect();
+                Defect.TypeGarbage = value;
+                if (Defect.IsEmpty())
+                    Defect = null;
+            }
+        }
     }
 
     public class BZNStreamReader : IDisposable
@@ -523,6 +552,14 @@ namespace BZNParser.Tokenizer
             if (BaseStream != null) BaseStream.Close();
         }
 
+
+        public Dictionary<int, StreamDefect> GetDefects()
+        {
+            // this is probably horribly inefficent but whatever
+            return Atlas.Select((ad, index) => new { ad, index }).Where(x => x.ad.Defect != null).ToDictionary(x => x.index, x => x.ad.Defect!);
+        }
+
+
         /// <summary>
         /// Read the next token from the stream.
         /// </summary>
@@ -850,9 +887,13 @@ namespace BZNParser.Tokenizer
                     filestream.ReadByte(); // deal with padding
             }
 
-            IBZNToken tok = new BZNTokenBinary((BinaryFieldType)typeClean, data, IsBigEndian) { rawType = type };
+            IBZNToken tok = new BZNTokenBinary((BinaryFieldType)typeClean, data, IsBigEndian) { rawType = type != typeClean ? type : null };
             ad.Length = filestream.Position - ad.Offset;
             ad.IsBinary = true;
+            if (type != typeClean)
+            {
+                ad.Defect_TypeGarbage = type;
+            }
             if (Atlas.Count >= TokenIndex)
                 Atlas.Add(ad);
             TokenIndex++;

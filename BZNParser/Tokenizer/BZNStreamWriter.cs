@@ -396,12 +396,18 @@ namespace BZNParser.Tokenizer
         public bool InBinary { get; private set; }
         public FloatTextFormat FloatFormat { get; set; }
 
-        public BZNStreamWriter(Stream stream, BZNFormat format, int version)
+        public Dictionary<int, StreamDefect>? StreamDefects { get; set; }
+        public int TokenIndex { get; private set; }
+
+        public BZNStreamWriter(Stream stream, BZNFormat format, int version, Dictionary<int, StreamDefect>? preserveDefects = null)
         {
             BaseStream = stream;
             Format = format;
             Version = version;
             FloatFormat = FloatTextFormat.G;
+            if (preserveDefects != null && preserveDefects.Count > 0)
+                StreamDefects = preserveDefects;
+            TokenIndex = 0;
 
             switch (format)
             {
@@ -465,6 +471,7 @@ namespace BZNParser.Tokenizer
             BaseStream.Write(win1252.GetBytes($"{name} = "));
             InternalWriteStringValue(value);
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         public void WriteRaw(string name, byte[] values)
@@ -478,6 +485,7 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
             BaseStream.Write(values);
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         public void WriteBooleans(string name, params bool[] values)
@@ -491,6 +499,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.WriteByte((byte)(value ? 1 : 0));
 
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -499,6 +508,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes($"{(values[i] ? "true" : "false")}"));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteUnsignedValues(string name, params UInt64[] values)
@@ -515,6 +525,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -524,6 +535,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteUnsignedValues(string name, params UInt16[] values)
@@ -540,6 +552,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -549,6 +562,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteUnsignedHexLValues(string name, params UInt16[] values)
@@ -565,6 +579,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -574,6 +589,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].ToString("x")));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteUnsignedHexLValues(string name, params UInt32[] values)
@@ -590,6 +606,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -599,6 +616,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].ToString("x")));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         // used for: undefaicmd
@@ -615,6 +633,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} ="));
@@ -626,6 +645,7 @@ namespace BZNParser.Tokenizer
                 }
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteShortFlag(string name, UInt16 value)
@@ -643,6 +663,7 @@ namespace BZNParser.Tokenizer
                     }
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} ="));
@@ -654,6 +675,7 @@ namespace BZNParser.Tokenizer
                 }
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteLongFlags(string name, params UInt32[] values)
@@ -672,6 +694,7 @@ namespace BZNParser.Tokenizer
                     }
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -683,6 +706,7 @@ namespace BZNParser.Tokenizer
                 }
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteShortFlags(string name, params UInt16[] values)
@@ -701,6 +725,7 @@ namespace BZNParser.Tokenizer
                     }
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -712,6 +737,7 @@ namespace BZNParser.Tokenizer
                 }
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteUnsignedValues(string name, params UInt32[] values)
@@ -728,6 +754,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -737,6 +764,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteVector2Ds(string name, bool preserveMalformations, params Vector2D[] values)
@@ -751,6 +779,7 @@ namespace BZNParser.Tokenizer
                     InternalWriteFloatValue("  z", value.Z, preserveMalformations, FloatFormat, value.Malformations);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{(values.Length)}] ="));
@@ -767,9 +796,10 @@ namespace BZNParser.Tokenizer
                 InternalWriteFloatValue("  z", values[i].Z, preserveMalformations, FloatFormat, values[i].Malformations);
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
-        public void InternalWriteFloatValue(string name, float value, bool preserveMalformations, FloatTextFormat floatFormat, IMalformable.MalformationManager malformations)
+        private void InternalWriteFloatValue(string name, float value, bool preserveMalformations, FloatTextFormat floatFormat, IMalformable.MalformationManager malformations)
         {
             if (InBinary)
             {
@@ -805,6 +835,7 @@ namespace BZNParser.Tokenizer
                     InternalWriteFloatValue("  z", value.Z, preserveMalformations, FloatFormat, value.Malformations);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{(values.Length)}] ="));
@@ -824,6 +855,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].Z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteEuler(string name, bool preserveMalformations, Euler value)
@@ -845,6 +877,7 @@ namespace BZNParser.Tokenizer
             WriteVector3Ds(value.Malformations.CorrectName(preserveMalformations, " v"    ), preserveMalformations, value.v    );
             WriteVector3Ds(value.Malformations.CorrectName(preserveMalformations, " omega"), preserveMalformations, value.omega);
             WriteVector3Ds(value.Malformations.CorrectName(preserveMalformations, " Accel"), preserveMalformations, value.Accel);
+            TokenIndex++;
         }
 
         public void WriteMat3Ds(string name, bool preserveMalformations, params Matrix[] values)
@@ -869,6 +902,7 @@ namespace BZNParser.Tokenizer
                     }
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{(values.Length)}] ="));
@@ -891,6 +925,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  posit.y")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  posit.y", values[i].posit.Y, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
                 BaseStream.Write(win1252.GetBytes($"{values[i].Malformations.CorrectName(preserveMalformations, "  posit.z")} [1] =")); InternalWriteNewline(); InternalWriteFloatValue("  posit.z", values[i].posit.Z, preserveMalformations, FloatFormat, values[i].Malformations); InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteMat3DOlds(string name, params Matrix[] values)
@@ -915,6 +950,7 @@ namespace BZNParser.Tokenizer
                     }
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{(values.Length)}] ="));
@@ -973,6 +1009,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].posit.Z.ToBZNString(FloatFormat)));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteSignedValues(string name, params int[] values)
@@ -989,6 +1026,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -997,6 +1035,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteFloats(string name, params float[] values)
@@ -1013,6 +1052,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -1022,6 +1062,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].ToBZNString(FloatFormat)));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteIDs(string name, UInt64 value)
@@ -1035,6 +1076,7 @@ namespace BZNParser.Tokenizer
                     Array.Reverse(data);
                 BaseStream.Write(data);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
@@ -1046,6 +1088,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(BitConverter.GetBytes(value));
             }
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         public void WriteIDs(string name, byte[] value)
@@ -1056,12 +1099,14 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinarySize(value.Length);
                 BaseStream.Write(value);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [1] ="));
             InternalWriteNewline();
             BaseStream.Write(value);
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         public void WriteIDs(string name, string value, bool oneLiner = false)
@@ -1072,6 +1117,7 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinarySize(value.Length);
                 BaseStream.Write(win1252.GetBytes(value));
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             if (oneLiner)
@@ -1086,6 +1132,7 @@ namespace BZNParser.Tokenizer
             }
             BaseStream.Write(win1252.GetBytes(value));
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         /// <summary>
@@ -1101,6 +1148,7 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinarySize(values.Length);
                 BaseStream.Write(values);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -1110,6 +1158,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(values[i].ToString()));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         /// <summary>
@@ -1128,6 +1177,7 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinarySize(values.Length);
                 BaseStream.Write(values);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] ="));
@@ -1137,6 +1187,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(new byte[] { values[i] }, 0, 1); // can be written more efficently but written this way for now for when we copypasta later
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
 
         public void WriteChars(string name, string value, IMalformable.MalformationManager malformations)
@@ -1148,6 +1199,7 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinarySize(stringBytes.Length);
                 BaseStream.Write(stringBytes);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} ="));
@@ -1163,6 +1215,7 @@ namespace BZNParser.Tokenizer
 
             InternalWriteStringValue(value);
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         public void WritePtr(string name, uint value)
@@ -1176,12 +1229,14 @@ namespace BZNParser.Tokenizer
                     Array.Reverse(bytes);
                 BaseStream.Write(bytes);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} = "));
             //InternalWriteStringDirectValue(value.ToString("X8"));
             BaseStream.Write(win1252.GetBytes(value.ToString("X8")));
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         // this might be bogus, will know later
@@ -1199,6 +1254,7 @@ namespace BZNParser.Tokenizer
                     BaseStream.Write(bytes);
                 }
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} [{values.Length}] = "));
@@ -1209,6 +1265,7 @@ namespace BZNParser.Tokenizer
                 BaseStream.Write(win1252.GetBytes(value.ToString("X8")));
                 InternalWriteNewline();
             }
+            TokenIndex++;
         }
         public void WriteVoidBytesL(string name, UInt32 value)
         {
@@ -1232,12 +1289,14 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinarySize(value.Length);
                 BaseStream.Write(value);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} = "));
             //InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant());
             BaseStream.Write(win1252.GetBytes(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant()));
             InternalWriteNewline();
+            TokenIndex++;
         }
         public void WriteVoidBytes(string name, byte[] value)
         {
@@ -1247,12 +1306,14 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinarySize(value.Length);
                 BaseStream.Write(value);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} = "));
             //InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty));
             BaseStream.Write(win1252.GetBytes(BitConverter.ToString(value).Replace("-", string.Empty)));
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         public void WriteVoidBytesRaw(string name, byte[] value)
@@ -1263,11 +1324,13 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinarySize(value.Length);
                 BaseStream.Write(value);
                 InternalAlignBinary();
+                TokenIndex++;
                 return;
             }
             BaseStream.Write(win1252.GetBytes($"{name} = "));
             BaseStream.Write(value);
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         public void WriteValidation(string name)
@@ -1277,6 +1340,7 @@ namespace BZNParser.Tokenizer
 
             BaseStream.Write(win1252.GetBytes($"[{name}]"));
             InternalWriteNewline();
+            TokenIndex++;
         }
 
         private void InternalWriteBinaryType(BinaryFieldType type)
@@ -1285,14 +1349,26 @@ namespace BZNParser.Tokenizer
             if (TypeSize > 0)
             {
                 byte[] number = new byte[TypeSize];
+                number[0] = (byte)type;
+
+                if (StreamDefects != null)
+                {
+                    if (StreamDefects.ContainsKey(TokenIndex))
+                    {
+                        StreamDefect defect = StreamDefects[TokenIndex];
+                        if (defect.TypeGarbage.HasValue)
+                        {
+                            if ((defect.TypeGarbage.Value & 0xff) == number[0])
+                            {
+                                // defected type is the same as the original, so lets apply it
+                                number = BitConverter.GetBytes(defect.TypeGarbage.Value);
+                            }
+                        }
+                    }
+                }
+
                 if (IsBigEndian)
-                {
-                    number[number.Length - 1] = (byte)type;
-                }
-                else
-                {
-                    number[0] = (byte)type;
-                }
+                    number.Reverse();
                 BaseStream.Write(number);
             }
         }

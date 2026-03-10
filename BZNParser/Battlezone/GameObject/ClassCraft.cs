@@ -153,17 +153,17 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("cloakState", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse cloakState/VOID");
-                if (obj != null) obj.cloakState = (uint)tok.GetUInt32H();
+                if (obj != null) obj.cloakState = tok.GetUInt32HR();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("cloakTransBeginTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransBeginTime/FLOAT");
-                if (obj != null) obj.cloakTransBeginTime = (uint)tok.GetSingle();
+                if (obj != null) obj.cloakTransBeginTime = tok.GetSingle();
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("cloakTransEndTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransEndTime/FLOAT");
-                if (obj != null) obj.cloakTransEndTime = (uint)tok.GetSingle();
+                if (obj != null) obj.cloakTransEndTime = tok.GetSingle();
             }
 
             if (reader.Format == BZNFormat.Battlezone2)

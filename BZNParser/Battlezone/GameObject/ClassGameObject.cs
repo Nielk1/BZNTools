@@ -78,7 +78,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("pos", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse pos/VEC3D");
-                if (obj != null) obj.pos = tok.GetVector3D();
+                if (obj != null)
+                {
+                    obj.pos = tok.GetVector3D();
+                    MalformationExtensions.CheckMalformationsVector3D(tok, obj.pos.Malformations, reader.FloatFormat);
+                }
             }
 
             if (obj != null)
@@ -118,31 +122,21 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (reader.Format == BZNFormat.Battlezone)
             {
-                // broke this section, need to fix it
-                if (reader.Version > 1030)
-                    if (reader.Version < 1145)
+                tok = reader.ReadToken();
+                if (!tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+                if (obj != null)
+                {
+                    if (obj.Malformations != null)
                     {
-                        /*if (reader.InBinary)
+                        var tmp = tok as BZNTokenString;
+                        if (tmp != null)
                         {
-                            tok = reader.ReadToken();
-                            if (!tok.Validate(null, BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse ?/LONG");
-                            UInt32 odfLength = tok.GetUInt32();
-                        }*/
-
-                        tok = reader.ReadToken();
-                        if (!tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
-                        if (obj != null) obj.name = tok.GetString();
+                            if (tmp.RightTrimmedOneLiner)
+                                obj.Malformations.AddRightTrimmed("name");
+                        }
                     }
-                    else
-                    {
-                        //tok = reader.ReadToken();
-                        //if (!tok.Validate(null, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse ?/CHAR");
-                        //byte odfLength = tok.GetUInt8();
-
-                        tok = reader.ReadToken();
-                        if (!tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
-                        if (obj != null) obj.name = tok.GetString();
-                    }
+                }
+                obj.name = tok.GetString();
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {

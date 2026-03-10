@@ -282,6 +282,8 @@ namespace BZNParser.Battlezone
                 Console.WriteLine($"AlignmentBytes: {reader.AlignmentBytes}");
                 Console.WriteLine($"Format: {reader.Format}");
                 Console.WriteLine($"QuoteStrings: {reader.QuoteStrings}");
+                Console.WriteLine($"PointerSize: {reader.PointerSize}");
+                Console.WriteLine($"MatrixBigPosit: {reader.MatrixBigPosit}");
                 Console.WriteLine($"CountCR: {reader.CountCR}");
                 Console.WriteLine($"CountLF: {reader.CountLF}");
                 Console.WriteLine($"CountCRLF: {reader.CountCRLF}");
@@ -493,6 +495,8 @@ namespace BZNParser.Battlezone
                 Console.WriteLine($"AlignmentBytes: {reader.AlignmentBytes}");
                 Console.WriteLine($"Format: {reader.Format}");
                 Console.WriteLine($"QuoteStrings: {reader.QuoteStrings}");
+                Console.WriteLine($"PointerSize: {reader.PointerSize}");
+                Console.WriteLine($"MatrixBigPosit: {reader.MatrixBigPosit}");
                 Console.WriteLine($"CountCR: {reader.CountCR}");
                 Console.WriteLine($"CountLF: {reader.CountLF}");
                 Console.WriteLine($"CountCRLF: {reader.CountCRLF}");
@@ -930,6 +934,13 @@ namespace BZNParser.Battlezone
                 if (floatTextFormat != null)
                 {
                     writer.FloatFormat = floatTextFormat.Value;
+                }
+
+                string? newLine = Malformations.GetNewLine();
+                switch (newLine)
+                {
+                    case "CR": writer.NewLine = "\r"; break;
+                    case "LF": writer.NewLine = "\n"; break;
                 }
             }
 

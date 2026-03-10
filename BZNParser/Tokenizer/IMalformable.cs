@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualBasic;
+using System.Reflection.Metadata;
 using static BZNParser.Tokenizer.BZNStreamReader;
 using static BZNParser.Tokenizer.IMalformable;
 
@@ -134,6 +135,14 @@ namespace BZNParser.Tokenizer
             var mals = manager.GetMalformations(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT");
             if (mals.Length > 0)
                 return (FloatTextFormat)mals[0].Fields[0];
+            return null;
+        }
+
+        public static string? GetNewLine(this MalformationManager manager)
+        {
+            var mals = manager.GetMalformations(Malformation.LINE_ENDING, "ALL:LINE_ENDING");
+            if (mals.Length > 0)
+                return (string)mals[0].Fields[0];
             return null;
         }
     }

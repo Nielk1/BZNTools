@@ -565,15 +565,7 @@ namespace BZNParser.Battlezone
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)
                 if (writer.Format == BZNFormat.Battlezone && writer.Version >= 2012)
                 {
-                    var mal = value.Malformations.GetMalformations(Malformation.INCORRECT, "param");
-                    if (preserveMalformations && mal.Length > 0)
-                    {
-                        writer.WriteIDs("param", (byte[])mal[0].Fields[0]);
-                    }
-                    else
-                    {
-                        writer.WriteIDs("param", value.param); // sometimes empty string for 0, not sure WTF that's about
-                    }
+                    writer.WriteIDsBZ1("param", value.param, preserveMalformations ? value.Malformations : null);
                 }
                 else
                 {

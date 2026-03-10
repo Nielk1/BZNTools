@@ -35,7 +35,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("dropMat", BinaryFieldType.DATA_MAT3DOLD)) throw new Exception("Failed to parse dropMat/MAT3DOLD");
-                if (obj != null) obj.dropMat = tok.GetMatrixOld();
+                if (obj != null)
+                {
+                    obj.dropMat = tok.GetMatrixOld();
+                    MalformationExtensions.CheckMalformationsMatrix(tok, obj.dropMat.Malformations, reader.FloatFormat);
+                }
 
                 if (reader.Format == BZNFormat.BattlezoneN64)
                 {
@@ -75,13 +79,13 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1030)
             {
-                if (writer.Version >= 2012)
+                if (writer.Version >= 2010)
                 {
-                    writer.WriteMat3DOldEnhanceds("dropMat", obj.dropMat);
+                    writer.WriteMat3DOldEnhanceds("dropMat", preserveMalformations, obj.dropMat);
                 }
                 else
                 {
-                    writer.WriteMat3DOlds("dropMat", obj.dropMat);
+                    writer.WriteMat3DOlds("dropMat", preserveMalformations, obj.dropMat);
                 }
 
                 if (writer.Format == BZNFormat.BattlezoneN64)

@@ -122,10 +122,10 @@ namespace BZNParser.Tokenizer
 
             return new Matrix()
             {
-                rightx = subToks[00].GetSingle(), righty = subToks[01].GetSingle(), rightz = subToks[02].GetSingle(), rightw = 0,
-                upx    = subToks[03].GetSingle(), upy    = subToks[04].GetSingle(), upz    = subToks[05].GetSingle(), upw    = 0,
-                frontx = subToks[06].GetSingle(), fronty = subToks[07].GetSingle(), frontz = subToks[08].GetSingle(), frontw = 0,
-                positx = subToks[09].GetSingle(), posity = subToks[10].GetSingle(), positz = subToks[11].GetSingle(), positw = 1,
+                rightx = subToks[ 0].GetSingle(), righty = subToks[ 1].GetSingle(), rightz = subToks[ 2].GetSingle(), rightw = 0,
+                upx    = subToks[ 3].GetSingle(), upy    = subToks[ 4].GetSingle(), upz    = subToks[ 5].GetSingle(), upw    = 0,
+                frontx = subToks[ 6].GetSingle(), fronty = subToks[ 7].GetSingle(), frontz = subToks[ 8].GetSingle(), frontw = 0,
+                positx = subToks[ 9].GetSingle(), posity = subToks[10].GetSingle(), positz = subToks[11].GetSingle(), positw = 1,
             };
         }
         public Euler GetEuler(int index = 0)

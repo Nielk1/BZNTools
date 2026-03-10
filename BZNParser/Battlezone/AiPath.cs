@@ -57,7 +57,7 @@ namespace BZNParser.Battlezone
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
-                if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version >= 2016)
+                if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 2011)
                 {
                     // 2016
                     tok = reader.ReadToken();
@@ -175,7 +175,8 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version >= 2016)
+                //if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version >= 2016)
+                if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 2011)
                 {
                     // 2016
                     writer.WriteBZ1_Ptr("old_ptr", sObject.Value);

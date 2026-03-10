@@ -128,7 +128,6 @@ namespace BZNParser.Tokenizer
                 {
                     _reader.BaseStream.Position = pos;
                     _reader.TokenIndex = GetTokenIndex(pos);
-                    }
                 }
             }
             public void RewindToBookmark()

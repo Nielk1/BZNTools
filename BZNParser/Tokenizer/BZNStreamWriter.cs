@@ -1218,12 +1218,12 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
-        public void WritePtr(string name, uint value)
+        public void WritePtr32(string name, UInt32 value)
         {
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
-                InternalWriteBinarySize(4);
+                InternalWriteBinarySize(sizeof(UInt32));
                 byte[] bytes = BitConverter.GetBytes(value);
                 if (IsBigEndian)
                     Array.Reverse(bytes);
@@ -1235,6 +1235,27 @@ namespace BZNParser.Tokenizer
             BaseStream.Write(win1252.GetBytes($"{name} = "));
             //InternalWriteStringDirectValue(value.ToString("X8"));
             BaseStream.Write(win1252.GetBytes(value.ToString("X8")));
+            InternalWriteNewline();
+            TokenIndex++;
+        }
+
+        public void WritePtr64(string name, UInt64 value)
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
+                InternalWriteBinarySize(sizeof(UInt64));
+                byte[] bytes = BitConverter.GetBytes(value);
+                if (IsBigEndian)
+                    Array.Reverse(bytes);
+                BaseStream.Write(bytes);
+                InternalAlignBinary();
+                TokenIndex++;
+                return;
+            }
+            BaseStream.Write(win1252.GetBytes($"{name} = "));
+            //InternalWriteStringDirectValue(value.ToString("X16"));
+            BaseStream.Write(win1252.GetBytes(value.ToString("X16")));
             InternalWriteNewline();
             TokenIndex++;
         }
@@ -1363,6 +1384,10 @@ namespace BZNParser.Tokenizer
                             {
                                 // defected type is the same as the original, so lets apply it
                                 number = BitConverter.GetBytes(defect.TypeGarbage.Value).Take(TypeSize).ToArray();
+                            }
+                            else
+                            {
+                                // probably broke something
                             }
                         }
                     }

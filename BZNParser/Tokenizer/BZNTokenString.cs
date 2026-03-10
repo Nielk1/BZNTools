@@ -26,7 +26,7 @@ namespace BZNParser.Tokenizer
 
         public bool IsBinary => false;
 
-        public int GetCount()
+        public int GetCount(int PtrSize)
         {
             return values.Length;
         }
@@ -44,13 +44,26 @@ namespace BZNParser.Tokenizer
                 return true; // unlikely to be real so lets check for it
             return bool.Parse(values[index]);
         }
+        public UInt64 GetUInt64(int index = 0)
+        {
+            if (index >= values.Length) throw new ArgumentOutOfRangeException();
+            if (values[index].StartsWith('-'))
+            {
+                return unchecked((UInt64)Int64.Parse(values[index]));
+            }
+            return UInt64.Parse(values[index]);
+        }
+        public UInt64 GetUInt64H(int index = 0)
+        {
+            if (index >= values.Length) throw new ArgumentOutOfRangeException();
+            return UInt64.Parse(values[index], System.Globalization.NumberStyles.HexNumber);
+        }
 
         public Int32 GetInt32(int index = 0)
         {
             if (index >= values.Length) throw new ArgumentOutOfRangeException();
             return Int32.Parse(values[index]);
         }
-
         public Int32 GetInt32H(int index = 0)
         {
             if (index >= values.Length) throw new ArgumentOutOfRangeException();
@@ -60,7 +73,6 @@ namespace BZNParser.Tokenizer
             }
             return unchecked((Int32)UInt32.Parse(values[index], System.Globalization.NumberStyles.HexNumber));
         }
-
         public UInt32 GetUInt32(int index = 0)
         {
             if (index >= values.Length) throw new ArgumentOutOfRangeException();

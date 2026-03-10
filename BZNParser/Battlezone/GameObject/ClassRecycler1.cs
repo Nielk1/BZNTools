@@ -40,7 +40,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassRecycler1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WritePtr("undefptr", obj.undefptr); // dropObj
+            writer.WritePtr32("undefptr", obj.undefptr); // dropObj
 
             ClassProducer.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

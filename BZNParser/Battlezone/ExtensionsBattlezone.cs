@@ -23,6 +23,7 @@ namespace BZNParser.Battlezone
 
         public static string AddBinaryMessString(this IMalformable.MalformationManager Malformations, string name, string value)
         {
+            // TODO make this function usable without a malformation context for if we're not tracking malformations but still need to clean data
             string retVal = value;
             int idx = value.IndexOf('\0');
             if (idx > -1)
@@ -97,18 +98,26 @@ namespace BZNParser.Battlezone
             // untested
             writer.WriteVoidBytes(name, BitConverter.GetBytes(value).Reverse().ToArray()); // not sure if this is right, probably wrong for binary and god knows what it does to BigEndian
         }
-        public static uint ReadBZ1_Ptr(this BZNStreamReader reader, string name)
+        public static UInt64 ReadBZ1_Ptr(this BZNStreamReader reader, string name, int version)
         {
             IBZNToken tok;
-
             tok = reader.ReadToken();
             if (!tok.Validate(name, BinaryFieldType.DATA_PTR))
                 throw new Exception($"Failed to parse {name ?? "???"}/PTR");
-            return tok.GetUInt32H();
+            if (version < 2012)
+                return (UInt64)tok.GetUInt32H();
+            return tok.GetUInt64H();
         }
-        public static void WriteBZ1_Ptr(this BZNStreamWriter writer, string name, uint value)
+        public static void WriteBZ1_Ptr(this BZNStreamWriter writer, string name, UInt64 value, int version)
         {
-            writer.WritePtr(name, value);
+            if (version < 2012)
+            {
+                writer.WritePtr32(name, (UInt32)value);
+            }
+            else
+            {
+                writer.WritePtr64(name, value);
+            }
         }
 
         public static uint ReadCompressedNumberFromBinary(this BZNStreamReader reader)
@@ -546,11 +555,11 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
                 {
-                    writer.WritePtr("undefptr", value.where);
+                    writer.WritePtr32("undefptr", value.where);
                 }
                 else
                 {
-                    writer.WritePtr("where", value.where);
+                    writer.WritePtr32("where", value.where);
                 }
 
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)

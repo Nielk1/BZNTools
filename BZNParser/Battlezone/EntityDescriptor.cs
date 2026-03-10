@@ -22,7 +22,7 @@ namespace BZNParser.Battlezone
         public UInt32 team { get; set; }
         public string label { get; set; }
         public bool isUser { get; set; }
-        public UInt32 obj_addr { get; set; }
+        public UInt64 obj_addr { get; set; }
         public Matrix transform { get; set; }
 
         public Entity? gameObject { get; set; }
@@ -71,14 +71,14 @@ namespace BZNParser.Battlezone
                     throw new Exception("Failed to parse PrjID/ID");
                 //if (!tok.Validate("PrjID", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse PrjID/ID");
                 string PrjID = tok.GetString();
-                if (reader.Version == 1001)
-                {
+                //if (reader.Version == 1001)
+                //{
                     if (obj != null) obj.PrjID = PrjID = obj.Malformations.AddBinaryMessString("PrjID", PrjID);
-                }
-                else
-                {
-                    if (obj != null) obj.PrjID = PrjID;
-                }
+                //}
+                //else
+                //{
+                //    if (obj != null) obj.PrjID = PrjID;
+                //}
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -282,7 +282,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    UInt32 obj_addr = reader.ReadBZ1_Ptr("obj_addr");
+                    UInt64 obj_addr = reader.ReadBZ1_Ptr("obj_addr", reader.Version);
                     if (obj != null) obj.obj_addr = obj_addr;
                 }
             }
@@ -653,16 +653,16 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version < 1002)
                 {
-                    writer.WriteBZ1_PtrDepricated("obj_addr", obj_addr, raw: true); // string name unconfirmed
+                    writer.WriteBZ1_PtrDepricated("obj_addr", (UInt32)obj_addr, raw: true); // string name unconfirmed
                 }
                 else
                 {
-                    writer.WriteBZ1_PtrDepricated("obj_addr", obj_addr);
+                    writer.WriteBZ1_Ptr("obj_addr", obj_addr, writer.Version);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WritePtr("objAddr", obj_addr);
+                writer.WritePtr32("objAddr", (UInt32)obj_addr);
             }
 
             if (writer.Format == BZNFormat.Battlezone2)

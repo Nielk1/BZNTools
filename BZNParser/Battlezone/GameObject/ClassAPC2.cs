@@ -52,7 +52,7 @@ namespace BZNParser.Battlezone.GameObject
                 //tok.GetUInt32H();
                 if (obj != null)
                 {
-                    int count = tok.GetCount();
+                    int count = tok.GetCount(reader.Format == BZNFormat.Battlezone && reader.Version >= 2012 ? 8 : 4);
                     if (count > APC_MAX_SOLDIERS)
                         obj.Malformations.AddOvercount("ExternalSoldiers");
                     obj.ExternalSoldiers = new UInt32[Math.Max(APC_MAX_SOLDIERS, count)];

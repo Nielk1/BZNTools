@@ -32,7 +32,7 @@ namespace BZNParser.Tokenizer
             this.IsBigEndian = isBigEndian;
         }
         public bool IsBinary => true;
-        public int GetCount()
+        public int GetCount(int PtrSize)
         {
             switch(type)
             {
@@ -44,7 +44,7 @@ namespace BZNParser.Tokenizer
                 case BinaryFieldType.DATA_FLOAT: return data.Length / 4;
                 case BinaryFieldType.DATA_DOUBLE: throw new NotImplementedException();
                 case BinaryFieldType.DATA_ID: return data.Length / 4;
-                case BinaryFieldType.DATA_PTR: return data.Length / 4;
+                case BinaryFieldType.DATA_PTR: return data.Length / PtrSize;
                 case BinaryFieldType.DATA_VEC3D: throw new NotImplementedException();
                 case BinaryFieldType.DATA_VEC2D: throw new NotImplementedException();
                 case BinaryFieldType.DATA_MAT3DOLD: throw new NotImplementedException();
@@ -64,6 +64,13 @@ namespace BZNParser.Tokenizer
             if (IsBigEndian) return BitConverter.ToBoolean(data.Skip(index * sizeof(bool)).Take(sizeof(bool)).Reverse().ToArray(), 0);
             return BitConverter.ToBoolean(data, index * sizeof(bool));
         }
+        public UInt64 GetUInt64(int index = 0)
+        {
+            if (index >= data.Length / sizeof(UInt32)) throw new ArgumentOutOfRangeException();
+            if (IsBigEndian) return BitConverter.ToUInt64(data.Skip(index * sizeof(UInt64)).Take(sizeof(UInt64)).Reverse().ToArray(), 0);
+            return BitConverter.ToUInt64(data, index * sizeof(UInt64));
+        }
+        public UInt64 GetUInt64H(int index = 0) => GetUInt64(index);
 
         public Int32 GetInt32(int index = 0)
         {

@@ -20,7 +20,7 @@ namespace BZNParser.Battlezone.GameObject
         public UInt32 team { get { return preamble.team; } set { preamble.team = value; } }
         public string label { get { return preamble.label; } set { preamble.label = value; } }
         public bool isUser { get { return preamble.isUser; } set { preamble.isUser = value; } }
-        public UInt32 obj_addr { get { return preamble.obj_addr; } set { preamble.obj_addr = value; } }
+        public UInt64 obj_addr { get { return preamble.obj_addr; } set { preamble.obj_addr = value; } }
         public Matrix transform { get { return preamble.transform; } set { preamble.transform = value; } }
 
 

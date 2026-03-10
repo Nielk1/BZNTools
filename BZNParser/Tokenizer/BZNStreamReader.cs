@@ -524,7 +524,8 @@ namespace BZNParser.Tokenizer
 
         private void ProcessTokenForFloats(IBZNToken token, Dictionary<FloatTextFormat, uint> floatCounts)
         {
-            for (int i = 0; i < token.GetCount(); i++)
+            // TODO for now always assume 32bit, it will chew some garbage but it will do for now
+            for (int i = 0; i < token.GetCount(4); i++)
             {
                 if (token.GetSubCount(i) == 0)
                 {
@@ -555,6 +556,16 @@ namespace BZNParser.Tokenizer
 
         public Dictionary<int, StreamDefect> GetDefects()
         {
+            // check for discontinuity
+            long offset = 0;
+            for (int i = 0; i < Atlas.Count; i++)
+            {
+                AtlasData ad = Atlas[i];
+                if (offset != ad.Offset)
+                    throw new Exception("Atlas Damaged");
+                offset += ad.Length;
+            }
+
             // this is probably horribly inefficent but whatever
             return Atlas.Select((ad, index) => new { ad, index }).Where(x => x.ad.Defect != null).ToDictionary(x => x.index, x => x.ad.Defect!);
         }
@@ -585,6 +596,8 @@ namespace BZNParser.Tokenizer
         {
             if (filestream.Position >= filestream.Length) return null;
 
+            if (TokenIndex > Atlas.Count)
+                throw new Exception("Atlas Discontinuity"); // Discontinuity
             AtlasData ad = Atlas.Count >= TokenIndex ? new AtlasData() { Offset = BaseStream.Position } : Atlas[TokenIndex];
 
             for (; filestream.Position < filestream.Length; )
@@ -601,8 +614,8 @@ namespace BZNParser.Tokenizer
                     IBZNToken tok = ReadStringValueToken(filestream, rawLine);
                     ad.Length = filestream.Position - ad.Offset;
                     ad.IsBinary = false;
-                    if (Atlas.Count >= TokenIndex)
-                    Atlas.Add(ad);
+                    if (TokenIndex == Atlas.Count)
+                        Atlas.Add(ad);
                     TokenIndex++;
                     return tok;
                 }
@@ -838,7 +851,9 @@ namespace BZNParser.Tokenizer
         private IBZNToken? ReadBinaryToken(Stream filestream)
         {
             if (filestream.Position >= filestream.Length) return null;
-            
+
+            if (TokenIndex > Atlas.Count)
+                throw new Exception("Atlas Discontinuity"); // Discontinuity
             AtlasData ad = Atlas.Count >= TokenIndex ? new AtlasData() { Offset = BaseStream.Position } : Atlas[TokenIndex];
 
             byte[] number = new byte[4];
@@ -894,8 +909,8 @@ namespace BZNParser.Tokenizer
             {
                 ad.Defect_TypeGarbage = type;
             }
-            if (Atlas.Count >= TokenIndex)
-            Atlas.Add(ad);
+            if (TokenIndex == Atlas.Count)
+                Atlas.Add(ad);
             TokenIndex++;
             return tok;
         }

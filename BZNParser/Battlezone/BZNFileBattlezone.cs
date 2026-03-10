@@ -216,7 +216,7 @@ namespace BZNParser.Battlezone
 
         /// Mission DLL or internal class
         public string Mission { get; set; }
-        public UInt32 sObject { get; set; }
+        public UInt64 sObject { get; set; }
 
         // BZ1 lua mission state block
         public bool? bz1_luamission_started { get; set; }
@@ -640,7 +640,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    sObject = reader.ReadBZ1_Ptr("sObject");
+                    sObject = reader.ReadBZ1_Ptr("sObject", reader.Version);
                 }
             }
 
@@ -708,7 +708,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    sObject = reader.ReadBZ1_Ptr("sObject");
+                    sObject = reader.ReadBZ1_Ptr("sObject", reader.Version);
                 }
 
                 if (!reader.InBinary)
@@ -1083,9 +1083,12 @@ namespace BZNParser.Battlezone
             //DeHydrate(writer);
             writer.WriteSignedValues("size", Entities.Length);
 
+            int idx = 0;
             foreach (var entity in Entities)
             {
+                Console.WriteLine($"Writing entity [{idx}]");
                 entity.Write(this, writer, binary, save, preserveMalformations);
+                idx++;
             }
 
             //TailUnParse(writer);
@@ -1122,7 +1125,7 @@ namespace BZNParser.Battlezone
                 else
                     throw new InvalidCastException("Mission name was not in expected format");
 
-                writer.WriteBZ1_PtrDepricated("sObject", sObject);
+                writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
@@ -1131,11 +1134,11 @@ namespace BZNParser.Battlezone
                 // read the old sObject ptr, not sure what can be done with it
                 if (writer.Version < 1002)
                 {
-                    writer.WriteBZ1_PtrDepricated("sObject", sObject);
+                    writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("sObject", sObject);
+                    writer.WriteBZ1_Ptr("sObject", sObject, writer.Version);
                 }
             }
 
@@ -1172,11 +1175,11 @@ namespace BZNParser.Battlezone
                 // read the old sObject ptr, not sure what can be done with it
                 if (writer.Version < 1002)
                 {
-                    writer.WriteBZ1_PtrDepricated("sObject", sObject);
+                    writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("sObject", sObject);
+                    writer.WriteBZ1_Ptr("sObject", sObject, writer.Version);
                 }
 
                 writer.WriteValidation("UserProcess");

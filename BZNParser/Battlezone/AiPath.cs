@@ -178,7 +178,7 @@ namespace BZNParser.Battlezone
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version >= 2016)
                 {
                     // 2016
-                    writer.WritePtr("old_ptr", sObject.Value);
+                    writer.WritePtr32("old_ptr", sObject.Value);
                 }
                 else
                 {
@@ -190,7 +190,7 @@ namespace BZNParser.Battlezone
             else if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (sObject.HasValue)
-                    writer.WritePtr("sObject", sObject.Value);
+                    writer.WritePtr32("sObject", sObject.Value);
             }
 
             if (writer.Format == BZNFormat.BattlezoneN64)

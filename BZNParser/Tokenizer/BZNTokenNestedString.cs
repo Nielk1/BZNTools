@@ -16,7 +16,7 @@ namespace BZNParser.Tokenizer
             this.values = values;
         }
         public bool IsBinary => false;
-        public int GetCount()
+        public int GetCount(int PtrSize)
         {
             //throw new InvalidOperationException();
             return 1;
@@ -41,6 +41,8 @@ namespace BZNParser.Tokenizer
             throw new InvalidOperationException();
         }
 
+        public UInt64 GetUInt64(int index = 0) { throw new InvalidOperationException(); }
+        public UInt64 GetUInt64H(int index = 0) => GetUInt64(index);
         public Int32 GetInt32(int index = 0) { throw new InvalidOperationException(); }
         public Int32 GetInt32H(int index = 0) { return GetInt32(index); }
         public UInt32 GetUInt32(int index = 0) { throw new InvalidOperationException(); }

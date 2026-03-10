@@ -117,11 +117,11 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WritePtr("undefptr", path);
+                writer.WritePtr32("undefptr", path);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WritePtr("path", path);
+                writer.WritePtr32("path", path);
             }
 
             writer.WriteUnsignedValues("team", team);

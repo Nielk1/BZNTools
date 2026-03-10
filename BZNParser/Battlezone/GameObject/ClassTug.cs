@@ -103,11 +103,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Format == BZNFormat.Battlezone && writer.Version == 1045)
                 {
-                    writer.WritePtr("undefptr", obj.cargo); // dropoff
+                    writer.WritePtr32("undefptr", obj.cargo); // dropoff
                 }
                 else
                 {
-                    writer.WritePtr("undefptr", obj.cargo);
+                    writer.WritePtr32("undefptr", obj.cargo);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)

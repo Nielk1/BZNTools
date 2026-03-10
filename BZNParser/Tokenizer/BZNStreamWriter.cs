@@ -1356,12 +1356,13 @@ namespace BZNParser.Tokenizer
                     if (StreamDefects.ContainsKey(TokenIndex))
                     {
                         StreamDefect defect = StreamDefects[TokenIndex];
-                        if (defect.TypeGarbage.HasValue)
+                        if (TypeSize > 1 && defect.TypeGarbage.HasValue)
                         {
+                            // type size is big enough to have defects and we have one
                             if ((defect.TypeGarbage.Value & 0xff) == number[0])
                             {
                                 // defected type is the same as the original, so lets apply it
-                                number = BitConverter.GetBytes(defect.TypeGarbage.Value);
+                                number = BitConverter.GetBytes(defect.TypeGarbage.Value).Take(TypeSize).ToArray();
                             }
                         }
                     }

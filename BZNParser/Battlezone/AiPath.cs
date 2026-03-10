@@ -78,16 +78,16 @@ namespace BZNParser.Battlezone
             else if (reader.Format == BZNFormat.Battlezone2)
             {
                 // must figure out why this sometimes is missing
-                reader.Bookmark.Push();
+                reader.Bookmark.Mark();
                 tok = reader.ReadToken();
                 if (!tok.Validate("sObject", BinaryFieldType.DATA_PTR))
                 {
-                    reader.Bookmark.Pop();
+                    reader.Bookmark.RevertToBookmark();
                     //throw new Exception("Failed to parse sObject/PTR");
                 }
                 else
                 {
-                    reader.Bookmark.Discard();
+                    reader.Bookmark.Commit();
                     if (obj != null) obj.sObject = tok.GetUInt32H();
                 }
             }

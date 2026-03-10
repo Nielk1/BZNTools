@@ -453,12 +453,12 @@ namespace BZNParser.Battlezone
 
             if (reader.Format == BZNFormat.Battlezone && SaveType == SaveType.SAVE)
             {
-                reader.Bookmark.Push();
+                reader.Bookmark.Mark();
                 try
                 {
                     Malformations.Push(); // Create a new malformation context
                     Hydrate(reader);
-                    reader.Bookmark.Discard();
+                    reader.Bookmark.Commit();
                     Malformations.Pop(); // Merge the malformation context with the previous
                 }
                 catch
@@ -466,7 +466,7 @@ namespace BZNParser.Battlezone
                     Malformations.Discard(); // Discard the malformation context if we fail to parse
 
                     // don't bother making a new malformation context since we aren't going to try again if this fails
-                    reader.Bookmark.Pop();
+                    reader.Bookmark.RevertToBookmark();
                     SaveType = SaveType.BZN;
                     LongTermClassLabelLookupCache.Clear();
                     Hydrate(reader);
@@ -808,7 +808,7 @@ namespace BZNParser.Battlezone
                 // SatellitePanel
                 if (reader.Version >= 1125) // version 1169 failed to read this, might need a walk back for malformed
                 {
-                    reader.Bookmark.Push();
+                    reader.Bookmark.Mark();
 
                     // 1188 1192
                     tok = reader.ReadToken();
@@ -817,17 +817,17 @@ namespace BZNParser.Battlezone
                         if (tok.Validate("PadData", BinaryFieldType.DATA_VOID))
                         {
                             // SatellitePanel data is missing when it must exist, deal with damaged BZN?
-                            reader.Bookmark.Pop();
+                            reader.Bookmark.RevertToBookmark();
                         }
                         else
                         {
-                            reader.Bookmark.Discard();
+                            reader.Bookmark.Commit();
                             throw new Exception("Failed to parse hasEntered/BOOL");
                         }
                     }
                     else
                     {
-                        reader.Bookmark.Discard();
+                        reader.Bookmark.Commit();
                         for (int i = 0; i < 3/*MAX_WORLDS*/; i++)
                         {
                             tok = reader.ReadToken();

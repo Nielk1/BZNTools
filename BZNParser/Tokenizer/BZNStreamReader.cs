@@ -116,21 +116,22 @@ namespace BZNParser.Tokenizer
                 _reader = reader;
             }
 
-            public void Push()
+            public void Mark()
             {
                 _offsets.Push(_reader.BaseStream.Position);
             }
 
-            public void Pop()
+            public void RevertToBookmark()
             {
                 // use bookmark and remove it (return, we don't need it anymore)
                 if (_offsets.TryPop(out var pos))
                 {
                     _reader.BaseStream.Position = pos;
                     _reader.TokenIndex = GetTokenIndex(pos);
+                    }
                 }
             }
-            public void Peek()
+            public void RewindToBookmark()
             {
                 // use bookmark withoug removing it
                 if (_offsets.TryPeek(out var pos))
@@ -140,7 +141,7 @@ namespace BZNParser.Tokenizer
                 }
             }
 
-            public void Discard()
+            public void Commit()
             {
                 // keep the current position, so we don't need to do anything but remove the bookmark
                 _offsets.TryPop(out _);
@@ -602,7 +603,7 @@ namespace BZNParser.Tokenizer
                     ad.Length = filestream.Position - ad.Offset;
                     ad.IsBinary = false;
                     if (Atlas.Count >= TokenIndex)
-                        Atlas.Add(ad);
+                    Atlas.Add(ad);
                     TokenIndex++;
                     return tok;
                 }
@@ -895,7 +896,7 @@ namespace BZNParser.Tokenizer
                 ad.Defect_TypeGarbage = type;
             }
             if (Atlas.Count >= TokenIndex)
-                Atlas.Add(ad);
+            Atlas.Add(ad);
             TokenIndex++;
             return tok;
         }

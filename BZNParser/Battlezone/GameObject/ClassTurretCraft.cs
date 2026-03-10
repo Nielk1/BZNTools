@@ -49,7 +49,7 @@ namespace BZNParser.Battlezone.GameObject
                         {
                             for (; ; )
                             {
-                                reader.Bookmark.Push();
+                                reader.Bookmark.Mark();
                                 tok = reader.ReadToken();
                                 if (tok.Validate(null, BinaryFieldType.DATA_LONG)) // "powerHandle"
                                 {
@@ -58,7 +58,7 @@ namespace BZNParser.Battlezone.GameObject
                                 }
                                 else
                                 {
-                                    reader.Bookmark.Pop(); // jump back to before this item which was a non-LONG
+                                    reader.Bookmark.RevertToBookmark(); // jump back to before this item which was a non-LONG
 
                                     if (tok.Validate(null /*"illumination"*/, BinaryFieldType.DATA_FLOAT))
                                     {
@@ -74,7 +74,7 @@ namespace BZNParser.Battlezone.GameObject
                                         //if (possibleAbandonedFlag == 0 || possibleAbandonedFlag == 1)
                                         {
                                             // we must have eaten an abandoned flag prior, based on its value, so lets walk back to before it and stop holding it
-                                            reader.Bookmark.Pop();
+                                            reader.Bookmark.RevertToBookmark();
                                             powerHandles.Remove(powerHandles.Last());
                                             break;
                                         }
@@ -92,24 +92,24 @@ namespace BZNParser.Battlezone.GameObject
                                 }
                             }
                             for (int i = 0; i < powerHandles.Count; i++)
-                                reader.Bookmark.Discard(); // discard the bookmarks of the start of each powerHandle token
+                                reader.Bookmark.Commit(); // discard the bookmarks of the start of each powerHandle token
                         }
                         else
                         {
                             for (; ; )
                             {
                                 List<UInt32> PowerHandles = new List<UInt32>();
-                                reader.Bookmark.Push();
+                                reader.Bookmark.Mark();
                                 tok = reader.ReadToken();
                                 if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                                 {
-                                    reader.Bookmark.Discard();
+                                    reader.Bookmark.Commit();
                                     UInt32 powerHandle = tok.GetUInt32();
                                     powerHandles.Add(powerHandle);
                                 }
                                 else
                                 {
-                                    reader.Bookmark.Pop();
+                                    reader.Bookmark.RevertToBookmark();
                                     break;
                                 }
                             }
@@ -119,16 +119,16 @@ namespace BZNParser.Battlezone.GameObject
                     else
                     {
                         // we don't know how many taps there are without the ODF, so just try to read forever
-                        reader.Bookmark.Push();
+                        reader.Bookmark.Mark();
                         tok = reader.ReadToken();
                         if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                         {
                             if (obj != null) obj.powerHandles = Enumerable.Range(0, tok.GetCount()).Select(i => tok.GetUInt32(i)).ToArray();
-                            reader.Bookmark.Discard();
+                            reader.Bookmark.Commit();
                         }
                         else
                         {
-                            reader.Bookmark.Pop();
+                            reader.Bookmark.RevertToBookmark();
                         }
                     }
                 }
@@ -175,11 +175,11 @@ namespace BZNParser.Battlezone.GameObject
                     //if (*(this + 376))
                     if (!string.IsNullOrEmpty(saveClass))
                     {
-                        reader.Bookmark.Push();
+                        reader.Bookmark.Mark();
                         tok = reader.ReadToken();
                         if (tok.Validate("saveMatrix", BinaryFieldType.DATA_MAT3D))
                         {
-                            reader.Bookmark.Discard();
+                            reader.Bookmark.Commit();
                             Matrix saveMatrix = tok.GetMatrix();
                             if (obj != null)
                             {
@@ -190,7 +190,7 @@ namespace BZNParser.Battlezone.GameObject
                         else
                         {
                             //throw new Exception("Failed to parse saveMatrix/MAT3D"); // type not confirmed
-                            reader.Bookmark.Pop();
+                            reader.Bookmark.RevertToBookmark();
                             m_AlignsToObject = true;
                         }
 

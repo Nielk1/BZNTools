@@ -38,16 +38,16 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Version >= 1062)
             {
                 // we don't know how many taps there are without the ODF, so just try to read forever
-                reader.Bookmark.Push();
+                reader.Bookmark.Mark();
                 tok = reader.ReadToken();
                 if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                 {
                     obj.powerHandle = Enumerable.Range(0, tok.GetCount()).Select(i => tok.GetInt32(i)).ToArray();
-                    reader.Bookmark.Discard();
+                    reader.Bookmark.Commit();
                 }
                 else
                 {
-                    reader.Bookmark.Pop();
+                    reader.Bookmark.RevertToBookmark();
                 }
             }
 

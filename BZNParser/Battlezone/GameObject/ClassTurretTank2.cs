@@ -77,14 +77,14 @@ namespace BZNParser.Battlezone.GameObject
             {
                 bool m_Use13Aim = false; // we're assuming Use13Aim is impossible before 1109
 
-                reader.Bookmark.Push();
+                reader.Bookmark.Mark();
                 // Use13Aim might be true if we're >= 1109, so be prepared to walk back and try again
                 // if it is Use13Aim, we expect a bool first, if it's not we expect a float
 
                 tok = reader.ReadToken();
                 if (tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                 {
-                    reader.Bookmark.Pop();
+                    reader.Bookmark.RevertToBookmark();
 
                     if (reader.Version < 1109)
                     {
@@ -98,7 +98,7 @@ namespace BZNParser.Battlezone.GameObject
                 else
                 {
                     // walk back and try again
-                    reader.Bookmark.Pop();
+                    reader.Bookmark.RevertToBookmark();
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))

@@ -343,7 +343,7 @@ namespace BZNParser.Battlezone
             }
             
             // try every possible object
-            reader.Bookmark.Push();
+            reader.Bookmark.Mark();
                 
             List<(Entity Object, bool Expected, long Next, string Name)> Candidates = new List<(Entity Object, bool Expected, long Next, string Name)>();
 
@@ -364,10 +364,10 @@ namespace BZNParser.Battlezone
                         catch
                         {
                         }
-                    reader.Bookmark.Peek();
+                    reader.Bookmark.RewindToBookmark();
                 }
             }
-            reader.Bookmark.Pop();
+            reader.Bookmark.RevertToBookmark();
 
             if (!parent.LongTermClassLabelLookupCache.ContainsKey(obj.PrjID.ToLowerInvariant()))
                 parent.LongTermClassLabelLookupCache[obj.PrjID.ToLowerInvariant()] = new HashSet<string>(Candidates.Select(dr => dr.Name));
@@ -399,26 +399,26 @@ namespace BZNParser.Battlezone
         {
             if (countLeft == 0)
             {
-                reader.Bookmark.Push();
+                reader.Bookmark.Mark();
                 try
                 {
                     parent.TailParse(reader);
                 }
                 catch
                 {
-                    reader.Bookmark.Pop();
+                    reader.Bookmark.RevertToBookmark();
                     return false;
                 }
-                reader.Bookmark.Pop();
+                reader.Bookmark.RevertToBookmark();
                 return true;
             }
             else
             {
                 if (!reader.InBinary)
                 {
-                    reader.Bookmark.Push();
+                    reader.Bookmark.Mark();
                     IBZNToken tok = reader.ReadToken();
-                    reader.Bookmark.Pop();
+                    reader.Bookmark.RevertToBookmark();
                     if (!tok.IsValidationOnly() || !tok.Validate("GameObject", BinaryFieldType.DATA_UNKNOWN))
                     {
                         // next field isn't the start of a GameObject
@@ -428,24 +428,24 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    reader.Bookmark.Push();
+                    reader.Bookmark.Mark();
                     try
                     {
                         if (EntityDescriptor.Hydrate(parent, reader, countLeft, null, Hints: Hints))
                         {
-                            reader.Bookmark.Pop();
+                            reader.Bookmark.RevertToBookmark();
                             return true;
                         }
                         else
                         {
-                            reader.Bookmark.Pop();
+                            reader.Bookmark.RevertToBookmark();
                             return false;
                         }
                     }
                     catch
                     {
                         // next field isn't the start of a GameObject (since a shallow gameobject crashed)
-                        reader.Bookmark.Pop();
+                        reader.Bookmark.RevertToBookmark();
                         return false;
                     }
                 }

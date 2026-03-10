@@ -806,6 +806,7 @@ namespace BZNParser.Tokenizer
 
             byte[] number = new byte[4];
             uint type = 0;
+            uint typeClean = 0;
             if (TypeSize > 0)
             {
                 if (IsBigEndian)
@@ -818,11 +819,12 @@ namespace BZNParser.Tokenizer
                     filestream.Read(number, 0, TypeSize);
                     type = BitConverter.ToUInt32(number, 0); // for bz1 this is only 1 byte, n64 lacks type
                 }
-                type &= 0xff;
+                typeClean = type & 0xff;
             }
             else
             {
                 type = (uint)BinaryFieldType.DATA_UNKNOWN;
+                typeClean = type;
             }
             uint Size = 0;
             if (IsBigEndian)
@@ -848,7 +850,7 @@ namespace BZNParser.Tokenizer
                     filestream.ReadByte(); // deal with padding
             }
 
-            IBZNToken tok = new BZNTokenBinary((BinaryFieldType)type, data, IsBigEndian);
+            IBZNToken tok = new BZNTokenBinary((BinaryFieldType)typeClean, data, IsBigEndian) { rawType = type };
             ad.Length = filestream.Position - ad.Offset;
             ad.IsBinary = true;
             if (Atlas.Count >= TokenIndex)

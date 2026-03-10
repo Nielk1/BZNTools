@@ -16,7 +16,7 @@ namespace BZNParser.Tokenizer
         /// <summary>
         /// This is a one-liner token with an empty value, but is missing the space between the value and '=' as it was right trimmed.
         /// </summary>
-        public bool RightTrimmedOneLiner { get; set; }
+        public bool RightTrimmedOneLiner { get; set; } // TODO figure out how to show this nicer as this is a carrier defect if it doesn't equal type
 
         public BZNTokenString(string name, string[] values)
         {

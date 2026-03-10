@@ -21,6 +21,9 @@ namespace BZNParser.Tokenizer
         private byte[] data;
         private bool IsBigEndian;
 
+
+        public uint rawType { get; set; } // TODO figure out how to show this nicer as this is a carrier defect if it doesn't equal type
+
         public BZNTokenBinary(BinaryFieldType fieldType, byte[] data, bool isBigEndian)
         {
             // TODO: Complete member initialization

@@ -23,7 +23,7 @@ namespace BZNParser.Battlezone.GameObject
         public ClassTrackedVehicle(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTrackedVehicle? obj)
         {
-            IBZNToken tok;
+            //IBZNToken tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
             {

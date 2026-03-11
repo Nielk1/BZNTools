@@ -140,7 +140,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("tempBuilding", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse tempBuilding/BOOL");
-                if (obj != null) obj.tempBuilding = tok.GetBoolean();
+                tok.ReadBoolean(obj, x => x.tempBuilding);
             }
             else
             {

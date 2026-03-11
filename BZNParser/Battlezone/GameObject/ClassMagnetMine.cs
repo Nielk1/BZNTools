@@ -25,7 +25,7 @@ namespace BZNParser.Battlezone.GameObject
         public ClassMagnetMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMagnetMine? obj)
         {
-            IBZNToken tok;
+            //IBZNToken tok;
 
             //if (reader.Format == BZNFormat.Battlezone2)
             //{

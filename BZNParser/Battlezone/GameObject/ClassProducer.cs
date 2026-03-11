@@ -21,12 +21,12 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassProducer : ClassHoverCraft
     {
-        public float setAltitude { get; set; }
+        //public float setAltitude { get; set; }
         public float timeDeploy { get; set; }
         public float timeUndeploy { get; set; }
         public UInt32 undefptr2 { get; set; }
         //public byte[] state { get; set; }
-        public UInt32 state { get; set; }
+        //public UInt32 state { get; set; }
         //public UInt32 delayTimer { get; set; }
         public float delayTimer { get; set; }
         public float nextRepair { get; set; }

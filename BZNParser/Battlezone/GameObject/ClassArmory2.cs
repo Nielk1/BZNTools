@@ -40,7 +40,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (!tok.Validate("buildActive", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse buildActive/BOOL");
-            if (obj != null) obj.buildActive = tok.GetBoolean();
+            tok.ReadBoolean(obj, x => x.buildActive);
 
             tok = reader.ReadToken();
             if (!tok.Validate("buildCount", BinaryFieldType.DATA_LONG))
@@ -59,7 +59,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("buildStall", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse buildStall/BOOL");
-                if (obj != null) obj.buildStall = tok.GetBoolean();
+                tok.ReadBoolean(obj, x => x.buildStall);
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("buildRally", BinaryFieldType.DATA_VEC3D))

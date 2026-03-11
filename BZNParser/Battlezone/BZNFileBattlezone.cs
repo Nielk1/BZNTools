@@ -331,7 +331,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("binarySave", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse binarySave/BOOL");
-                    tok.ReadBoolean<BZNFileBattlezone, bool>(this, x => x.Binary);
+                    tok.ReadBoolean(this, x => x.Binary);
                     Console.WriteLine($"binarySave: {Binary}");
 
                     tok = reader.ReadToken();
@@ -348,7 +348,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate("binarySave", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse binarySave/BOOL");
-                tok.ReadBoolean<BZNFileBattlezone, bool>(this, x => x.Binary);
+                tok.ReadBoolean(this, x => x.Binary);
                 Console.WriteLine($"binarySave: {Binary}");
 
                 msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16, Malformations);
@@ -398,7 +398,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("missionSave", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse missionSave/BOOL");
-                    (_, bool missionSave) = tok.ReadBoolean<BZNFileBattlezone, SaveType>(this, x => x.SaveType, 0, x => x ? SaveType.BZN : SaveType.SAVE);
+                    (_, bool missionSave) = tok.ReadBoolean(this, x => x.SaveType, 0, x => x ? SaveType.BZN : SaveType.SAVE);
                     Console.WriteLine($"missionSave: {missionSave}");
                 }
             }
@@ -668,7 +668,7 @@ namespace BZNParser.Battlezone
                         tok = reader.ReadToken();
                         if (!tok.Validate("undefbool", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse undefbool/BOOL");
-                        bz1_luamission_started = tok.GetBoolean();
+                        tok.ReadBoolean(this, x => x.bz1_luamission_started);
                     }
                     else
                     {
@@ -763,7 +763,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate("exited", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse exited/UNKNOWN");
-                UserProcess_exited = tok.GetBoolean();
+                tok.ReadBoolean(this, x => x.UserProcess_exited);
             }
 
             // if reader.SaveType != 0

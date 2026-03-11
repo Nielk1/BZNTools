@@ -71,12 +71,7 @@ namespace BZNParser.Battlezone.GameObject
 
                         tok = reader.ReadToken();
                         if (!tok.Validate("undefbool", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse undefbool/BOOL");
-                        if (obj != null)
-                        {
-                            obj.wantTurret = tok.GetBoolean(); // wantTurret
-                            // TODO change malformations to use a unique key differnt from the field name, and include the index toos
-                            MalformationExtensions.CheckMalformationsBool(tok, "undefbool", obj.Malformations);
-                        }
+                        tok.ReadBoolean(obj, x => x.wantTurret); // wantTurret
                     }
                 }
             }

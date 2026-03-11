@@ -64,12 +64,12 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("lockMode", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse lockMode/BOOL");
-                    if (obj != null) obj.m_bLockMode = tok.GetBoolean(); // lockMode
+                    tok.ReadBoolean(obj, x => x.m_bLockMode); // lockMode
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("lockModeDeployed", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse lockModeDeployed/BOOL");
-                    if (obj != null) obj.m_bLockModeDeployed = tok.GetBoolean(); // lockModeDeployed
+                    tok.ReadBoolean(obj, x => x.m_bLockModeDeployed); // lockModeDeployed
                 }
                 else
                 {

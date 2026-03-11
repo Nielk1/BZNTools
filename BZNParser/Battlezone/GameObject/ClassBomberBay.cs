@@ -52,7 +52,6 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassBomberBay obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            IBZNToken tok;
             if (writer.Version >= 1131)
             {
                 writer.WriteSignedValues("Handle", obj.m_MyBomber);

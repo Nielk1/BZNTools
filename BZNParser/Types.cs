@@ -365,6 +365,7 @@ namespace BZNParser
 
     public static class MalformationExtensions
     {
+        [Obsolete]
         public static void CheckMalformationsMatrix(this IBZNToken tok, IMalformable.MalformationManager malformations, FloatTextFormat floatFormat, int index = 0)
         {
             if (tok.IsBinary)
@@ -388,6 +389,7 @@ namespace BZNParser
                 subTok = tok.GetSubToken(index, 11); if (subTok.GetRawName() != @"  posit_z") { malformations.AddIncorrectName(@"  posit_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_z", malformations, floatFormat);
             }
         }
+        [Obsolete]
         public static void CheckMalformationsEuler(this IBZNToken tok, Euler euler, FloatTextFormat floatFormat, int index = 0)
         {
             if (tok.IsBinary)
@@ -409,6 +411,7 @@ namespace BZNParser
             }
         }
 
+        [Obsolete]
         public static void CheckMalformationsVector2D(this IBZNToken tok, IMalformable.MalformationManager malformations, FloatTextFormat floatFormat, int index = 0)
         {
             if (tok.IsBinary)
@@ -423,6 +426,7 @@ namespace BZNParser
             }
         }
 
+        [Obsolete]
         public static void CheckMalformationsVector3D(this IBZNToken tok, IMalformable.MalformationManager malformations, FloatTextFormat floatFormat, int index = 0)
         {
             if (tok.IsBinary)
@@ -438,6 +442,7 @@ namespace BZNParser
             }
         }
 
+        [Obsolete]
         public static void CheckMalformationsSingle(this IBZNToken tok, string name, IMalformable.MalformationManager malformations, FloatTextFormat floatFormat, int index = 0)
         {
             if (tok.IsBinary)
@@ -450,6 +455,7 @@ namespace BZNParser
                     malformations.AddIncorrectTextParse(name, tok.GetString(index));
             }
         }
+        [Obsolete]
         public static void CheckMalformationsBool(this IBZNToken tok, string name, IMalformable.MalformationManager malformations, int index = 0)
         {
             if (tok.IsBinary)
@@ -463,6 +469,7 @@ namespace BZNParser
             }
         }
 
+        [Obsolete]
         public static string CorrectName(this IMalformable.MalformationManager malformations, bool preserveMalformations, string name)
         {
             if (preserveMalformations)

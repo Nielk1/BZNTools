@@ -1,4 +1,5 @@
-﻿using BZNParser.Tokenizer;
+﻿using BZNParser.Battlezone.GameObject;
+using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,12 +81,12 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (!tok.Validate("interesting", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse interesting/BOOL");
-            if (obj != null) obj.interesting = tok.GetBoolean();
+            tok.ReadBoolean(obj, x => x.interesting);
 
             tok = reader.ReadToken();
             if (!tok.Validate("inside", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse inside/BOOL");
-            if (obj != null) obj.inside = tok.GetBoolean();
+            tok.ReadBoolean(obj, x => x.inside);
 
             tok = reader.ReadToken();
             if (!tok.Validate("value", BinaryFieldType.DATA_LONG))

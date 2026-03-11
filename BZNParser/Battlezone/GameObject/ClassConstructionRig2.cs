@@ -35,12 +35,12 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("buildQueued", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildQueued/BOOL");
-                if (obj != null) obj.buildQueued = tok.GetBoolean();
+                tok.ReadBoolean(obj, x => x.buildQueued);
             }
 
             tok = reader.ReadToken();
             if (!tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
-            if (obj != null) obj.buildActive = tok.GetBoolean();
+            tok.ReadBoolean(obj, x => x.buildActive);
 
             tok = reader.ReadToken();
             if (!tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildTime/FLOAT");

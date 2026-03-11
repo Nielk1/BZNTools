@@ -22,8 +22,8 @@ namespace BZNParser.Battlezone.GameObject
     {
         public float scrapTimer { get; set; }
         public bool animStart { get; set; }
-        public string saveLabel { get; set; }
-        public string saveName { get; set; }
+        //public string saveLabel { get; set; }
+        //public string saveName { get; set; }
 
         public ClassExtractor(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassExtractor? obj)
@@ -64,7 +64,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("animStart", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse animStart/BOOL");
-                if (obj != null) obj.animStart = tok.GetBoolean();
+                tok.ReadBoolean(obj, x => x.animStart);
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);

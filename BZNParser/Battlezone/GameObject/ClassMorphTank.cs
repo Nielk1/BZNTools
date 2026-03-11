@@ -23,7 +23,7 @@ namespace BZNParser.Battlezone.GameObject
         public ClassMorphTank(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMorphTank? obj)
         {
-            IBZNToken tok;
+            //IBZNToken tok;
 
             //tok = reader.ReadToken();
             //if (!tok.Validate("soldierCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse soldierCount/LONG");

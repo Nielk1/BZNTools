@@ -15,9 +15,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassGameObject : Entity
     {
         public float illumination { get; set; }
-        public Vector3D pos { get; set; }
+        //public Vector3D pos { get; set; }
         public Euler euler { get; set; }
-        public UInt32 seqNo { get; set; }
+        //public UInt32 seqNo { get; set; }
         public string name { get; set; }
         public byte saveFlags { get; set; }
         public bool isObjective { get; set; }
@@ -162,7 +162,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("isObjective", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isObjective/BOOL");
-                    if (obj != null) obj.isObjective = tok.GetBoolean();
+                    tok.ReadBoolean(obj, x => x.isObjective);
                 }
                 else
                 {
@@ -173,7 +173,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("isSelected", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isSelected/BOOL");
-                    if (obj != null) obj.isSelected = tok.GetBoolean();
+                    tok.ReadBoolean(obj, x => x.isSelected);
                 }
                 else
                 {
@@ -307,7 +307,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("isCritical", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isCritical/BOOL");
-                    if (obj != null) obj.isCritical = tok.GetBoolean();
+                    tok.ReadBoolean(obj, x => x.isCritical);
                 }
             }
 
@@ -330,7 +330,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("isObjective", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isObjective/BOOL");
-                if (obj != null) obj.isObjective = tok.GetBoolean();
+                tok.ReadBoolean(obj, x => x.isObjective);
 
                 // I seriously don't understand why this is a thing, it must be wrong, but this is where we get into BZ98R or 1.5 (unclear)
                 // code says it should always be read in???
@@ -338,7 +338,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("isSelected", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isSelected/BOOL");
-                    if (obj != null) obj.isSelected = tok.GetBoolean();
+                    tok.ReadBoolean(obj, x => x.isSelected);
                 }
 
                 tok = reader.ReadToken();
@@ -656,7 +656,7 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (!tok.Validate("aiProcess", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
-                    if (obj != null) obj.aiProcess = tok.GetBoolean();
+                    tok.ReadBoolean(obj, x => x.aiProcess);
                 }
                 else
                 {
@@ -689,14 +689,14 @@ namespace BZNParser.Battlezone.GameObject
                         //if (!tok.Validate("dropoff", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
                         //if (obj != null) obj.aiProcess = tok.GetUInt32H() != 0;
                         if (!tok.Validate("aiProcess", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
-                        if (obj != null) obj.aiProcess = tok.GetBoolean();
+                        tok.ReadBoolean(obj, x => x.aiProcess);
                     }
                     else if (reader.Format == BZNFormat.Battlezone && (reader.Version == 1001))
                     {
                         tok = reader.ReadToken();
                         // this one makes little sense, need to confirm it on binary as we dealt with it only on an ASCII 1001 so far
                         if (!tok.Validate("undefptr", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
-                        if (obj != null) obj.aiProcess = tok.GetBoolean();
+                        tok.ReadBoolean(obj, x => x.aiProcess);
                     }
                     else
                     {
@@ -704,7 +704,7 @@ namespace BZNParser.Battlezone.GameObject
                         {
                             tok = reader.ReadToken();
                             if (!tok.Validate("aiProcess", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
-                            if (obj != null) obj.aiProcess = tok.GetBoolean();
+                            tok.ReadBoolean(obj, x => x.aiProcess);
                         }
                     }
                 }
@@ -724,7 +724,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("isCargo", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isCargo/BOOL");
-                    if (obj != null) obj.isCargo = tok.GetBoolean();
+                    tok.ReadBoolean(obj, x => x.isCargo);
                 }
             }
             else if (reader.Format == BZNFormat.Battlezone2)
@@ -733,7 +733,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("isCargo", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isCargo/BOOL");
-                    if (obj != null) obj.isCargo = tok.GetBoolean();
+                    tok.ReadBoolean(obj, x => x.isCargo);
                 }
                 else
                 {

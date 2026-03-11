@@ -20,7 +20,7 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassNavBeacon : ClassGameObject
     {
-        public string name { get; set; }
+        //public string name { get; set; }
         public int navSlot { get; set; }
 
         public ClassNavBeacon(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }

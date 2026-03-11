@@ -54,6 +54,7 @@ public static class MalformationExtensions
     /// malformation entry for identification or debugging purposes.</param>
     /// <param name="tok">The <see cref="IBZNToken"/> associated with the extra field malformation. This token typically represents
     /// the source or location of the malformation.</param>
+    [Obsolete]
     public static void AddExtraField(this MalformationManager manager, string context, IBZNToken tok) =>
         manager.Add(Malformation.EXTRA_FIELD, $"EXTRA_FIELD:{context}", tok);
 
@@ -63,6 +64,7 @@ public static class MalformationExtensions
     /// <param name="manager">The <see cref="MalformationManager"/> to which the misinterpretation will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field that was misinterpreted. Cannot be <c>null</c> or empty.</param>
     /// <param name="interpretedAs">The name of the field that received the value in error. Cannot be <c>null</c> or empty.</param>
+    [Obsolete]
     public static void AddMisinterpretation(this MalformationManager manager, string fieldName, string interpretedAs) =>
          manager.Add(Malformation.MISINTERPRET, fieldName, interpretedAs);
 
@@ -74,6 +76,7 @@ public static class MalformationExtensions
     /// </remarks>
     /// <param name="manager">The <see cref="MalformationManager"/> to which the overcount malformation will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field associated with the overcount malformation. Cannot be <c>null</c> or empty.</param>
+    [Obsolete]
     public static void AddOvercount(this MalformationManager manager, string fieldName) =>
         manager.Add(Malformation.OVERCOUNT, fieldName);
 
@@ -85,6 +88,7 @@ public static class MalformationExtensions
     /// </remarks>
     /// <param name="manager">The <see cref="MalformationManager"/> to which the malformation entry will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field that is not implemented. Cannot be <c>null</c> or empty.</param>
+    [Obsolete]
     public static void AddNotImplemented(this MalformationManager manager, string fieldName) =>
         manager.Add(Malformation.NOT_IMPLEMENTED, fieldName);
 
@@ -97,6 +101,7 @@ public static class MalformationExtensions
     /// <param name="manager">The <see cref="MalformationManager"/> instance to which the incorrect entry will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field that contains the incorrect value. Cannot be <c>null</c> or empty.</param>
     /// <param name="incorrectValue">The value that is considered incorrect for the specified field. Can be <c>null</c> if the field's incorrect state is due to a missing or invalid value.</param>
+    [Obsolete]
     public static void AddIncorrect(this MalformationManager manager, string fieldName, object incorrectValue) =>
         manager.Add(Malformation.INCORRECT, fieldName, incorrectValue);
 
@@ -111,15 +116,19 @@ public static class MalformationExtensions
     /// <param name="manager">The <see cref="MalformationManager"/> instance to which the incorrect entry will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field that contains the incorrect value. Cannot be <c>null</c> or empty.</param>
     /// <param name="length">The length of the string after padding.</param>
+    [Obsolete]
     public static void AddStringPad(this MalformationManager manager, string filedName, int length) =>
         manager.Add(Malformation.STRING_PAD, filedName, length);
 
 
+    [Obsolete]
     public static void AddFloatFormat(this MalformationManager manager, FloatTextFormat formatUsed) =>//, FloatTextFormat formatExpected) =>
         manager.Add(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT", formatUsed);
 
+    [Obsolete]
     public static void AddRightTrimmed(this MalformationManager manager, string filedName) =>
         manager.Add(Malformation.RIGHT_TRIM, filedName);
+    [Obsolete]
     public static FloatTextFormat? GetFloatTextFormat(this MalformationManager manager)
     {
         var mals = manager.GetMalformations(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT");
@@ -127,6 +136,12 @@ public static class MalformationExtensions
             return (FloatTextFormat)mals[0].Fields[0];
         return null;
     }
+
+
+
+
+
+
 
 
 

@@ -83,7 +83,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("DeployOnLanding", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse DeployOnLanding/BOOL");
-                if (obj != null) obj.DeployOnLanding = tok.GetBoolean(); // DeployOnLanding
+                tok.ReadBoolean(obj, x => x.DeployOnLanding); // DeployOnLanding
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("undeployTimeout", BinaryFieldType.DATA_LONG))

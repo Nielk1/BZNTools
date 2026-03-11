@@ -46,7 +46,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("isIn", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isIn/BOOL");
-                if (obj != null) obj.isIn = tok.GetBoolean();
+                tok.ReadBoolean(obj, x => x.isIn);
             }
 
             ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);

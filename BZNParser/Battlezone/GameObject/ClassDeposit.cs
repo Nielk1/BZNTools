@@ -23,7 +23,7 @@ namespace BZNParser.Battlezone.GameObject
         public ClassDeposit(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeposit? obj)
         {
-            IBZNToken tok;
+            //IBZNToken tok;
 
             //if (reader.Format == BZNFormat.Battlezone2 && reader.Version > 1123)
             //{

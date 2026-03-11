@@ -17,8 +17,8 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassArtillery : ClassTurretTank2
     {
         public float heightDeploy { get; set; }
-        public float deployTimer { get; set; }
-        public float prevYaw { get; set; }
+        //public float deployTimer { get; set; }
+        //public float prevYaw { get; set; }
 
         public ClassArtillery(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassArtillery? obj)

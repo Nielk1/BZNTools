@@ -256,7 +256,7 @@ namespace BZNParser.Battlezone
                     {
                         if (!tok.Validate("isUser", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse isUser/BOOL");
-                        if (obj != null) obj.isUser = tok.GetBoolean();
+                        tok.ReadBoolean(obj, x => x.isUser);
                     }
                 }
                 //else{}

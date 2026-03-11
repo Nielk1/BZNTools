@@ -20,7 +20,7 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassDummy : ClassGameObject
     {
-        public string name { get; set; }
+        //public string name { get; set; }
         public ClassDummy(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDummy? obj)

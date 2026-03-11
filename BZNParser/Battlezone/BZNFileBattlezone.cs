@@ -209,7 +209,7 @@ namespace BZNParser.Battlezone
         /// <summary>
         /// Version this file was loaded from
         /// </summary>
-        public UInt32 Version { get; private set; }
+        public Int32 Version { get; private set; }
         public bool Binary { get; private set; }
         public SaveType SaveType { get; private set; }
 
@@ -244,6 +244,11 @@ namespace BZNParser.Battlezone
 
         public AreaOfInterest[] AOIs { get; set; }
         public AiPath[] AiPaths { get; set; }
+
+
+
+        public Vector2D? ExtraVec2D { get; set; }
+
 
 
         internal Dictionary<string, HashSet<string>> LongTermClassLabelLookupCache;
@@ -304,13 +309,13 @@ namespace BZNParser.Battlezone
             if (reader.Format != BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                Version = tok.GetUInt32();
+                Version = tok.GetInt32();
                 Console.WriteLine($"Version: {Version}"); // don't bother validating first field maybe?
                 if (!tok.IsBinary)
                 {
                     string fieldName = (tok as BZNTokenString).Name;
                     if (fieldName != "version")
-                        Malformations.AddIncorrectName<BZNFileBattlezone, UInt32>(x => x.Version, fieldName);
+                        Malformations.AddIncorrectName<BZNFileBattlezone, Int32>(x => x.Version, fieldName);
                 }
             }
 
@@ -324,33 +329,26 @@ namespace BZNParser.Battlezone
                 SaveType = (SaveType)tok.GetUInt32();
             }
 
-            if (reader.Format == BZNFormat.Battlezone)
-            {
-                if (reader.Version > 1022)
-                {
-                    tok = reader.ReadToken();
-                    if (!tok.Validate("binarySave", BinaryFieldType.DATA_BOOL))
-                        throw new Exception("Failed to parse binarySave/BOOL");
-                    tok.ReadBoolean(this, x => x.Binary);
-                    Console.WriteLine($"binarySave: {Binary}");
-
-                    tok = reader.ReadToken();
-                    if (!tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
-                        throw new Exception("Failed to parse msn_filename/CHAR");
-                    //msn_filename = tok.GetString();
-                    msn_filename = Malformations.AddBinaryMessString("msn_filename", tok.GetString());
-                    Console.WriteLine($"msn_filename: \"{msn_filename}\"");
-                }
-            }
-
-            if (reader.Format == BZNFormat.Battlezone2)
+            if ((reader.Format == BZNFormat.Battlezone && reader.Version > 1022) || reader.Format == BZNFormat.Battlezone2)
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("binarySave", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse binarySave/BOOL");
                 tok.ReadBoolean(this, x => x.Binary);
                 Console.WriteLine($"binarySave: {Binary}");
+            }
 
+            if (reader.Format == BZNFormat.Battlezone && reader.Version > 1022)
+            {
+                tok = reader.ReadToken();
+                if (!tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
+                    throw new Exception("Failed to parse msn_filename/CHAR");
+                //msn_filename = tok.GetString();
+                msn_filename = Malformations.AddBinaryMessString("msn_filename", tok.GetString());
+                Console.WriteLine($"msn_filename: \"{msn_filename}\"");
+            }
+            if (reader.Format == BZNFormat.Battlezone2)
+            {
                 msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16, Malformations);
                 Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
@@ -364,7 +362,7 @@ namespace BZNParser.Battlezone
                 seq_count = tok.GetUInt32();
                 Console.WriteLine($"seq_count: {seq_count}");
             }
-            else if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.Battlezone2)
+            else
             {
                 // Why does SeqCount exist if there's a GameObject counter too?
                 // It appears to be the next seqno so we can calculate it for BZN64 via MAX+1.
@@ -373,15 +371,14 @@ namespace BZNParser.Battlezone
                     throw new Exception("Failed to parse seq_count/LONG");
                 seq_count = tok.GetUInt32();
                 Console.WriteLine($"seq_count: {seq_count}");
-
-                if (reader.Format == BZNFormat.Battlezone2)
-                {
-                    tok = reader.ReadToken();
-                    if (!tok.Validate("saveType", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse saveType/LONG");
-                    Int32 saveType2 = tok.GetInt32();
-                    Console.WriteLine($"saveType (redundant?): {saveType2}"); // maybe not if the first one is missing
-                }
+            }
+            if (reader.Format == BZNFormat.Battlezone2)
+            {
+                tok = reader.ReadToken();
+                if (!tok.Validate("saveType", BinaryFieldType.DATA_LONG))
+                    throw new Exception("Failed to parse saveType/LONG");
+                Int32 saveType2 = tok.GetInt32();
+                Console.WriteLine($"saveType (redundant?): {saveType2}"); // maybe not if the first one is missing
             }
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
@@ -539,7 +536,7 @@ namespace BZNParser.Battlezone
 
                 if (ExpectedFloatFormat != reader.FloatFormat)
                 {
-                    Malformations.AddFloatFormat(reader.FloatFormat);//, ExpectedFloatFormat);
+                    Malformations.SetFloatTextFormat(reader.FloatFormat);//, ExpectedFloatFormat);
                 }
             }
         }
@@ -917,10 +914,10 @@ namespace BZNParser.Battlezone
                         {
                             throw new Exception("Tokens left after last known token");
                         }
-                        Vector2D point = tok.GetVector2D();
-                        if (point.X != 0 || point.Z != 0)
+                        ExtraVec2D = tok.GetVector2D();
+                        if (ExtraVec2D.X != 0 || ExtraVec2D.Z != 0)
                             throw new Exception("Tokens left after last known token");
-                        Malformations.AddExtraField("FILE_END", tok);
+                        Malformations.SetExtraField<BZNFileBattlezone, Vector2D>(x => ExtraVec2D);
                     }
                 }
             }
@@ -935,32 +932,36 @@ namespace BZNParser.Battlezone
 
         public void Write(BZNStreamWriter writer, bool binary = true, bool save = false, bool preserveMalformations = false)
         {
-            // keep the float format if its non-standard
             if (preserveMalformations)
             {
+                // keep non-standard float format if present
                 FloatTextFormat? floatTextFormat = Malformations.GetFloatTextFormat();
                 if (floatTextFormat != null)
-                {
                     writer.FloatFormat = floatTextFormat.Value;
-                }
 
+                // change to non-standard line-endings if present
                 string? newLine = Malformations.GetLineEnding();
                 if (newLine != null)
-                {
                     writer.NewLine = newLine;
-                }
             }
 
             if (writer.Format != BZNFormat.BattlezoneN64)
             {
-                var mal = Malformations.GetMalformations(Malformation.INCORRECT_NAME, "version");
-                if (preserveMalformations && mal.Length > 0)
+                if (Version != writer.Version)
                 {
-                    writer.WriteSignedValues((string)mal[0].Fields[0], writer.Version);
+                    // writer version is different, so we ignore malformations
+                    writer.WriteSignedValues("version", writer.Version);
                 }
                 else
                 {
-                    writer.WriteSignedValues("version", writer.Version);
+                    string name = "version";
+                    if (preserveMalformations)
+                    {
+                        (bool found, string? value) = Malformations.GetIncorrectName<BZNFileBattlezone, Int32>(x => x.Version);
+                        if (found && value != null)
+                            name = value;
+                    }
+                    writer.WriteSignedValues(name, Version);
                 }
             }
 
@@ -970,24 +971,28 @@ namespace BZNParser.Battlezone
                 writer.WriteUnsignedValues("saveType", (UInt32)SaveType); // only in ASCII format in our testing
             }
 
-            if (writer.Format == BZNFormat.Battlezone)
+            if ((writer.Format == BZNFormat.Battlezone && writer.Version > 1022) || writer.Format == BZNFormat.Battlezone2)
             {
-                if (writer.Version > 1022)
+                if (binary != Binary)
+                {
+                    writer.WriteBooleans("binarySave", null, binary);
+                    if (binary)
+                        writer.SetBinary();
+                }
+                else
                 {
                     writer.WriteBooleans("binarySave", preserveMalformations ? Malformations : null, binary);
                     if (binary)
                         writer.SetBinary();
-
-                    writer.WriteChars("msn_filename", msn_filename, Malformations);
                 }
             }
 
+            if (writer.Format == BZNFormat.Battlezone && writer.Version > 1022)
+            {
+                writer.WriteChars("msn_filename", msn_filename, Malformations);
+            }
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteBooleans("binarySave", preserveMalformations ? Malformations : null, binary);
-                if (binary)
-                    writer.SetBinary();
-
                 writer.WriteSizedString_BZ2_1145("msn_filename", 16, msn_filename, Malformations);
             }
 
@@ -996,7 +1001,7 @@ namespace BZNParser.Battlezone
             {
                 writer.WriteUnsignedValues("seq_count", seq_count);
             }
-            else if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.Battlezone2)
+            else
             {
                 /*if (writer.InBinary)
                 {
@@ -1007,12 +1012,11 @@ namespace BZNParser.Battlezone
                     writer.WriteUnsignedValues("seq_count", seq_count);
                 }*/
                 writer.WriteUnsignedValues("seq_count", seq_count);
-
-                if (writer.Format == BZNFormat.Battlezone2)
-                {
-                    // duplicate SaveType?
-                    writer.WriteSignedValues("saveType", (Int32)SaveType);
-                }
+            }
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                // this these save types don't match the game aborts the load
+                writer.WriteUnsignedValues("saveType", (UInt32)SaveType);
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
@@ -1223,6 +1227,10 @@ namespace BZNParser.Battlezone
             {
                 AiPaths[i].Write(this, writer, binary, save, preserveMalformations);
             }
+
+            // maybe we should just null check this instead?
+            if (preserveMalformations && Malformations.HasExtraField<BZNFileBattlezone, Vector2D>(x => ExtraVec2D))
+                writer.WriteVector2Ds(null, preserveMalformations, ExtraVec2D);
         }
     }
 }

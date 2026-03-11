@@ -69,7 +69,7 @@ namespace BZNParser.Battlezone.GameObject
             if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
                 throw new Exception("Failed to parse state/VOID");
             //state = tok.GetBytes(0, 4); // probably need to reverse for n64
-            if (obj != null) obj.state = tok.GetUInt32HR(); // probably need to reverse for n64
+            if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // probably need to reverse for n64
 
             tok = reader.ReadToken();
             if (!tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
@@ -148,7 +148,7 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             writer.WriteBZ1_Ptr("undefptr", obj.undefptr2);
-            writer.WriteVoidBytes("state", obj.state);
+            writer.WriteVoidBytes("state", (UInt32)obj.state);
             writer.WriteFloats("delayTimer", preserveMalformations ? obj.Malformations : null, obj.delayTimer);
             writer.WriteFloats("nextRepair", preserveMalformations ? obj.Malformations : null, obj.nextRepair);
 

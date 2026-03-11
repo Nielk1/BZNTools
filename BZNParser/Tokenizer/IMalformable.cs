@@ -43,20 +43,7 @@ public static class MalformationExtensions
         };
     }*/
 
-    /// <summary>
-    /// Adds an extra field malformation entry to the specified <see cref="MalformationManager"/>.
-    /// </summary>
-    /// <remarks>
-    /// This field has no rules that make it appear, it just doesn't belong and should never have been there.
-    /// </remarks>
-    /// <param name="manager">The <see cref="MalformationManager"/> to which the extra field malformation will be added.</param>
-    /// <param name="context">A string providing context or additional information about the extra field. This value is included in the
-    /// malformation entry for identification or debugging purposes.</param>
-    /// <param name="tok">The <see cref="IBZNToken"/> associated with the extra field malformation. This token typically represents
-    /// the source or location of the malformation.</param>
-    [Obsolete]
-    public static void AddExtraField(this MalformationManager manager, string context, IBZNToken tok) =>
-        manager.Add(Malformation.EXTRA_FIELD, $"EXTRA_FIELD:{context}", tok);
+
 
     /// <summary>
     /// Adds a misinterpretation entry for the specified field to the <see cref="MalformationManager"/>.
@@ -122,20 +109,9 @@ public static class MalformationExtensions
 
 
     [Obsolete]
-    public static void AddFloatFormat(this MalformationManager manager, FloatTextFormat formatUsed) =>//, FloatTextFormat formatExpected) =>
-        manager.Add(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT", formatUsed);
-
-    [Obsolete]
     public static void AddRightTrimmed(this MalformationManager manager, string filedName) =>
         manager.Add(Malformation.RIGHT_TRIM, filedName);
-    [Obsolete]
-    public static FloatTextFormat? GetFloatTextFormat(this MalformationManager manager)
-    {
-        var mals = manager.GetMalformations(Malformation.FLOAT_FORMAT, "ALL:FLOAT_TEXT");
-        if (mals.Length > 0)
-            return (FloatTextFormat)mals[0].Fields[0];
-        return null;
-    }
+
 
 
 
@@ -149,9 +125,53 @@ public static class MalformationExtensions
     public static void AddIncorrectTextParse<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int? index, string originalText) where T : IMalformable =>
         manager.Add(property, index, Malformation.INCORRECT_TEXT, originalText);
 
+
+
+    #region INCORRECT_NAME
+    public static (bool, string?) GetIncorrectName<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, null, Malformation.INCORRECT_NAME);
+            if (mals.Length > 0)
+                return (true, (string)mals[0].Fields[0]);
+        }
+        return (false, null);
+    }
+
     public static void AddIncorrectName<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, string badName) where T : IMalformable =>
         manager.Add<T, TProp>(property, null, Malformation.INCORRECT_NAME, badName);
+    #endregion INCORRECT_NAME
 
+    #region EXTRA_FIELD
+    public static bool HasExtraField<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property) where T : IMalformable
+    {
+        if (property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, null, Malformation.EXTRA_FIELD);
+            if (mals.Length > 0)
+                return true;
+        }
+        return false;
+    }
+    public static void SetExtraField<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property) where T : IMalformable =>
+        manager.Add<T, TProp>(property, null, Malformation.EXTRA_FIELD);
+    #endregion EXTRA_FIELD
+
+    #region FLOAT_FORMAT
+    public static FloatTextFormat? GetFloatTextFormat(this MalformationManager manager)
+    {
+        var mals = manager.GetMalformations(Malformation.FLOAT_FORMAT);
+        if (mals.Length > 0)
+            return (FloatTextFormat)mals[0].Fields[0];
+        return null;
+    }
+
+    public static void SetFloatTextFormat(this MalformationManager manager, FloatTextFormat formatUsed) =>
+        manager.Add(Malformation.FLOAT_FORMAT, formatUsed);
+    #endregion FLOAT_FORMAT
+
+    #region LINE_ENDING
     public static string? GetLineEnding(this MalformationManager manager)
     {
         var mals = manager.GetMalformations(Malformation.LINE_ENDING);
@@ -168,6 +188,7 @@ public static class MalformationExtensions
     /// </remarks>
     public static void SetLineEnding(this MalformationManager manager, string characters) =>
         manager.Add(Malformation.LINE_ENDING, characters);
+    #endregion LINE_ENDING
 }
 public interface IMalformable
 {

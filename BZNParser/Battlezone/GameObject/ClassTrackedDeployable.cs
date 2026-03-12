@@ -25,18 +25,18 @@ namespace BZNParser.Battlezone.GameObject
         public ClassTrackedDeployable(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTrackedDeployable? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
             //(a2->vftable->field_8)(a2, this + 1424, 4, "state");
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
+                if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
                 if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
 
                 //(a2->vftable->out_float)(a2, this + 2548, 4, "deployTimer");
                 tok = reader.ReadToken();
-                if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
+                if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
                 if (obj != null) obj.deployTimer = tok.GetSingle();
 
                 //if (a2[2].vftable)

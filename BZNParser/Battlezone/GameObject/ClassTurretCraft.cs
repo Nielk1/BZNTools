@@ -24,7 +24,7 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassTurretCraft : ClassCraft
     {
         public UInt32[] powerHandles { get; set; }
-        public string saveClass { get; set; }
+        public SizedString saveClass { get; set; }
         public Matrix? saveMatrix { get; set; }
         public UInt32? saveTeam { get; set; }
         public UInt32? saveSeqno { get; set; }
@@ -35,7 +35,7 @@ namespace BZNParser.Battlezone.GameObject
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretCraft? obj)
         {
 
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -169,8 +169,9 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // saveClass must have a CHAR token as its first token if it's in binary mode, meaning the above loop consuming all LONGs is fine
                     // if the version was lower we might have had a LONG conflict
-                    string saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass", obj?.Malformations);
-                    if (obj != null) obj.saveClass = saveClass;
+                    //string saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass", obj?.Malformations);
+                    //if (obj != null) obj.saveClass = saveClass;
+                    (_, string saveClass) = reader.ReadSizedString("saveClass", obj, x => x.saveClass);
 
                     //if (*(this + 376))
                     if (!string.IsNullOrEmpty(saveClass))
@@ -195,21 +196,21 @@ namespace BZNParser.Battlezone.GameObject
                         }
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
+                        if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
                         if (obj != null) obj.saveTeam = tok.GetUInt32();
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
+                        if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
                         if (obj != null) obj.saveSeqno = tok.GetUInt32H();
 
                         //tok = reader.ReadToken();
-                        //if (!tok.Validate("saveLabel", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveLabel/CHAR");
+                        //if (tok == null || !tok.Validate("saveLabel", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveLabel/CHAR");
                         //tok.GetString();
                         string saveLabel = reader.ReadBZ2InputString("saveLabel", obj?.Malformations);
                         if (obj != null) obj.saveLabel = saveLabel;
 
                         //tok = reader.ReadToken();
-                        //if (!tok.Validate("saveName", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveName/CHAR");
+                        //if (tok == null || !tok.Validate("saveName", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveName/CHAR");
                         //tok.GetString();
                         string saveName = reader.ReadBZ2InputString("saveName", obj?.Malformations);
                         if (obj != null) obj.saveName = saveName;
@@ -221,7 +222,7 @@ namespace BZNParser.Battlezone.GameObject
                     // because the version needs of this are even higher than that of the above we know the above will have to have run if this will run
                     // so we know the powerHandle loop is safe since it will trip into a CHAR if it overruns due to the above.
                     tok = reader.ReadToken();
-                    if (!tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
+                    if (tok == null || !tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse scriptPowerOverride/LONG");
                     if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
                 }
@@ -274,10 +275,11 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // saveClass must have a CHAR token as its first token if it's in binary mode, meaning the above loop consuming all LONGs is fine
                     // if the version was lower we might have had a LONG conflict
-                    writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty, obj.Malformations);
+                    //writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty, obj.Malformations);
+                    writer.WriteSizedString("saveClass", obj, x => x.saveClass);
 
                     //if (*(this + 376))
-                    if (!string.IsNullOrEmpty(obj.saveClass))
+                    if (!string.IsNullOrEmpty(obj.saveClass.Value))
                     {
                         if (obj.saveMatrix != null)
                         {

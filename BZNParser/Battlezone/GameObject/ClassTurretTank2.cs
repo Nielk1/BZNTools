@@ -31,43 +31,43 @@ namespace BZNParser.Battlezone.GameObject
         public ClassTurretTank2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank2? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (parent.SaveType == SaveType.LOCKSTEP || parent.SaveType == SaveType.JOIN)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse omegaTurret/FLOAT");
                 if (obj != null) obj.omegaTurret = tok.GetSingle(); // omegaTurret
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse timeDeploy/FLOAT");
                 if (obj != null) obj.timeDeploy = tok.GetSingle(); // timeDeploy
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse timeUndeploy/FLOAT");
                 if (obj != null) obj.timeUndeploy = tok.GetSingle(); // timeUndeploy
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("change_state", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("change_state", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse change_state/LONG");
                 if (obj != null) obj.change_state = tok.GetUInt32(); // change_state
 
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse delayTimer/FLOAT");
                 if (obj != null) obj.delayTimer = tok.GetSingle(); // delayTimer
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
+                if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse turretAligned/BOOL");
                 tok.ReadBoolean(obj, x => x.turretAligned); // turretAligned
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse prevYaw/FLOAT");
                 if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
 
@@ -101,33 +101,33 @@ namespace BZNParser.Battlezone.GameObject
                     reader.Bookmark.RevertToBookmark();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse omegaTurret/FLOAT");
                     if (obj != null) obj.omegaTurret = tok.GetSingle(); // omegaTurret
 
                     // obsolete
                     tok = reader.ReadToken();
-                    if (!tok.Validate("alphaTurret", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("alphaTurret", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse alphaTurret/FLOAT");
                     if (obj != null) obj.alphaTurret = tok.GetSingle(); // alphaTurret
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse timeDeploy/FLOAT");
                     if (obj != null) obj.timeDeploy = tok.GetSingle(); // timeDeploy
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse timeUndeploy/FLOAT");
                     if (obj != null) obj.timeUndeploy = tok.GetSingle(); // timeUndeploy
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
+                    if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse state/VOID");
                     if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse delayTimer/FLOAT");
                     if (obj != null) obj.delayTimer = tok.GetSingle(); // delayTimer
 
@@ -135,7 +135,7 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         // obsolete
                         tok = reader.ReadToken();
-                        if (!tok.Validate("wantTurret", BinaryFieldType.DATA_BOOL))
+                        if (tok == null || !tok.Validate("wantTurret", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse wantTurret/BOOL");
                         if (obj != null)
                         {
@@ -146,7 +146,7 @@ namespace BZNParser.Battlezone.GameObject
                     else
                     {
                         tok = reader.ReadToken();
-                        if (!tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
+                        if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse turretAligned/BOOL");
                         tok.ReadBoolean(obj, x => x.turretAligned); // turretAligned
                     }
@@ -156,12 +156,12 @@ namespace BZNParser.Battlezone.GameObject
                         if (!m_Use13Aim)
                         {
                             tok = reader.ReadToken();
-                            if (!tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
+                            if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                                 throw new Exception("Failed to parse prevYaw/FLOAT");
                             if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
 
                             tok = reader.ReadToken();
-                            if (!tok.Validate("change_state", BinaryFieldType.DATA_LONG))
+                            if (tok == null || !tok.Validate("change_state", BinaryFieldType.DATA_LONG))
                                 throw new Exception("Failed to parse change_state/LONG");
                             if (obj != null) obj.change_state = tok.GetUInt32(); // change_state
                         }
@@ -180,7 +180,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (m_Use13Aim)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
+                    if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse turretAligned/BOOL");
                     tok.ReadBoolean(obj, x => x.turretAligned); // turretAligned
                 }
@@ -239,12 +239,12 @@ namespace BZNParser.Battlezone.GameObject
 
                     if (writer.Version == 1100)
                     {
-                        var mal = obj.Malformations.GetMalformations(Malformation.MISINTERPRET, "wantTurret");
-                        if (mal.Length > 0)
-                        {
-                            writer.WriteBoolean("wantTurret", obj, x => x.turretAligned);
-                        }
-                        else
+//                        var mal = obj.Malformations.GetMalformations(Malformation.MISINTERPRET, "wantTurret");
+//                        if (mal.Length > 0)
+//                        {
+//                            writer.WriteBoolean("wantTurret", obj, x => x.turretAligned);
+//                        }
+//                        else
                         {
                             writer.WriteBoolean("wantTurret", obj, x => x.wantTurret);
                         }

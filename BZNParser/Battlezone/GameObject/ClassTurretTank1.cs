@@ -30,7 +30,7 @@ namespace BZNParser.Battlezone.GameObject
         public ClassTurretTank1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank1? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
@@ -41,28 +41,28 @@ namespace BZNParser.Battlezone.GameObject
                         // obsolete
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
                         if (obj != null) obj.omegaTurret = tok.GetSingle(); // omegaTurret
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
                         if (obj != null) obj.alphaTurret = tok.GetSingle(); // alphaTurret
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
                         if (obj != null) obj.timeDeploy = tok.GetSingle(); // timeDeploy
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
                         if (obj != null) obj.timeUndeploy = tok.GetSingle(); // timeUndeploy
                     }
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("undefraw", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse undefraw/VOID");
+                    if (tok == null || !tok.Validate("undefraw", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse undefraw/VOID");
                     if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                    if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
                     if (obj != null) obj.delayTimer = tok.GetSingle(); // delayTimer
 
                     if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version != 1042)
@@ -70,7 +70,7 @@ namespace BZNParser.Battlezone.GameObject
                         // obsolete
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("undefbool", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse undefbool/BOOL");
+                        if (tok == null || !tok.Validate("undefbool", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse undefbool/BOOL");
                         tok.ReadBoolean(obj, x => x.wantTurret); // wantTurret
                     }
                 }

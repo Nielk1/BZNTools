@@ -26,27 +26,27 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFactory2? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Version == 1100 || reader.Version == 1104 || reader.Version == 1105)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildDoneTime/FLOAT");
+                if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildDoneTime/FLOAT");
                 if (obj != null) obj.buildTime = tok.GetSingle();
             }
             else
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildTime/FLOAT");
+                if (tok == null || !tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildTime/FLOAT");
                 if (obj != null) obj.buildTime = tok.GetSingle();
             }
 
             tok = reader.ReadToken();
-            if (!tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
+            if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
             tok.ReadBoolean(obj, x => x.buildActive);
 
             tok = reader.ReadToken();
-            if (!tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
+            if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
             int buildCount = tok.GetInt32();
             if (obj != null) obj.buildItems = new string[buildCount];
 
@@ -68,7 +68,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version >= 1135)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("navHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse navHandle/LONG");
+                    if (tok == null || !tok.Validate("navHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse navHandle/LONG");
                     if (obj != null) obj.navHandle = tok.GetInt32();
                 }
             }

@@ -21,10 +21,10 @@ namespace BZNParser.Battlezone.GameObject
         public ClassTorpedo2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTorpedo2? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (!tok.Validate("lifeTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse lifeTimer/FLOAT");
+            if (tok == null || !tok.Validate("lifeTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse lifeTimer/FLOAT");
             if (obj != null) obj.lifeTimer = tok.GetSingle();
 
             ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);

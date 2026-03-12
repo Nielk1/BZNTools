@@ -27,7 +27,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version < 1019)
                 {
                     // obsolete
-                    IBZNToken tok;
+                    IBZNToken? tok;
 
                     tok = reader.ReadToken();
                     tok = reader.ReadToken();
@@ -37,14 +37,14 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D))
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D))
                         throw new Exception("Failed to parse ???/VEC3D");
                     // there are 6 vectors here, but we don't know what they are for and are probably able to be forgotten
                 }
                 else if (reader.Version > 1027)
                 {
                     // read in abandoned flag
-                    IBZNToken tok;
+                    IBZNToken? tok;
                     tok = reader.ReadToken();
                 }
             }

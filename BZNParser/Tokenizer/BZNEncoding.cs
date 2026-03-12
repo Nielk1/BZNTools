@@ -9,7 +9,7 @@ namespace BZNParser.Tokenizer
     static class BZNEncoding
     {
         public static Encoding win1252;
-        static Encoding()
+        static BZNEncoding()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             win1252 = Encoding.GetEncoding(1252);

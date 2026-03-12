@@ -29,32 +29,32 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (parent.SaveType != SaveType.BZN)
             {
-                IBZNToken tok;
+                IBZNToken? tok;
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
+                if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse state/VOID");
                 if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse deployTimer/FLOAT");
                 if (obj != null) obj.deployTimer = tok.GetSingle();
 
                 if (parent.SaveType == SaveType.LOCKSTEP)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("lastSteer", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("lastSteer", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse lastSteer/FLOAT");
                     if (obj != null) obj.lastSteer = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("lastSteer", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("lastSteer", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse lastSteer/FLOAT");
                     if (obj != null) obj.lastThrot = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("lastStrafe", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("lastStrafe", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse lastStrafe/FLOAT");
                     if (obj != null) obj.lastStrafe = tok.GetSingle();
                 }
@@ -62,12 +62,12 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version >= 1138)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("lockMode", BinaryFieldType.DATA_BOOL))
+                    if (tok == null || !tok.Validate("lockMode", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse lockMode/BOOL");
                     tok.ReadBoolean(obj, x => x.m_bLockMode); // lockMode
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("lockModeDeployed", BinaryFieldType.DATA_BOOL))
+                    if (tok == null || !tok.Validate("lockModeDeployed", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse lockModeDeployed/BOOL");
                     tok.ReadBoolean(obj, x => x.m_bLockModeDeployed); // lockModeDeployed
                 }

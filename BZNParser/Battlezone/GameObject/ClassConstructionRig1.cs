@@ -34,7 +34,7 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 1030)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("dropMat", BinaryFieldType.DATA_MAT3DOLD)) throw new Exception("Failed to parse dropMat/MAT3DOLD");
+                if (tok == null || !tok.Validate("dropMat", BinaryFieldType.DATA_MAT3DOLD)) throw new Exception("Failed to parse dropMat/MAT3DOLD");
                 if (obj != null)
                 {
                     obj.dropMat = tok.GetMatrixOld();
@@ -50,15 +50,15 @@ namespace BZNParser.Battlezone.GameObject
                 else
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("dropClass", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse dropClass/ID");
+                    if (tok == null || !tok.Validate("dropClass", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse dropClass/ID");
                     tok.ReadID(obj, x => x.dropClass);
                 }
 
                 if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2001)
                 {
                     tok = reader.ReadToken();
-                    //if (!tok.Validate("lastRecycled", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse lastRecycled/FLOAT");
-                    if (!tok.Validate("lastRecycled", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse lastRecycled/LONG");
+                    //if (tok == null || !tok.Validate("lastRecycled", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse lastRecycled/FLOAT");
+                    if (tok == null || !tok.Validate("lastRecycled", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse lastRecycled/LONG");
                     if (obj != null) obj.lastRecycled = tok.GetUInt32();
                 }
             }

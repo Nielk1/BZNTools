@@ -141,7 +141,7 @@ public static class MalformationExtensions
         throw new ArgumentException("Expression is not a property", nameof(property));
     }
 
-    public static void AddIncorrectRaw<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index = 0, byte[] originalBytes) where T : IMalformable =>
+    public static void AddIncorrectRaw<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index, byte[] originalBytes) where T : IMalformable =>
         manager.Add(property, index, Malformation.INCORRECT_RAW, originalBytes);
 
 
@@ -159,7 +159,7 @@ public static class MalformationExtensions
         throw new ArgumentException("Expression is not a property", nameof(property));
     }
 
-    public static void AddIncorrectTextParse<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index = 0, string originalText) where T : IMalformable =>
+    public static void AddIncorrectTextParse<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index, string originalText) where T : IMalformable =>
         manager.Add(property, index, Malformation.INCORRECT_TEXT, originalText);
 
 

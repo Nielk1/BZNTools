@@ -38,12 +38,12 @@ namespace BZNParser.Battlezone
 
         public static bool Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countPaths, int countLeft, AiPath? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (!reader.InBinary && reader.Format == BZNFormat.Battlezone)
             {
                 tok = reader.ReadToken();
-                if (!tok.IsValidationOnly() || !tok.Validate("AiPath", BinaryFieldType.DATA_UNKNOWN))
+                if (tok == null || !tok.IsValidationOnly() || !tok.Validate("AiPath", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse [AiPath]");
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -61,7 +61,7 @@ namespace BZNParser.Battlezone
                 {
                     // 2016
                     tok = reader.ReadToken();
-                    if (!tok.Validate("old_ptr", BinaryFieldType.DATA_PTR))
+                    if (tok == null || !tok.Validate("old_ptr", BinaryFieldType.DATA_PTR))
                         throw new Exception("Failed to parse old_ptr/PTR");
                     if (obj != null) obj.sObject = tok.GetUInt32H();
                 }
@@ -69,7 +69,7 @@ namespace BZNParser.Battlezone
                 {
                     // 1030 1032 1034 1035 1037 1038 1039 1040 1043 1044 1045 1049 2003 2004 2010 2011
                     tok = reader.ReadToken();
-                    if (!tok.Validate("old_ptr", BinaryFieldType.DATA_VOID))
+                    if (tok == null || !tok.Validate("old_ptr", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse old_ptr/VOID");
                     if (obj != null) obj.sObject = tok.GetUInt32HR(); // confirm correctness
                 }
@@ -80,7 +80,7 @@ namespace BZNParser.Battlezone
                 // must figure out why this sometimes is missing
                 reader.Bookmark.Mark();
                 tok = reader.ReadToken();
-                if (!tok.Validate("sObject", BinaryFieldType.DATA_PTR))
+                if (tok == null || !tok.Validate("sObject", BinaryFieldType.DATA_PTR))
                 {
                     reader.Bookmark.RevertToBookmark();
                     //throw new Exception("Failed to parse sObject/PTR");
@@ -102,29 +102,29 @@ namespace BZNParser.Battlezone
             else
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("size", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("size", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse size/LONG");
                 int labelSize = tok.GetInt32();
 
                 if (labelSize > 0)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("label", BinaryFieldType.DATA_CHAR))
+                    if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse label/CHAR");
                     label = tok.GetString();
                     if (obj != null)
                     {
-                        if (label.Length != labelSize)
-                        {
-                            if (labelSize > label.Length)
-                            {
-                                obj.Malformations.AddStringPad("label", labelSize);
-                            }
-                            else
-                            {
-                                obj.Malformations.AddIncorrectTextParse("label", label);
-                            }
-                        }
+//                        if (label.Length != labelSize)
+//                        {
+//                            if (labelSize > label.Length)
+//                            {
+//                                obj.Malformations.AddStringPad("label", labelSize);
+//                            }
+//                            else
+//                            {
+//                                obj.Malformations.AddIncorrectTextParse("label", label);
+//                            }
+//                        }
                     }
                     if (label.Length > labelSize)
                         label = label.Substring(0, labelSize);
@@ -134,12 +134,12 @@ namespace BZNParser.Battlezone
             //Console.WriteLine($"AiPath[{i.ToString().PadLeft(countPaths.ToString().Length)}]: {(label ?? string.Empty)}");
 
             tok = reader.ReadToken();
-            if (!tok.Validate("pointCount", BinaryFieldType.DATA_LONG))
+            if (tok == null || !tok.Validate("pointCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse pointCount/LONG");
             int pointCount = tok.GetInt32();
 
             tok = reader.ReadToken();
-            if (!tok.Validate("points", BinaryFieldType.DATA_VEC2D))
+            if (tok == null || !tok.Validate("points", BinaryFieldType.DATA_VEC2D))
                 throw new Exception("Failed to parse point/VEC2D");
             Vector2D[] points = new Vector2D[pointCount];
             for (int j = 0; j < pointCount; j++)
@@ -152,7 +152,7 @@ namespace BZNParser.Battlezone
             if (obj != null) obj.points = points;
 
             tok = reader.ReadToken();
-            if (!tok.Validate("pathType", BinaryFieldType.DATA_VOID))
+            if (tok == null || !tok.Validate("pathType", BinaryFieldType.DATA_VOID))
                 throw new Exception("Failed to parse pathType/VOID");
             // 02 00 00 00 - binary for 2
             // "02000000" - ASCII for 2
@@ -211,19 +211,19 @@ namespace BZNParser.Battlezone
                 string textToWrite = label;
                 int lengthToWrite = label.Length;
 
-                var malText = Malformations.GetMalformations(Malformation.INCORRECT_TEXT, "label");
-                var malPad = Malformations.GetMalformations(Malformation.STRING_PAD, "label");
-                if (preserveMalformations && malText.Length > 0)
-                {
-                    // string was truncated
-                    textToWrite = (string)malText[0].Fields[0];
-                    //lengthToWrite = textToWrite.Length;
-                }
-                if (preserveMalformations && malPad.Length > 0)
-                {
-                    // string reported as longer
-                    lengthToWrite = (int)malPad[0].Fields[0];
-                }
+//                var malText = Malformations.GetMalformations(Malformation.INCORRECT_TEXT, "label");
+//                var malPad = Malformations.GetMalformations(Malformation.STRING_PAD, "label");
+//                if (preserveMalformations && malText.Length > 0)
+//                {
+//                    // string was truncated
+//                    textToWrite = (string)malText[0].Fields[0];
+//                    //lengthToWrite = textToWrite.Length;
+//                }
+//                if (preserveMalformations && malPad.Length > 0)
+//                {
+//                    // string reported as longer
+//                    lengthToWrite = (int)malPad[0].Fields[0];
+//                }
                 writer.WriteSignedValues("size", lengthToWrite);
 
                 //if (label.Length > 0)

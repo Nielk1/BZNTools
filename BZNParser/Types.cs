@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Numerics;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using static BZNParser.Tokenizer.BZNStreamReader;
@@ -137,32 +139,76 @@ namespace BZNParser
         public byte? Size { get; set; }
         public string Value { get; set; }
 
-        public void Hydrate(BZNStreamReader reader, string name)
-        {
-            IBZNToken tok;
-            if (reader.InBinary)
-            {
-                tok = reader.ReadToken();
-                if (!tok.Validate(null, BinaryFieldType.DATA_CHAR))
-                    throw new Exception($"Failed to parse {name}/CHAR");
-                tok.ReadUInt(this, x => x.Value);
-            }
-            tok = reader.ReadToken();
-            if (!tok.Validate(name, BinaryFieldType.DATA_CHAR))
-                throw new Exception($"Failed to parse {name}/CHAR");
-            tok.ReadChars(this, x => x.Value);
-        }
-
         public override string ToString()
         {
             return Value;
         }
+    }
 
-        internal void Dehydrate(BZNStreamWriter writer, string name)
+    static class SizedStringExtension
+    {
+        /// <summary>
+        /// Read a normal chars string unless BZ2 and version > 1128
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="reader"></param>
+        /// <param name="name"></param>
+        /// <param name="parent"></param>
+        /// <param name="property"></param>
+        /// <param name="index"></param>
+        /// <exception cref="Exception"></exception>
+        public static (string stored, string raw) ReadSizedString<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, SizedString>>? property, int index = 0) where T : IMalformable
         {
+            PropertyInfo? propInfo = null;
+            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+                propInfo = propInfo_;
+
+            SizedString? value = (SizedString?)(propInfo?.GetValue(parent));
+            if (value != null && propInfo != null)
+                value = new SizedString();
+            if (propInfo != null)
+                propInfo.SetValue(parent, value);
+
+            IBZNToken? tok;
+            if (reader.InBinary)
+            {
+                // this only happens on BZ2/BZCC BZNs over version 1128s
+                if (reader.Format == BZNFormat.Battlezone2 && reader.Version > 1128)
+                {
+                    // TODO this might be a compressed number so do figure that out
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR))
+                        throw new Exception($"Failed to parse {name}/CHAR");
+                    (_, byte size) = tok.ReadUInt8(value, x => x.Size);
+
+                    if (size > 0) // descision based on raw value, not cleaned
+                    {
+                        tok = reader.ReadToken();
+                        if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
+                            throw new Exception($"Failed to parse {name}/CHAR");
+                        return tok.ReadChars(value, x => x.Value);
+                    }
+                    return (null, null);
+                }
+            }
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
+                throw new Exception($"Failed to parse {name}/CHAR");
+            return tok.ReadChars(value, x => x.Value);
+        }
+
+        public static void WriteSizedString<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property)
+        {
+            SizedString wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
+
             if (writer.InBinary)
-                writer.WriteUInt(null, this, x => x.Size);
-            writer.WriteChars(name, this, x => x.Value);
+            {
+                (byte size, _) = writer.WriteUInt8(null, wrappedValue, x => x.Size);
+                if (size > 0)
+                    writer.WriteChars(name, wrappedValue, x => x.Value);
+                return;
+            }
+            writer.WriteChars(name, wrappedValue, x => x.Value);
         }
     }
 
@@ -417,19 +463,19 @@ namespace BZNParser
             }
             else
             {
-                IBZNToken subTok;
-                subTok = tok.GetSubToken(index,  0); if (subTok.GetRawName() != @"  right_x") { malformations.AddIncorrectName(@"  right_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_x", malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  1); if (subTok.GetRawName() != @"  right_y") { malformations.AddIncorrectName(@"  right_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_y", malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  2); if (subTok.GetRawName() != @"  right_z") { malformations.AddIncorrectName(@"  right_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_z", malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  3); if (subTok.GetRawName() != @"  up_x"   ) { malformations.AddIncorrectName(@"  up_x"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_x"   , malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  4); if (subTok.GetRawName() != @"  up_y"   ) { malformations.AddIncorrectName(@"  up_y"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_y"   , malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  5); if (subTok.GetRawName() != @"  up_z"   ) { malformations.AddIncorrectName(@"  up_z"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_z"   , malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  6); if (subTok.GetRawName() != @"  front_x") { malformations.AddIncorrectName(@"  front_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_x", malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  7); if (subTok.GetRawName() != @"  front_y") { malformations.AddIncorrectName(@"  front_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_y", malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  8); if (subTok.GetRawName() != @"  front_z") { malformations.AddIncorrectName(@"  front_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_z", malformations, floatFormat);
-                subTok = tok.GetSubToken(index,  9); if (subTok.GetRawName() != @"  posit_x") { malformations.AddIncorrectName(@"  posit_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_x", malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 10); if (subTok.GetRawName() != @"  posit_y") { malformations.AddIncorrectName(@"  posit_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_y", malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 11); if (subTok.GetRawName() != @"  posit_z") { malformations.AddIncorrectName(@"  posit_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_z", malformations, floatFormat);
+//                IBZNToken subTok;
+//                subTok = tok.GetSubToken(index,  0); if (subTok.GetRawName() != @"  right_x") { malformations.AddIncorrectName(@"  right_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_x", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  1); if (subTok.GetRawName() != @"  right_y") { malformations.AddIncorrectName(@"  right_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_y", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  2); if (subTok.GetRawName() != @"  right_z") { malformations.AddIncorrectName(@"  right_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_z", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  3); if (subTok.GetRawName() != @"  up_x"   ) { malformations.AddIncorrectName(@"  up_x"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_x"   , malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  4); if (subTok.GetRawName() != @"  up_y"   ) { malformations.AddIncorrectName(@"  up_y"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_y"   , malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  5); if (subTok.GetRawName() != @"  up_z"   ) { malformations.AddIncorrectName(@"  up_z"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_z"   , malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  6); if (subTok.GetRawName() != @"  front_x") { malformations.AddIncorrectName(@"  front_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_x", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  7); if (subTok.GetRawName() != @"  front_y") { malformations.AddIncorrectName(@"  front_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_y", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  8); if (subTok.GetRawName() != @"  front_z") { malformations.AddIncorrectName(@"  front_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_z", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index,  9); if (subTok.GetRawName() != @"  posit_x") { malformations.AddIncorrectName(@"  posit_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_x", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 10); if (subTok.GetRawName() != @"  posit_y") { malformations.AddIncorrectName(@"  posit_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_y", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 11); if (subTok.GetRawName() != @"  posit_z") { malformations.AddIncorrectName(@"  posit_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_z", malformations, floatFormat);
             }
         }
         [Obsolete]
@@ -441,16 +487,16 @@ namespace BZNParser
             }
             else
             {
-                IBZNToken subTok;
-                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @" mass"     ) { euler.Malformations.AddIncorrectName(@" mass"     , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" mass"     , euler.Malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @" mass_inv" ) { euler.Malformations.AddIncorrectName(@" mass_inv" , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" mass_inv" , euler.Malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 2); if (subTok.GetRawName() != @" v_mag"    ) { euler.Malformations.AddIncorrectName(@" v_mag"    , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" v_mag"    , euler.Malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 3); if (subTok.GetRawName() != @" v_mag_inv") { euler.Malformations.AddIncorrectName(@" v_mag_inv", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" v_mag_inv", euler.Malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 4); if (subTok.GetRawName() != @" I"        ) { euler.Malformations.AddIncorrectName(@" I"        , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" I"        , euler.Malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 5); if (subTok.GetRawName() != @" k_i"      ) { euler.Malformations.AddIncorrectName(@" k_i"      , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" k_i"      , euler.Malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 6); if (subTok.GetRawName() != @" v"        ) { euler.Malformations.AddIncorrectName(@" v"        , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.v.Malformations    , floatFormat);
-                subTok = tok.GetSubToken(index, 7); if (subTok.GetRawName() != @" omega"    ) { euler.Malformations.AddIncorrectName(@" omega"    , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.omega.Malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 8); if (subTok.GetRawName() != @" Accel"    ) { euler.Malformations.AddIncorrectName(@" Accel"    , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.Accel.Malformations, floatFormat);
+//                IBZNToken subTok;
+//                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @" mass"     ) { euler.Malformations.AddIncorrectName(@" mass"     , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" mass"     , euler.Malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @" mass_inv" ) { euler.Malformations.AddIncorrectName(@" mass_inv" , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" mass_inv" , euler.Malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 2); if (subTok.GetRawName() != @" v_mag"    ) { euler.Malformations.AddIncorrectName(@" v_mag"    , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" v_mag"    , euler.Malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 3); if (subTok.GetRawName() != @" v_mag_inv") { euler.Malformations.AddIncorrectName(@" v_mag_inv", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" v_mag_inv", euler.Malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 4); if (subTok.GetRawName() != @" I"        ) { euler.Malformations.AddIncorrectName(@" I"        , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" I"        , euler.Malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 5); if (subTok.GetRawName() != @" k_i"      ) { euler.Malformations.AddIncorrectName(@" k_i"      , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" k_i"      , euler.Malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 6); if (subTok.GetRawName() != @" v"        ) { euler.Malformations.AddIncorrectName(@" v"        , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.v.Malformations    , floatFormat);
+//                subTok = tok.GetSubToken(index, 7); if (subTok.GetRawName() != @" omega"    ) { euler.Malformations.AddIncorrectName(@" omega"    , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.omega.Malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 8); if (subTok.GetRawName() != @" Accel"    ) { euler.Malformations.AddIncorrectName(@" Accel"    , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.Accel.Malformations, floatFormat);
             }
         }
 
@@ -463,9 +509,9 @@ namespace BZNParser
             }
             else
             {
-                IBZNToken subTok;
-                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @"  x") { malformations.AddIncorrectName(@"  x", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  x", malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @"  z") { malformations.AddIncorrectName(@"  z", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  z", malformations, floatFormat);
+//                IBZNToken subTok;
+//                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @"  x") { malformations.AddIncorrectName(@"  x", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  x", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @"  z") { malformations.AddIncorrectName(@"  z", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  z", malformations, floatFormat);
             }
         }
 
@@ -478,10 +524,10 @@ namespace BZNParser
             }
             else
             {
-                IBZNToken subTok;
-                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @"  x") { malformations.AddIncorrectName(@"  x", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  x", malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @"  y") { malformations.AddIncorrectName(@"  y", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  y", malformations, floatFormat);
-                subTok = tok.GetSubToken(index, 2); if (subTok.GetRawName() != @"  z") { malformations.AddIncorrectName(@"  z", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  z", malformations, floatFormat);
+//                IBZNToken subTok;
+//                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @"  x") { malformations.AddIncorrectName(@"  x", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  x", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @"  y") { malformations.AddIncorrectName(@"  y", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  y", malformations, floatFormat);
+//                subTok = tok.GetSubToken(index, 2); if (subTok.GetRawName() != @"  z") { malformations.AddIncorrectName(@"  z", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  z", malformations, floatFormat);
             }
         }
 
@@ -494,8 +540,8 @@ namespace BZNParser
             }
             else
             {
-                if (SingleExtension.GetFloatTextFormat(tok.GetString(index)) != floatFormat || tok.GetSingle(index).ToBZNString(floatFormat) != tok.GetString(index))
-                    malformations.AddIncorrectTextParse(name, tok.GetString(index));
+//                if (SingleExtension.GetFloatTextFormat(tok.GetString(index)) != floatFormat || tok.GetSingle(index).ToBZNString(floatFormat) != tok.GetString(index))
+//                    malformations.AddIncorrectTextParse(name, tok.GetString(index));
             }
         }
         [Obsolete]
@@ -507,8 +553,8 @@ namespace BZNParser
             }
             else
             {
-                if (tok.GetBoolean(index).ToString().ToLowerInvariant() != tok.GetString(index))
-                    malformations.AddIncorrectTextParse(name, tok.GetString(index));
+//                if (tok.GetBoolean(index).ToString().ToLowerInvariant() != tok.GetString(index))
+//                    malformations.AddIncorrectTextParse(name, tok.GetString(index));
             }
         }
 
@@ -517,12 +563,12 @@ namespace BZNParser
         {
             if (preserveMalformations)
             {
-                var malIncorrectName = malformations.GetMalformations(Malformation.INCORRECT_NAME, name);
-                if (malIncorrectName.Any())
-                {
-                    var mal = malIncorrectName.First();
-                    name = (string)mal.Fields[0];
-                }
+//                var malIncorrectName = malformations.GetMalformations(Malformation.INCORRECT_NAME, name);
+//                if (malIncorrectName.Any())
+//                {
+//                    var mal = malIncorrectName.First();
+//                    name = (string)mal.Fields[0];
+//                }
             }
             return name;
         }

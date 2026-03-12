@@ -21,10 +21,10 @@ namespace BZNParser.Battlezone.GameObject
         public ClassScrapSilo2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScrapSilo2? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (!tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scrapTimer/FLOAT");
+            if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scrapTimer/FLOAT");
             if (obj != null) obj.scrapTimer = tok.GetSingle();
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);

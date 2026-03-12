@@ -28,9 +28,9 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 1020)
             {
-                IBZNToken tok = reader.ReadToken();
+                IBZNToken? tok = reader.ReadToken();
                 //if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/LONG");
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/LONG");
+                if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/LONG");
                 if (obj != null) obj.undefptr = tok.GetUInt32H();
             }
 

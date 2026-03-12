@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using static BZNParser.Tokenizer.BZNStreamReader;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using UInt8 = byte;
 
 namespace BZNParser.Tokenizer
 {
@@ -460,7 +461,7 @@ namespace BZNParser.Tokenizer
             BaseStream?.Dispose();
         }
 
-        private static TProp ExtractPropertyValue<T, TProp>(T parent, Expression<Func<T, TProp>> property)
+        internal static TProp ExtractPropertyValue<T, TProp>(T parent, Expression<Func<T, TProp>> property)
         {
             if (parent == null)
                 throw new ArgumentException("Parent object cannot be null", nameof(parent));
@@ -469,6 +470,60 @@ namespace BZNParser.Tokenizer
                 return (TProp)propInfo.GetValue(parent)!;
 
             throw new ArgumentException("Expression is not a property", nameof(property));
+        }
+
+        /// <summary>
+        /// Write a UInt8 to the BZN
+        /// </summary>
+        /// <remarks>
+        /// Handles the following malformations: <see cref="Malformation.INCORRECT_TEXT"/>
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="parent"></param>
+        /// <param name="property"></param>
+        public (UInt8 written, TProp stored) WriteUInt8<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt8>? convert = null) where T : IMalformable
+        {
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            UInt8 value = 0;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+            {
+                value = (UInt8)(object)valueInternal!;
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
+                InternalWriteBinarySize(1);
+                BaseStream.WriteByte((byte)(value));
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueInternal);
+            }
+
+            string textValue = value.ToString();
+
+            // handle incorrect raw value
+            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+            if (hasIncorrectRaw)
+                textValue = incorrectText ?? string.Empty;
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            InternalWriteNewline();
+            TokenIndex++;
+
+            return (value, valueInternal);
         }
 
         /// <summary>
@@ -719,14 +774,14 @@ namespace BZNParser.Tokenizer
             for (int i = 0; i < values.Length; i++) {
                 if (malformations != null)
                 {
-                    var mal = malformations.GetMalformations(Malformation.INCORRECT_TEXT, name);
-                    if (mal.Any())
-                    {
-                        // TODO index handling
-                        BaseStream.Write(BZNEncoding.win1252.GetBytes((string)mal.First().Fields[0]));
-                        InternalWriteNewline();
-                        continue;
-                    }
+//                    var mal = malformations.GetMalformations(Malformation.INCORRECT_TEXT, name);
+//                    if (mal.Any())
+//                    {
+//                        // TODO index handling
+//                        BaseStream.Write(BZNEncoding.win1252.GetBytes((string)mal.First().Fields[0]));
+//                        InternalWriteNewline();
+//                        continue;
+//                    }
                 }
 
                 BaseStream.Write(BZNEncoding.win1252.GetBytes($"{(values[i] ? "true" : "false")}"));
@@ -735,6 +790,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteUnsignedValues(string name, params UInt64[] values)
         {
             if (InBinary)
@@ -762,6 +818,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteUnsignedValues(string name, params UInt16[] values)
         {
             if (InBinary)
@@ -789,6 +846,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteUnsignedHexLValues(string name, params UInt16[] values)
         {
             if (InBinary)
@@ -816,6 +874,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteUnsignedHexLValues(string name, params UInt32[] values)
         {
             if (InBinary)
@@ -844,6 +903,7 @@ namespace BZNParser.Tokenizer
         }
 
         // used for: undefaicmd
+        [Obsolete]
         public void WriteCmd(string name, UInt32 value)
         {
             if (InBinary)
@@ -872,6 +932,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteShortFlag(string name, UInt16 value)
         {
             if (InBinary)
@@ -902,6 +963,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteLongFlags(string name, params UInt32[] values)
         {
             if (InBinary)
@@ -933,6 +995,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteShortFlags(string name, params UInt16[] values)
         {
             if (InBinary)
@@ -964,6 +1027,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteUnsignedValues(string name, params UInt32[] values)
         {
             if (InBinary)
@@ -991,6 +1055,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteVector2Ds(string name, bool preserveMalformations, params Vector2D[] values)
         {
             if (InBinary)
@@ -1023,6 +1088,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         private void InternalWriteFloatValue(string name, float value, bool preserveMalformations, FloatTextFormat floatFormat, IMalformable.MalformationManager malformations)
         {
             if (InBinary)
@@ -1036,16 +1102,17 @@ namespace BZNParser.Tokenizer
 
             if (preserveMalformations)
             {
-                var mal = malformations.GetMalformations(Malformation.INCORRECT_TEXT, name);
-                if (mal.Any())
-                {
-                    BaseStream.Write(BZNEncoding.win1252.GetBytes((string)mal.First().Fields[0]));
-                    return;
-                }
+//                var mal = malformations.GetMalformations(Malformation.INCORRECT_TEXT, name);
+//                if (mal.Any())
+//                {
+//                    BaseStream.Write(BZNEncoding.win1252.GetBytes((string)mal.First().Fields[0]));
+//                    return;
+//                }
             }
             BaseStream.Write(BZNEncoding.win1252.GetBytes(value.ToBZNString(FloatFormat)));
         }
 
+        [Obsolete]
         public void WriteVector3Ds(string name, bool preserveMalformations, params Vector3D[] values)
         {
             if (InBinary)
@@ -1082,6 +1149,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteEuler(string name, bool preserveMalformations, Euler value)
         {
             if (InBinary)
@@ -1104,6 +1172,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteMat3Ds(string name, bool preserveMalformations, params Matrix[] values)
         {
             if (InBinary)
@@ -1152,6 +1221,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteMat3DOlds(string name, bool preserveMalformations, params Matrix[] values)
         {
             if (InBinary)
@@ -1236,6 +1306,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteMat3DOldEnhanceds(string name, bool preserveMalformations, params Matrix[] values)
         {
             if (InBinary)
@@ -1335,6 +1406,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteSignedValues(string name, params int[] values)
         {
             if (InBinary)
@@ -1361,6 +1433,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteFloats(string name, IMalformable.MalformationManager? malformations, params float[] values)
         {
             if (InBinary)
@@ -1389,16 +1462,17 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteIDsBZ1(string name, UInt64 value, IMalformable.MalformationManager malformations)
         {
             byte[] data = BitConverter.GetBytes(value);
             if (malformations != null)
             {
-                var mal = malformations.GetMalformations(Malformation.INCORRECT_RAW, "param");
-                if (mal.Length > 0)
-                {
-                    data = (byte[])mal[0].Fields[0];
-                }
+//                var mal = malformations.GetMalformations(Malformation.INCORRECT_RAW, "param");
+//                if (mal.Length > 0)
+//                {
+//                    data = (byte[])mal[0].Fields[0];
+//                }
             }
 
             if (InBinary)
@@ -1423,6 +1497,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteIDsBZ1(string name, byte[] value)
         {
             if (InBinary)
@@ -1447,6 +1522,7 @@ namespace BZNParser.Tokenizer
         /// </summary>
         /// <param name="name"></param>
         /// <param name="values"></param>
+        [Obsolete]
         public void WriteUnsignedValues(string name, params byte[] values)
         {
             if (InBinary)
@@ -1476,6 +1552,7 @@ namespace BZNParser.Tokenizer
         /// </remarks>
         /// <param name="name"></param>
         /// <param name="values"></param>
+        [Obsolete]
         public void WriteUnsignedRawValues(string name, params byte[] values)
         {
             if (InBinary)
@@ -1497,6 +1574,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteChars(string name, string value, IMalformable.MalformationManager malformations)
         {
             if (InBinary)
@@ -1511,11 +1589,11 @@ namespace BZNParser.Tokenizer
             }
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} ="));
 
-            if (malformations != null && malformations.GetMalformations(Malformation.RIGHT_TRIM, name).Any())
-            {
-                // missing space after the =, so just do nothing
-            }
-            else
+//            if (malformations != null && malformations.GetMalformations(Malformation.RIGHT_TRIM, name).Any())
+//            {
+//                // missing space after the =, so just do nothing
+//            }
+//            else
             {
                 BaseStream.Write(BZNEncoding.win1252.GetBytes(" ")); // only have the trailing space if the value exists
             }
@@ -1525,6 +1603,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WritePtr32(string name, UInt32 value)
         {
             if (InBinary)
@@ -1546,6 +1625,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WritePtr64(string name, UInt64 value)
         {
             if (InBinary)
@@ -1575,6 +1655,7 @@ namespace BZNParser.Tokenizer
         }
 
         // this might be bogus, will know later
+        [Obsolete]
         public void WritePtrs(string name, params uint[] values)
         {
             if (InBinary)
@@ -1602,6 +1683,7 @@ namespace BZNParser.Tokenizer
             }
             TokenIndex++;
         }
+        [Obsolete]
         public void WriteVoidBytesL(string name, UInt32 value)
         {
             byte[] bytes = BitConverter.GetBytes(value);
@@ -1609,6 +1691,7 @@ namespace BZNParser.Tokenizer
                 Array.Reverse(bytes);
             WriteVoidBytesL(name, bytes);
         }
+        [Obsolete]
         public void WriteVoidBytes(string name, UInt32 value)
         {
             byte[] bytes = BitConverter.GetBytes(value);
@@ -1616,6 +1699,7 @@ namespace BZNParser.Tokenizer
                 Array.Reverse(bytes);
             WriteVoidBytes(name, bytes);
         }
+        [Obsolete]
         public void WriteVoidBytesL(string name, byte[] value)
         {
             if (InBinary)
@@ -1633,6 +1717,7 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
             TokenIndex++;
         }
+        [Obsolete]
         public void WriteVoidBytes(string name, byte[] value)
         {
             if (InBinary)
@@ -1651,6 +1736,7 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        [Obsolete]
         public void WriteVoidBytesRaw(string name, byte[] value)
         {
             if (InBinary)

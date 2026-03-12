@@ -27,22 +27,22 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (reader.Version == 1047)
             {
-                IBZNToken tok;
+                IBZNToken? tok;
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("nextRepair", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextRepair/FLOAT");
+                if (tok == null || !tok.Validate("nextRepair", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextRepair/FLOAT");
                 if (obj != null) obj.nextRepair = tok.GetSingle();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildDoneTime/FLOAT");
+                if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildDoneTime/FLOAT");
                 if (obj != null) obj.buildDoneTime = tok.GetSingle();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
+                if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
                 tok.ReadBoolean(obj, x => x.buildActive);
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
+                if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
                 int buildCount = tok.GetInt32();
 
                 if (obj != null) obj.buildItems = new string[buildCount];

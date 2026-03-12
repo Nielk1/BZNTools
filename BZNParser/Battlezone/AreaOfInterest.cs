@@ -39,12 +39,12 @@ namespace BZNParser.Battlezone
 
         public static bool Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, AreaOfInterest? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (!reader.InBinary)
             {
                 tok = reader.ReadToken();
-                if (!tok.IsValidationOnly() || !tok.Validate("AOI", BinaryFieldType.DATA_UNKNOWN))
+                if (tok == null || !tok.IsValidationOnly() || !tok.Validate("AOI", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse [AOI]");
             }
             //if (reader.Format == BZNFormat.Battlezone2)
@@ -61,40 +61,40 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
+                if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse undefptr/PTR");
                 if (obj != null) obj.path = tok.GetUInt32H();
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("path", BinaryFieldType.DATA_PTR))
+                if (tok == null || !tok.Validate("path", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse path/PTR");
                 if (obj != null) obj.path = tok.GetUInt32H();
             }
 
             tok = reader.ReadToken();
-            if (!tok.Validate("team", BinaryFieldType.DATA_LONG))
+            if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse team/LONG");
             if (obj != null) obj.team = tok.GetUInt32();
 
             tok = reader.ReadToken();
-            if (!tok.Validate("interesting", BinaryFieldType.DATA_BOOL))
+            if (tok == null || !tok.Validate("interesting", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse interesting/BOOL");
             tok.ReadBoolean(obj, x => x.interesting);
 
             tok = reader.ReadToken();
-            if (!tok.Validate("inside", BinaryFieldType.DATA_BOOL))
+            if (tok == null || !tok.Validate("inside", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse inside/BOOL");
             tok.ReadBoolean(obj, x => x.inside);
 
             tok = reader.ReadToken();
-            if (!tok.Validate("value", BinaryFieldType.DATA_LONG))
+            if (tok == null || !tok.Validate("value", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse value/LONG");
             if (obj != null) obj.value = tok.GetInt32();
 
             tok = reader.ReadToken();
-            if (!tok.Validate("force", BinaryFieldType.DATA_LONG))
+            if (tok == null || !tok.Validate("force", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse force/LONG");
             if (obj != null) obj.force = tok.GetUInt32();
 
@@ -108,7 +108,7 @@ namespace BZNParser.Battlezone
             //if (reader.Format == BZNFormat.Battlezone2)
             //{
             //    tok = reader.ReadToken();
-            //    if (!tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+            //    if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
             //    string name = tok.GetString();
             //    if (name != "AOI")
             //    {

@@ -50,31 +50,32 @@ namespace BZNParser.Battlezone
 
         public static string CheckBinaryMessString(this IMalformable.MalformationManager Malformations, string name, string value)
         {
-            var mal = Malformations.GetMalformations(Malformation.STRING_PAD, name);
-            var mal2 = Malformations.GetMalformations(Malformation.INCORRECT_RAW, name);
-            if (mal.Length > 0)
-            {
-                return value.PadRight((int)mal[0].Fields[0], '\0');
-            }
-            else if (mal2.Length > 0)
-            {
-                return (string)mal2[0].Fields[0];
-            }
-            else
+//            var mal = Malformations.GetMalformations(Malformation.STRING_PAD, name);
+//            var mal2 = Malformations.GetMalformations(Malformation.INCORRECT_RAW, name);
+//            if (mal.Length > 0)
+//            {
+//                return value.PadRight((int)mal[0].Fields[0], '\0');
+//            }
+//            else if (mal2.Length > 0)
+//            {
+//                return (string)mal2[0].Fields[0];
+//            }
+//            else
             {
                 return value;
             }
         }
 
+        [Obsolete]
         public static uint ReadBZ1_PtrDepricated(this BZNStreamReader reader, string name)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.InBinary)
             {
                 // untested
                 tok = reader.ReadToken();
-                if (!tok.Validate(name, BinaryFieldType.DATA_VOID))
+                if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_VOID))
                     throw new Exception($"Failed to parse {name ?? "???"}/PTR");
                 return tok.GetUInt32H();
             }
@@ -82,12 +83,13 @@ namespace BZNParser.Battlezone
             {
                 // untested
                 tok = reader.ReadToken();
-                if (!tok.Validate(name, BinaryFieldType.DATA_VOID))
+                if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_VOID))
                     throw new Exception($"Failed to parse {name ?? "???"}/PTR");
                 //return tok.GetUInt32H();
                 return tok.GetUInt32Raw(); // might be only version 1001 of BZ1
             }
         }
+        [Obsolete]
         public static void WriteBZ1_PtrDepricated(this BZNStreamWriter writer, string name, uint value, bool raw = false)
         {
             if (raw)
@@ -99,16 +101,18 @@ namespace BZNParser.Battlezone
             // untested
             writer.WriteVoidBytes(name, BitConverter.GetBytes(value).Reverse().ToArray()); // not sure if this is right, probably wrong for binary and god knows what it does to BigEndian
         }
+        [Obsolete]
         public static UInt64 ReadBZ1_Ptr(this BZNStreamReader reader, string name, int version)
         {
             IBZNToken tok;
             tok = reader.ReadToken();
-            if (!tok.Validate(name, BinaryFieldType.DATA_PTR))
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_PTR))
                 throw new Exception($"Failed to parse {name ?? "???"}/PTR");
             if (version < 2012)
                 return (UInt64)tok.GetUInt32H();
             return tok.GetUInt64H();
         }
+        [Obsolete]
         public static void WriteBZ1_Ptr(this BZNStreamWriter writer, string name, UInt64 value)
         {
             if (writer.Version < 2012)
@@ -121,6 +125,7 @@ namespace BZNParser.Battlezone
             }
         }
 
+        [Obsolete]
         public static uint ReadCompressedNumberFromBinary(this BZNStreamReader reader)
         {
             IBZNToken tok;
@@ -144,6 +149,7 @@ namespace BZNParser.Battlezone
             }
         }
 
+        [Obsolete]
         public static void WriteCompressedNumberFromBinary(this BZNStreamWriter writer, uint value)
         {
             if (value <= byte.MaxValue)
@@ -159,37 +165,39 @@ namespace BZNParser.Battlezone
                 writer.WriteUnsignedValues(null, value);
             }
         }
+        [Obsolete("it's just read sized string again")]
         public static string? ReadBZ2InputString(this BZNStreamReader reader, string name, IMalformable.MalformationManager? malformations)
         {
             IBZNToken tok;
             if (reader.InBinary)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate(null, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse ?/CHAR");
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse ?/CHAR");
                 uint length = tok.GetUInt8();
 
                 if (length > 0)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+                    if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
                     return tok.GetString();
                 }
                 return null;
             }
 
             tok = reader.ReadToken();
-            if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
             if (malformations != null)
             {
                 var tmp = tok as BZNTokenString;
                 if (tmp != null)
                 {
-                    if (tmp.RightTrimmedOneLiner)
-                        malformations.AddRightTrimmed(name);
+//                    if (tmp.RightTrimmedOneLiner)
+//                        malformations.AddRightTrimmed(name);
                 }
             }
             return tok.GetString();
         }
+        [Obsolete("it's just read sized string again")]
         public static string? ReadBZ2StringInSized(this BZNStreamReader reader, string name, int bufferSize)
         {
             IBZNToken tok;
@@ -200,17 +208,18 @@ namespace BZNParser.Battlezone
                 if (length > 0)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
                     return tok.GetString();
                 }
                 return null;
             }
 
             tok = reader.ReadToken();
-            if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
             return tok.GetString();
         }
 
+        [Obsolete]
         public static string? ReadGameObjectClass_BZ2(this BZNStreamReader reader, BZNFileBattlezone parent, string name, IMalformable.MalformationManager? malformations, [System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")
         {
             if (reader.Version < 1145)
@@ -230,6 +239,7 @@ namespace BZNParser.Battlezone
             }
         }
 
+        [Obsolete]
         public static void WriteGameObjectClass_BZ2(this BZNStreamWriter writer, BZNFileBattlezone parent, string name, string value, IMalformable.MalformationManager malformations, [System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")
         {
             if (writer.Version < 1145)
@@ -256,10 +266,11 @@ namespace BZNParser.Battlezone
         /// <param name="name"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
+        [Obsolete]
         public static byte ReadBytePossibleRawPossibleSigned_BZ2(this BZNStreamReader reader, string name)
         {
             IBZNToken tok = reader.ReadToken();
-            if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveFlags/CHAR");
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveFlags/CHAR");
             if (reader.Version >= 1187)
             {
                 return tok.GetUInt8();
@@ -270,6 +281,7 @@ namespace BZNParser.Battlezone
             }
         }
 
+        [Obsolete]
         public static void WriteBytePossibleRawPossibleSigned_BZ2(this BZNStreamWriter writer, string name, byte value)
         {
             if (writer.Version >= 1187)
@@ -301,6 +313,7 @@ namespace BZNParser.Battlezone
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         /// <exception cref="Exception"></exception>
+        [Obsolete("reader.Version <= 1128 ReadChars, else ReadSizedString")]
         public static string? ReadSizedString_BZ2_1145(this BZNStreamReader reader, string name, int bufferSize, IMalformable.MalformationManager? malformations)// = null)
         {
             if (reader.Format != BZNFormat.Battlezone2)
@@ -308,10 +321,16 @@ namespace BZNParser.Battlezone
 
             IBZNToken tok;
 
+            // <= 1128 - normal chars write
+            // < 1145 - compressed size then, if >0 chars
+            // else - compressed size then, if >0 chars
+            // Raw <= 1128      Size Prefix < 1145            size prefix
+            // Raw <= 1128      Size Prefix
+
             if (reader.Version <= 1128) // <= 1128 <= 1124 <= 1112 <= 1108 <= 1105?  < 1103
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
+                if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
                 string retVal = tok.GetString();
                 if (malformations != null)
                 {
@@ -332,6 +351,7 @@ namespace BZNParser.Battlezone
             }
         }
 
+        [Obsolete]
         public static void WriteSizedString_BZ2_1145(this BZNStreamWriter writer, string name, int bufferSize, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.Format != BZNFormat.Battlezone2)
@@ -362,6 +382,7 @@ namespace BZNParser.Battlezone
             }
         }
 
+        [Obsolete]
         public static void WriteBZ2StringInSized(this BZNStreamWriter writer, string name, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.InBinary)
@@ -374,6 +395,7 @@ namespace BZNParser.Battlezone
             }
             writer.WriteChars(name, value, malformations);
         }
+        [Obsolete]
         public static void WriteBZ2StringInSized(this BZNStreamWriter writer, string name, int bufferSize, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.InBinary)
@@ -386,6 +408,7 @@ namespace BZNParser.Battlezone
             }
             writer.WriteChars(name, value, malformations);
         }
+        [Obsolete]
         public static void WriteBZ2InputString(this BZNStreamWriter writer, string name, int bufferSize, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.InBinary)
@@ -399,6 +422,7 @@ namespace BZNParser.Battlezone
             writer.WriteChars(name, value, malformations);
         }
 
+        [Obsolete]
         public static void WriteBZ2InputString(this BZNStreamWriter writer, string name, string value, IMalformable.MalformationManager malformations)
         {
             if (writer.InBinary)
@@ -420,13 +444,13 @@ namespace BZNParser.Battlezone
             AiCmdInfo retVal = new AiCmdInfo();
 
             IBZNToken tok = reader.ReadToken();
-            if (!tok.Validate("priority", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse priority/LONG");
+            if (tok == null || !tok.Validate("priority", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse priority/LONG");
             retVal.priority = tok.GetUInt32();
 
             tok = reader.ReadToken();
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
-                if (!tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
+                if (tok == null || !tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
                 if (reader.Version == 1001)
                 {
                     retVal.what = tok.GetUInt32Raw();
@@ -440,11 +464,11 @@ namespace BZNParser.Battlezone
             {
                 if (reader.Version < 1145)
                 {
-                    if (!tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
+                    if (tok == null || !tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
                 }
                 else
                 {
-                    if (!tok.Validate("what", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse what/CHAR");
+                    if (tok == null || !tok.Validate("what", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse what/CHAR");
                 }
                 if (reader.InBinary)
                 {
@@ -458,7 +482,7 @@ namespace BZNParser.Battlezone
             }
 
             tok = reader.ReadToken();
-            if (!tok.Validate("who", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse who/LONG");
+            if (tok == null || !tok.Validate("who", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse who/LONG");
             retVal.who = tok.GetInt32();
 
             //if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
@@ -466,11 +490,11 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (reader.Format == BZNFormat.Battlezone && (reader.Version == 1001 || reader.Version == 1011 || reader.Version == 1012))
                 {
-                    if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
+                    if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
                 }
                 else
                 {
-                    if (!tok.Validate("where", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse where/PTR");
+                    if (tok == null || !tok.Validate("where", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse where/PTR");
                 }
                 retVal.where = tok.GetUInt32H();
 
@@ -478,7 +502,7 @@ namespace BZNParser.Battlezone
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)
                 if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2012)
                 {
-                    if (!tok.Validate("param", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse param/ID");
+                    if (tok == null || !tok.Validate("param", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse param/ID");
                     string tmp = tok.GetString();
                     if (tmp == string.Empty)
                     {
@@ -505,7 +529,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    if (!tok.Validate("param", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse param/LONG");
+                    if (tok == null || !tok.Validate("param", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse param/LONG");
                     retVal.param = tok.GetUInt32();
                 }
             }
@@ -584,41 +608,41 @@ namespace BZNParser.Battlezone
                 if (reader.InBinary)
                 {
                     IBZNToken tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
                     float euler_mass = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
                     float euler_mass_inv = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
                     float euler_v_mag = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
                     float euler_v_mag_inv = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
                     float euler_I = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
                     float euler_k_i = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_v = tok.GetVector3D();
                     tok.CheckMalformationsVector3D(euler_v.Malformations, reader.FloatFormat);
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_omega = tok.GetVector3D();
                     tok.CheckMalformationsVector3D(euler_omega.Malformations, reader.FloatFormat);
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_Accel = tok.GetVector3D();
                     tok.CheckMalformationsVector3D(euler_Accel.Malformations, reader.FloatFormat);
 
@@ -640,7 +664,7 @@ namespace BZNParser.Battlezone
                 else
                 {
                     IBZNToken tok = reader.ReadToken();
-                    if (!tok.Validate("euler")) throw new Exception("Failed to parse euler");
+                    if (tok == null || !tok.Validate("euler")) throw new Exception("Failed to parse euler");
                     
                     Euler euler = tok.GetEuler();
                     tok.CheckMalformationsEuler(euler, reader.FloatFormat);
@@ -658,7 +682,7 @@ namespace BZNParser.Battlezone
                 if (reader.InBinary)
                 {
                     IBZNToken tok = reader.ReadToken();
-                    if (!tok.Validate("mass", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    if (tok == null || !tok.Validate("mass", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
                     float euler_mass = tok.GetSingle();
 
                     //float euler_mass_inv = tok.GetSingle();
@@ -666,13 +690,13 @@ namespace BZNParser.Battlezone
                     //float euler_v_mag_inv = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("I", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    if (tok == null || !tok.Validate("I", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
                     float euler_I = tok.GetSingle();
 
                     //float euler_k_i = tok.GetSingle();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("small", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse euler's small BOOL");
+                    if (tok == null || !tok.Validate("small", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse euler's small BOOL");
                     bool canCompress = tok.GetBoolean();
 
                     Euler euler = new Euler()
@@ -684,19 +708,19 @@ namespace BZNParser.Battlezone
                     if (!canCompress)
                     {
                         tok = reader.ReadToken();
-                        if (!tok.Validate("v", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                        if (tok == null || !tok.Validate("v", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                         euler.v = tok.GetVector3D();
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("omega", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                        if (tok == null || !tok.Validate("omega", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                         euler.omega = tok.GetVector3D();
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("Accel", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                        if (tok == null || !tok.Validate("Accel", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                         euler.Accel = tok.GetVector3D();
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("Alpha", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                        if (tok == null || !tok.Validate("Alpha", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                         euler.Alpha = tok.GetVector3D();
                     }
                     else
@@ -705,11 +729,11 @@ namespace BZNParser.Battlezone
                     }
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("Pos", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                    if (tok == null || !tok.Validate("Pos", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
                     Vector3D euler_Pos = tok.GetVector3D();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("Att", BinaryFieldType.DATA_QUAT)) throw new Exception("Failed to parse euler's QUAT");
+                    if (tok == null || !tok.Validate("Att", BinaryFieldType.DATA_QUAT)) throw new Exception("Failed to parse euler's QUAT");
                     
                     throw new NotImplementedException("Euler Save");
                     //Quaternion euler_Att = tok.GetQuaternion();

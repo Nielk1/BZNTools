@@ -42,18 +42,18 @@ namespace BZNParser.Battlezone.GameObject
 
         // BZ2 only
         protected Matrix? saveMatrix { get; set; }
-        protected string saveClass { get; set; }
+        protected SizedString saveClass { get; set; }
         protected int saveTeam { get; set; }
         protected int saveSeqno { get; set; }
-        protected string saveLabel { get; set; }
-        protected string saveName { get; set; }
+        protected SizedString saveLabel { get; set; }
+        protected SizedString saveName { get; set; }
         public bool CLASS_m_AlignsToObject { get; private set; } // Class fields are from the ODF and are readonly
         public bool CLASS_loadAsDummy { get; private set; } // Class fields are from the ODF and are readonly
 
         public ClassBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBuilding? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -65,13 +65,15 @@ namespace BZNParser.Battlezone.GameObject
                     //if (reader.Version == 1147 || reader.Version == 1148 || reader.Version == 1149 || reader.Version == 1151 || reader.Version == 1154)
                     if (reader.Version < 1155)
                     {
-                        saveClass = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
+                        //saveClass = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
+                        (_, saveClass) = reader.ReadSizedString("config", obj, x => x.saveClass);
                     }
                     else
                     {
-                        saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass", obj?.Malformations);
+                        //saveClass = reader.ReadGameObjectClass_BZ2(parent, "saveClass", obj?.Malformations);
+                        (_, saveClass) = reader.ReadSizedString("saveClass", obj, x => x.saveClass);
                     }
-                    if (obj != null) obj.saveClass = saveClass;
+                    //if (obj != null) obj.saveClass = saveClass;
 
                     if (!string.IsNullOrEmpty(saveClass))
                     {
@@ -98,17 +100,19 @@ namespace BZNParser.Battlezone.GameObject
                         }
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
+                        if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
                         if (obj != null) obj.saveTeam = tok.GetInt32();
 
                         tok = reader.ReadToken();
-                        if (!tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
+                        if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
                         if (obj != null) obj.saveSeqno = tok.GetInt32H();
 
-                        string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32, obj?.Malformations);
-                        if (obj != null) obj.saveLabel = saveLabel;
-                        string saveName = reader.ReadSizedString_BZ2_1145("saveName", 32, obj?.Malformations);
-                        if (obj != null) obj.saveName = saveName;
+                        //string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32, obj?.Malformations);
+                        //if (obj != null) obj.saveLabel = saveLabel;
+                        reader.ReadSizedString("saveLabel", obj, x => x.saveLabel);
+                        //string saveName = reader.ReadSizedString_BZ2_1145("saveName", 32, obj?.Malformations);
+                        //if (obj != null) obj.saveName = saveName;
+                        reader.ReadSizedString("saveName", obj, x => x.saveName);
                     }
                 }
 
@@ -120,8 +124,9 @@ namespace BZNParser.Battlezone.GameObject
                 if (obj != null) obj.CLASS_loadAsDummy = loadAsDummy;
                 if (loadAsDummy)
                 {
-                    string name = reader.ReadSizedString_BZ2_1145("name", 32, obj?.Malformations);
-                    if (obj != null) obj.name = name;
+                    //string name = reader.ReadSizedString_BZ2_1145("name", 32, obj?.Malformations);
+                    //if (obj != null) obj.name = name;
+                    reader.ReadSizedString("name", obj, x => x.name);
                     return;
                 }
 
@@ -138,7 +143,7 @@ namespace BZNParser.Battlezone.GameObject
             if (parent.SaveType != SaveType.BZN)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("tempBuilding", BinaryFieldType.DATA_BOOL))
+                if (tok == null || !tok.Validate("tempBuilding", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse tempBuilding/BOOL");
                 tok.ReadBoolean(obj, x => x.tempBuilding);
             }
@@ -165,14 +170,16 @@ namespace BZNParser.Battlezone.GameObject
                     //if (reader.Version == 1147 || reader.Version == 1148 || reader.Version == 1149 || reader.Version == 1151 || reader.Version == 1154)
                     if (writer.Version < 1155)
                     {
-                        writer.WriteGameObjectClass_BZ2(parent, "config", obj.saveClass ?? string.Empty, obj.Malformations);
+                        //writer.WriteGameObjectClass_BZ2(parent, "config", obj.saveClass ?? string.Empty, obj.Malformations);
+                        writer.WriteSizedString("config", obj, x => x.saveClass);
                     }
                     else
                     {
-                        writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty, obj.Malformations);
+                        //writer.WriteGameObjectClass_BZ2(parent, "saveClass", obj.saveClass ?? string.Empty, obj.Malformations);
+                        writer.WriteSizedString("saveClass", obj, x => x.saveClass);
                     }
 
-                    if (!string.IsNullOrEmpty(obj.saveClass))
+                    if (!string.IsNullOrEmpty(obj.saveClass.Value))
                     {
                         if (writer.Version >= 1148)
                         {
@@ -188,14 +195,17 @@ namespace BZNParser.Battlezone.GameObject
 
                         writer.WriteSignedValues("saveTeam", obj.saveTeam);
                         writer.WriteUnsignedHexLValues("saveSeqno", (UInt32)obj.saveSeqno);
-                        writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel, obj.Malformations);
-                        writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName, obj.Malformations);
+                        //writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel, obj.Malformations);
+                        writer.WriteSizedString("saveLabel", obj, x => x.saveLabel);
+                        //writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName, obj.Malformations);
+                        writer.WriteSizedString("saveName", obj, x => x.saveName);
                     }
                 }
 
                 if (obj.CLASS_loadAsDummy)
                 {
-                    writer.WriteSizedString_BZ2_1145("name", 32, obj.name, obj.Malformations);
+                    //writer.WriteSizedString_BZ2_1145("name", 32, obj.name, obj.Malformations);
+                    writer.WriteSizedString("name", obj, x => x.name);
                     return;
                 }
 

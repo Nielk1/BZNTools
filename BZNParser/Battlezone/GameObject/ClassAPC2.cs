@@ -31,15 +31,15 @@ namespace BZNParser.Battlezone.GameObject
         public ClassAPC2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAPC2? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (!tok.Validate("IsoldierCount", BinaryFieldType.DATA_LONG))
+            if (tok == null || !tok.Validate("IsoldierCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse IsoldierCount/LONG");
             if (obj != null) obj.InternalSoldierCount = tok.GetInt32();
 
             tok = reader.ReadToken();
-            if (!tok.Validate("EsoldierCount", BinaryFieldType.DATA_LONG))
+            if (tok == null || !tok.Validate("EsoldierCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse EsoldierCount/LONG");
             int ExternalSoldierCount = tok.GetInt32();
             if (obj != null) obj.ExternalSoldierCount = ExternalSoldierCount;
@@ -47,7 +47,7 @@ namespace BZNParser.Battlezone.GameObject
             if (ExternalSoldierCount > 0)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("SoldierHandles", BinaryFieldType.DATA_PTR))
+                if (tok == null || !tok.Validate("SoldierHandles", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse SoldierHandles/PTR");
                 //tok.GetUInt32H();
                 if (obj != null)
@@ -66,33 +66,33 @@ namespace BZNParser.Battlezone.GameObject
             if (parent.SaveType != SaveType.BZN)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("nextSoldierDelay", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("nextSoldierDelay", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextSoldierDelay/FLOAT");
                 if (obj != null) obj.nextSoldierDelay = tok.GetSingle(); // nextSoldierDelay
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("nextSoldierAngle", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("nextSoldierAngle", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextSoldierAngle/FLOAT");
                 if (obj != null) obj.nextSoldierAngle = tok.GetSingle(); // nextSoldierAngle
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("nextReturnTimer", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("nextReturnTimer", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextReturnTimer/FLOAT");
                 if (obj != null) obj.nextReturnToAPC = tok.GetSingle(); // nextReturnTimer
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("DeployOnLanding", BinaryFieldType.DATA_BOOL))
+                if (tok == null || !tok.Validate("DeployOnLanding", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse DeployOnLanding/BOOL");
                 tok.ReadBoolean(obj, x => x.DeployOnLanding); // DeployOnLanding
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("undeployTimeout", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("undeployTimeout", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse undeployTimeout/LONG");
                 if (obj != null) obj.undeployTimeout = tok.GetInt32(); // undeployTimeout
             }
             
             tok = reader.ReadToken();
-            if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
+            if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
             if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);

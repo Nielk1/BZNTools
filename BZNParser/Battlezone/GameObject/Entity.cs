@@ -14,11 +14,11 @@ namespace BZNParser.Battlezone.GameObject
         protected EntityDescriptor preamble;
         protected string classLabel;
 
-        public string PrjID => preamble.PrjID;
-        public UInt32 seqNo => preamble.seqNo;
+        public SizedString PrjID => preamble.PrjID;
+        public UInt32 seqNo { get {return preamble.seqNo; } set { preamble.seqNo = value; } }
         public Vector3D pos { get { return preamble.pos; } set { preamble.pos = value; } }
         public UInt32 team { get { return preamble.team; } set { preamble.team = value; } }
-        public string label { get { return preamble.label; } set { preamble.label = value; } }
+        public SizedString label { get { return preamble.label; } set { preamble.label = value; } }
         public bool isUser { get { return preamble.isUser; } set { preamble.isUser = value; } }
         public UInt64 obj_addr { get { return preamble.obj_addr; } set { preamble.obj_addr = value; } }
         public Matrix transform { get { return preamble.transform; } set { preamble.transform = value; } }

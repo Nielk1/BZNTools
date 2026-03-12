@@ -41,7 +41,7 @@ namespace BZNParser.Battlezone.GameObject
         public ClassCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassCraft? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone && reader.Version < 1019)
             {
@@ -75,7 +75,7 @@ namespace BZNParser.Battlezone.GameObject
             || (reader.Format == BZNFormat.Battlezone2))// && reader.Version >= 1034))
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("abandoned", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("abandoned", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse abandoned/LONG");
                 if (tok.GetCount() != 1)
                     throw new Exception("Failed to parse abandoned/LONG (wrong entry count)"); // vastly improves type auto-detect
@@ -151,17 +151,17 @@ namespace BZNParser.Battlezone.GameObject
                 }
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("cloakState", BinaryFieldType.DATA_VOID))
+                if (tok == null || !tok.Validate("cloakState", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse cloakState/VOID");
                 if (obj != null) obj.cloakState = tok.GetUInt32HR();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("cloakTransBeginTime", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("cloakTransBeginTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransBeginTime/FLOAT");
                 if (obj != null) obj.cloakTransBeginTime = tok.GetSingle();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("cloakTransEndTime", BinaryFieldType.DATA_FLOAT))
+                if (tok == null || !tok.Validate("cloakTransEndTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransEndTime/FLOAT");
                 if (obj != null) obj.cloakTransEndTime = tok.GetSingle();
             }
@@ -171,17 +171,17 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version >= 1143)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse curAmmo/FLOAT");
                     if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle());
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse maxAmmo/FLOAT");
                     if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle());
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse addAmmo/FLOAT");
                     if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle());
 
@@ -189,16 +189,17 @@ namespace BZNParser.Battlezone.GameObject
                     if (reader.InBinary)
                     {
                         tok = reader.ReadToken();
-                        if (!tok.Validate(null, BinaryFieldType.DATA_CHAR))
+                        if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR))
                             throw new Exception("Failed to parse ?/CHAR");
                         byte curPilotLength = tok.GetUInt8();
 
                         if (curPilotLength > 0)
                         {
                             tok = reader.ReadToken();
-                            if (!tok.Validate("curPilot", BinaryFieldType.DATA_CHAR))
+                            if (tok == null || !tok.Validate("curPilot", BinaryFieldType.DATA_CHAR))
                                 throw new Exception("Failed to parse curPilot/CHAR");
-                            if (obj != null) obj.curPilot = tok.GetString();
+                            //if (obj != null) obj.curPilot = tok.GetString();
+                            tok.ReadChars(obj, x => x.curPilot);
                         }
                     }
                     else
@@ -210,8 +211,9 @@ namespace BZNParser.Battlezone.GameObject
                             //    throw new Exception("Failed to parse curPilot/CHAR");
                             //if (obj != null) obj.curPilot = tok.GetString();
 
-                            string curPilot = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
-                            if (obj != null) obj.curPilot = curPilot;
+                            //string curPilot = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
+                            //if (obj != null) obj.curPilot = curPilot;
+                            reader.ReadSizedString("config", obj, x => x.curPilot);
                         }
                         else
                         {
@@ -220,8 +222,9 @@ namespace BZNParser.Battlezone.GameObject
                             //    throw new Exception("Failed to parse curPilot/CHAR");
                             //if (obj != null) obj.curPilot = tok.GetString();
 
-                            string curPilot = reader.ReadGameObjectClass_BZ2(parent, "curPilot", obj?.Malformations);
-                            if (obj != null) obj.curPilot = curPilot;
+                            //string curPilot = reader.ReadGameObjectClass_BZ2(parent, "curPilot", obj?.Malformations);
+                            //if (obj != null) obj.curPilot = curPilot;
+                            reader.ReadSizedString("curPilot", obj, x => x.curPilot);
                         }
                     }
 
@@ -293,11 +296,11 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         if (obj.curPilot != null)
                         {
-                            writer.WriteUnsignedValues(null, (byte)(obj.curPilot.Length));
+                            writer.WriteUnsignedValues(null, (byte)(obj.curPilot.Value.Length));
 
-                            if (obj.curPilot.Length > 0)
+                            if (obj.curPilot.Value.Length > 0)
                             {
-                                writer.WriteChars("curPilot", obj.curPilot, obj.Malformations);
+                                writer.WriteChars("curPilot", obj, x => x.curPilot);
                             }
                         }
                         else
@@ -310,12 +313,14 @@ namespace BZNParser.Battlezone.GameObject
                         if (writer.Version == 1145 || writer.Version == 1147 || writer.Version == 1148 || writer.Version == 1149 || writer.Version == 1151 || writer.Version == 1154)
                         {
                             //writer.WriteChars("config", obj.curPilot, obj.Malformations);
-                            writer.WriteGameObjectClass_BZ2(parent, "config", obj.curPilot, obj.Malformations);
+                            //writer.WriteGameObjectClass_BZ2(parent, "config", obj.curPilot, obj.Malformations);
+                            writer.WriteSizedString("config", obj, x => x.curPilot);
                         }
                         else
                         {
                             //writer.WriteChars("curPilot", obj.curPilot, obj.Malformations);
-                            writer.WriteGameObjectClass_BZ2(parent, "curPilot", obj.curPilot, obj.Malformations);
+                            //writer.WriteGameObjectClass_BZ2(parent, "curPilot", obj.curPilot, obj.Malformations);
+                            writer.WriteSizedString("curPilot", obj, x => x.curPilot);
                         }
                     }
 

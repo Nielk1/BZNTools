@@ -30,20 +30,20 @@ namespace BZNParser.Battlezone.GameObject
         public ClassArmory2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassArmory2? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (!tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT))
+            if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT))
                 throw new Exception("Failed to parse buildDoneTime/FLOAT");
             if (obj != null) obj.buildDoneTime = tok.GetSingle();
 
             tok = reader.ReadToken();
-            if (!tok.Validate("buildActive", BinaryFieldType.DATA_BOOL))
+            if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse buildActive/BOOL");
             tok.ReadBoolean(obj, x => x.buildActive);
 
             tok = reader.ReadToken();
-            if (!tok.Validate("buildCount", BinaryFieldType.DATA_LONG))
+            if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse buildCount/LONG");
             int buildCount = tok.GetInt32();
 
@@ -57,27 +57,27 @@ namespace BZNParser.Battlezone.GameObject
             if (parent.SaveType != SaveType.BZN)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("buildStall", BinaryFieldType.DATA_BOOL))
+                if (tok == null || !tok.Validate("buildStall", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse buildStall/BOOL");
                 tok.ReadBoolean(obj, x => x.buildStall);
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("buildRally", BinaryFieldType.DATA_VEC3D))
+                if (tok == null || !tok.Validate("buildRally", BinaryFieldType.DATA_VEC3D))
                     throw new Exception("Failed to parse buildRally/VECTOR");
                 if (obj != null) obj.buildRally = tok.GetVector3D();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("navHandle", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("navHandle", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse navHandle/LONG");
                 if (obj != null) obj.navHandle = tok.GetInt32();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("launchHandle", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("launchHandle", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse launchHandle/LONG");
                 if (obj != null) obj.launchHandle = tok.GetInt32();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("launchTarget", BinaryFieldType.DATA_VEC3D))
+                if (tok == null || !tok.Validate("launchTarget", BinaryFieldType.DATA_VEC3D))
                     throw new Exception("Failed to parse launchTarget/VECTOR");
                 if (obj != null) obj.launchTarget = tok.GetVector3D();
             }
@@ -87,7 +87,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version >= 1135)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("navHandle", BinaryFieldType.DATA_LONG))
+                    if (tok == null || !tok.Validate("navHandle", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse navHandle/LONG");
                     if (obj != null) obj.navHandle = tok.GetInt32();
                 }

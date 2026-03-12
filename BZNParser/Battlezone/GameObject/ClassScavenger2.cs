@@ -31,46 +31,46 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (parent.SaveType != SaveType.BZN)
             {
-                IBZNToken tok;
+                IBZNToken? tok;
 
                 if (reader.Version >= 1109)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("curScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curScrap/LONG");
+                    if (tok == null || !tok.Validate("curScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curScrap/LONG");
                     if (obj != null) obj.curScrap = tok.GetUInt32();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("maxScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxScrap/LONG");
+                    if (tok == null || !tok.Validate("maxScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxScrap/LONG");
                     if (obj != null) obj.maxScrap = tok.GetUInt32();
                 }
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
+                if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
                 tok.ReadBoolean(obj, x => x.buildActive);
 
                 if (reader.Version < 1107)
                 {
                     // severe type missmatch must be resolved
                     tok = reader.ReadToken();
-                    if (!tok.Validate("bornTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse bornTime/LONG");
+                    if (tok == null || !tok.Validate("bornTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse bornTime/LONG");
                     if (obj != null) obj.bornTime = tok.GetUInt32();
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("lifeTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse lifeTime/LONG");
+                    if (tok == null || !tok.Validate("lifeTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse lifeTime/LONG");
                     if (obj != null) obj.lifeTime = tok.GetUInt32();
                 }
                 else
                 {
                     // severe type missmatch must be resolved
                     tok = reader.ReadToken();
-                    if (!tok.Validate("buildTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildTime/LONG");
+                    if (tok == null || !tok.Validate("buildTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildTime/LONG");
                     if (obj != null) obj.buildTime = tok.GetUInt32();
                 }
 
                 if (reader.Version >= 1109)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
+                    if (tok == null || !tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
                     if (obj != null)
                     {
                         obj.buildMatrix = tok.GetMatrix();
@@ -81,7 +81,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version >= 1148)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("pickupScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse pickupScrap/LONG");
+                    if (tok == null || !tok.Validate("pickupScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse pickupScrap/LONG");
                     if (obj != null) obj.pickupScrap = tok.GetUInt32();
                 }
 
@@ -89,7 +89,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // severe type missmatch must be resolved
                     tok = reader.ReadToken();
-                    if (!tok.Validate("scrapTimer", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse scrapTimer/LONG");
+                    if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse scrapTimer/LONG");
                     if (obj != null) obj.scrapTimer = tok.GetUInt32();
                 }
             }

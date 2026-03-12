@@ -32,8 +32,8 @@ namespace BZNParser.Battlezone.GameObject
                 //if (reader.Version > 1037)
                 if ((reader.Version >= 1039 && reader.Version < 2000) || reader.Version > 2004)
                 {
-                    IBZNToken tok = reader.ReadToken();
-                    if (!tok.Validate("scrapHeld", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse scrapHeld/LONG");
+                    IBZNToken? tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate("scrapHeld", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse scrapHeld/LONG");
                     if (obj != null) obj.scrapHeld = tok.GetUInt32();
                 }
             }

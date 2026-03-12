@@ -16,11 +16,11 @@ namespace BZNParser.Battlezone
 {
     public class EntityDescriptor : IMalformable
     {
-        public string PrjID { get; set; }
+        public SizedString PrjID { get; set; }
         public UInt32 seqNo { get; set; }
         public Vector3D pos { get; set; }
         public UInt32 team { get; set; }
-        public string label { get; set; }
+        public SizedString label { get; set; }
         public bool isUser { get; set; }
         public UInt64 obj_addr { get; set; }
         public Matrix transform { get; set; }
@@ -49,11 +49,11 @@ namespace BZNParser.Battlezone
 
         public static bool Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, EntityDescriptor? obj, BattlezoneBZNHints? Hints = null)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
             if (!reader.InBinary)
             {
                 tok = reader.ReadToken();
-                if (!tok.IsValidationOnly() || !tok.Validate("GameObject", BinaryFieldType.DATA_UNKNOWN))
+                if (tok == null || !tok.IsValidationOnly() || !tok.Validate("GameObject", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse [GameObject]");
             }
 
@@ -62,14 +62,14 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 UInt16 ItemID = tok.GetUInt16();
                 string PrjID = parent.Hints?.EnumerationPrjID?[ItemID] ?? string.Format("bzn64prjid_{0,4:X4}", ItemID);
-                if (obj != null) obj.PrjID = PrjID;
+                if (obj != null) obj.PrjID = new SizedString() { Value = PrjID };
             }
             else if (reader.Format == BZNFormat.Battlezone)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("PrjID", BinaryFieldType.DATA_ID))
+                if (tok == null || !tok.Validate("PrjID", BinaryFieldType.DATA_ID))
                     throw new Exception("Failed to parse PrjID/ID");
-                //if (!tok.Validate("PrjID", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse PrjID/ID");
+                //if (tok == null || !tok.Validate("PrjID", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse PrjID/ID");
                 string PrjID = tok.GetString();
 
                 // version 1001 may require the string be 8 bytes but our only sample is 1 ASCII atm
@@ -81,17 +81,17 @@ namespace BZNParser.Battlezone
                 //if (reader.HasBinary && reader.Version > 1105) // not sure the version for this one
                 //{
                 //    tok = reader.ReadToken();
-                //    if (!tok.Validate(null, BinaryFieldType.DATA_CHAR))
+                //    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR))
                 //        throw new Exception("Failed to parse ?/CHAR");
                 //    //string odfName = tok.GetString();
                 //    byte odfLength = tok.GetUInt8();
                 //}
 
-                string PrjID = null;
                 //if (reader.Version < 1145)
                 if (reader.Version < 1155)
                 {
-                    PrjID = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
+                    //PrjID = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
+                    reader.ReadSizedString("config", obj, x => x.PrjID);
                 }
                 else
                 {
@@ -103,18 +103,17 @@ namespace BZNParser.Battlezone
                     {
                         if (reader.Version == 1180)
                         {
-                            PrjID = reader.ReadGameObjectClass_BZ2(parent, "GetClass()", obj?.Malformations);
+                            //PrjID = reader.ReadGameObjectClass_BZ2(parent, "GetClass()", obj?.Malformations);
+                            reader.ReadSizedString("GetClass()", obj, x => x.PrjID);
                         }
                         else
                         {
                             // 1183 1187 1188 1192
-                            PrjID = reader.ReadGameObjectClass_BZ2(parent, "objClass", obj?.Malformations);
+                            //PrjID = reader.ReadGameObjectClass_BZ2(parent, "objClass", obj?.Malformations);
+                            reader.ReadSizedString("objClass", obj, x => x.PrjID);
                         }
                     }
                 }
-                if (PrjID == null)
-                    throw new Exception("Failed to parse PrjID/ID");
-                if (obj != null) obj.PrjID = PrjID;
             }
 
             uint seqNo = 0;
@@ -123,14 +122,14 @@ namespace BZNParser.Battlezone
                 if (reader.Version == 1101 || reader.Version == 1070)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
+                    if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
                         throw new Exception("Failed to parse seqno/SHORT");
                     seqNo = tok.GetUInt16H();
                 }
                 else
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("seqno", BinaryFieldType.DATA_LONG))
+                    if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse seqno/LONG");
                     seqNo = tok.GetUInt32H();
                 }
@@ -138,7 +137,7 @@ namespace BZNParser.Battlezone
             else if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
+                if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
                     throw new Exception("Failed to parse seqno/SHORT");
                 seqNo = tok.GetUInt16();
             }
@@ -147,7 +146,7 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("pos", BinaryFieldType.DATA_VEC3D))
+                if (tok == null || !tok.Validate("pos", BinaryFieldType.DATA_VEC3D))
                     throw new Exception("Failed to parse pos/VEC3D");
                 if (obj != null)
                 {
@@ -159,7 +158,7 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
-                if (!tok.Validate("team", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse team/LONG");
                 if (obj != null) obj.team = tok.GetUInt32();
             }
@@ -167,13 +166,13 @@ namespace BZNParser.Battlezone
             {
                 if (reader.Version < 1145)
                 {
-                    if (!tok.Validate("team", BinaryFieldType.DATA_LONG))
+                    if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse team/LONG");
                     if (obj != null) obj.team = tok.GetUInt32();
                 }
                 else
                 {
-                    if (!tok.Validate("team", BinaryFieldType.DATA_CHAR))
+                    if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse team/CHAR");
                     if (obj != null) obj.team = tok.GetUInt8(); // does this include perceived team in the high nybble? probably
                 }
@@ -182,28 +181,30 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("label", BinaryFieldType.DATA_SHORT))
+                if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_SHORT))
                     throw new Exception("Failed to parse label/CHAR");
-                if (obj != null) obj.label = string.Format("bzn64label_{0,4:X4}", tok.GetUInt16());
+                if (obj != null) obj.label = new SizedString() { Value = string.Format("bzn64label_{0,4:X4}", tok.GetUInt16()) };
             }
             else if (reader.Format == BZNFormat.Battlezone)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("label", BinaryFieldType.DATA_CHAR))
+                if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse label/CHAR");
-                if (obj != null) obj.label = tok.GetString();
+                //if (obj != null) obj.label = tok.GetString();
+                tok.ReadChars(obj, x => x.label);
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {
                 if (reader.Version < 1145)
                 {
                     //tok = reader.ReadToken();
-                    //if (!tok.Validate("label", BinaryFieldType.DATA_CHAR))
+                    //if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_CHAR))
                     //    throw new Exception("Failed to parse label/CHAR");
                     //label = tok.GetString();
 
-                    string label = reader.ReadSizedString_BZ2_1145("label", 40, obj?.Malformations);
-                    if (obj != null) obj.label = label;
+                    //string label = reader.ReadSizedString_BZ2_1145("label", 40, obj?.Malformations);
+                    //if (obj != null) obj.label = label;
+                    reader.ReadSizedString("label", obj, x => x.label);
                 }
                 else
                 {
@@ -217,14 +218,15 @@ namespace BZNParser.Battlezone
                     else
                     {
                         //tok = reader.ReadToken();
-                        //if (!tok.Validate(null, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse ?/CHAR");
+                        //if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse ?/CHAR");
                         //
                         //tok = reader.ReadToken();
-                        //if (!tok.Validate("label", BinaryFieldType.DATA_CHAR))
+                        //if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_CHAR))
                         //    throw new Exception("Failed to parse label/CHAR");
                         //label = tok.GetString();
-                        string label = reader.ReadSizedString_BZ2_1145("label", 40, obj?.Malformations);
-                        if (obj != null) obj.label = label;
+                        //string label = reader.ReadSizedString_BZ2_1145("label", 40, obj?.Malformations);
+                        //if (obj != null) obj.label = label;
+                        reader.ReadSizedString("label", obj, x => x.label);
                     }
                 }
             }
@@ -236,7 +238,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (reader.Version < 1145)
                     {
-                        if (!tok.Validate("isUser", BinaryFieldType.DATA_LONG))
+                        if (tok == null || !tok.Validate("isUser", BinaryFieldType.DATA_LONG))
                             throw new Exception("Failed to parse isUser/LONG");
                         UInt32 isUser = tok.GetUInt32();
                         if (obj != null)
@@ -250,7 +252,7 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        if (!tok.Validate("isUser", BinaryFieldType.DATA_BOOL))
+                        if (tok == null || !tok.Validate("isUser", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse isUser/BOOL");
                         tok.ReadBoolean(obj, x => x.isUser);
                     }
@@ -260,7 +262,7 @@ namespace BZNParser.Battlezone
             else if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("isUser", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("isUser", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse isUser/LONG");
                 UInt32 isUser = tok.GetUInt32();
                 if (obj != null)
@@ -290,7 +292,7 @@ namespace BZNParser.Battlezone
             else if (reader.Format == BZNFormat.Battlezone2)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("objAddr", BinaryFieldType.DATA_PTR))
+                if (tok == null || !tok.Validate("objAddr", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse objAddr/PTR");
                 if (obj != null) obj.obj_addr = tok.GetUInt32H();
             }
@@ -298,7 +300,7 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("transform", BinaryFieldType.DATA_MAT3D))
+                if (tok == null || !tok.Validate("transform", BinaryFieldType.DATA_MAT3D))
                     throw new Exception("Failed to parse transform/MAT3D");
                 if (obj != null)
                 {
@@ -309,7 +311,7 @@ namespace BZNParser.Battlezone
             if ((reader.Format == BZNFormat.Battlezone && reader.Version > 1001) || reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("transform", BinaryFieldType.DATA_MAT3DOLD))
+                if (tok == null || !tok.Validate("transform", BinaryFieldType.DATA_MAT3DOLD))
                     throw new Exception("Failed to parse transform/MAT3DOLD");
                 if (obj != null)
                 {
@@ -333,7 +335,7 @@ namespace BZNParser.Battlezone
             if (Hints?.ClassLabels != null)
             {
                 ValidClassLabels = new List<string>();
-                string lookupKey = obj.PrjID.ToLowerInvariant();
+                string lookupKey = obj.PrjID.Value.ToLowerInvariant();
                 if (Hints.ClassLabels.ContainsKey(lookupKey))
                 {
                     var possibleClasses = Hints.ClassLabels[lookupKey];
@@ -355,7 +357,7 @@ namespace BZNParser.Battlezone
             foreach (var kv in parent.ClassLabelMap.OrderBy(dr => ValidClassLabels != null && ValidClassLabels.Contains(dr.Key) ? 0 : 1).ThenBy(dr => dr.Key))
             {
                 string classLabel = kv.Key;
-                if (!parent.LongTermClassLabelLookupCache.ContainsKey(obj.PrjID.ToLowerInvariant()) || parent.LongTermClassLabelLookupCache[obj.PrjID.ToLowerInvariant()].Contains(classLabel))
+                if (!parent.LongTermClassLabelLookupCache.ContainsKey(obj.PrjID.Value.ToLowerInvariant()) || parent.LongTermClassLabelLookupCache[obj.PrjID.Value.ToLowerInvariant()].Contains(classLabel))
                 {
                     if (!(Hints?.Strict ?? false) || ValidClassLabels == null || ValidClassLabels.Count == 0 || ValidClassLabels.Contains(classLabel))
                         try
@@ -374,9 +376,9 @@ namespace BZNParser.Battlezone
             }
             reader.Bookmark.RevertToBookmark();
 
-            if (!parent.LongTermClassLabelLookupCache.ContainsKey(obj.PrjID.ToLowerInvariant()))
-                parent.LongTermClassLabelLookupCache[obj.PrjID.ToLowerInvariant()] = new HashSet<string>(Candidates.Select(dr => dr.Name));
-            parent.LongTermClassLabelLookupCache[obj.PrjID.ToLowerInvariant()] = new HashSet<string>(parent.LongTermClassLabelLookupCache[obj.PrjID.ToLowerInvariant()].Intersect(Candidates.Select(dr => dr.Name)));
+            if (!parent.LongTermClassLabelLookupCache.ContainsKey(obj.PrjID.Value.ToLowerInvariant()))
+                parent.LongTermClassLabelLookupCache[obj.PrjID.Value.ToLowerInvariant()] = new HashSet<string>(Candidates.Select(dr => dr.Name));
+            parent.LongTermClassLabelLookupCache[obj.PrjID.Value.ToLowerInvariant()] = new HashSet<string>(parent.LongTermClassLabelLookupCache[obj.PrjID.Value.ToLowerInvariant()].Intersect(Candidates.Select(dr => dr.Name)));
 
             if (Candidates.Count > 0)
             {
@@ -424,7 +426,7 @@ namespace BZNParser.Battlezone
                     reader.Bookmark.Mark();
                     IBZNToken tok = reader.ReadToken();
                     reader.Bookmark.RevertToBookmark();
-                    if (!tok.IsValidationOnly() || !tok.Validate("GameObject", BinaryFieldType.DATA_UNKNOWN))
+                    if (!tok.IsValidationOnly() || tok == null || !tok.Validate("GameObject", BinaryFieldType.DATA_UNKNOWN))
                     {
                         // next field isn't the start of a GameObject
                         return false;
@@ -464,9 +466,9 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                if (PrjID.StartsWith("bzn64prjid_"))
+                if (PrjID.Value.StartsWith("bzn64prjid_"))
                 {
-                    string possibleLabel = PrjID.Substring("bzn64prjid_".Length);
+                    string possibleLabel = PrjID.Value.Substring("bzn64prjid_".Length);
                     if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
                     {
                         writer.WriteUnsignedValues(null, possibleItemID);
@@ -481,7 +483,7 @@ namespace BZNParser.Battlezone
                     var lookup = parent.Hints?.EnumerationPrjID;
                     if (lookup != null)
                     {
-                        UInt16? key = lookup.Where(dr => dr.Value == PrjID).Select(dr => dr.Key).FirstOrDefault();
+                        UInt16? key = lookup.Where(dr => dr.Value == PrjID.Value).Select(dr => dr.Key).FirstOrDefault();
                         if (key.HasValue)
                         {
                             writer.WriteUnsignedValues(null, key.Value);
@@ -500,15 +502,16 @@ namespace BZNParser.Battlezone
             else if (writer.Format == BZNFormat.Battlezone)
             {
                 if (writer.Version == 1001)
-                    writer.WriteID("PrjID", this, x => x.PrjID, oneLiner: true); // confirm when we can if this actually an ID
+                    writer.WriteID("PrjID", this, x => x.PrjID.Value, oneLiner: true); // confirm when we can if this actually an ID
                 else
-                    writer.WriteID("PrjID", this, x => x.PrjID);
+                    writer.WriteID("PrjID", this, x => x.PrjID.Value);
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1155)
                 {
-                    writer.WriteGameObjectClass_BZ2(parent, "config", PrjID, Malformations);
+                    //writer.WriteGameObjectClass_BZ2(parent, "config", PrjID, Malformations);
+                    writer.WriteSizedString("config", this, x => x.PrjID);
                 }
                 else
                 {
@@ -520,11 +523,13 @@ namespace BZNParser.Battlezone
                     {
                         if (writer.Version == 1180)
                         {
-                             writer.WriteGameObjectClass_BZ2(parent, "GetClass()", PrjID, Malformations);
+                             //writer.WriteGameObjectClass_BZ2(parent, "GetClass()", PrjID, Malformations);
+                             writer.WriteSizedString("GetClass()", this, x => x.PrjID);
                         }
                         else
                         {
-                            writer.WriteGameObjectClass_BZ2(parent, "objClass", PrjID, Malformations);
+                            //writer.WriteGameObjectClass_BZ2(parent, "objClass", PrjID, Malformations);
+                            writer.WriteSizedString("objClass", this, x => x.PrjID);
                         }
                     }
                 }
@@ -569,9 +574,9 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                if (label != null && label.StartsWith("bzn64label_"))
+                if (label != null && label.Value.StartsWith("bzn64label_"))
                 {
-                    string possibleLabelNum = label.Substring("bzn64label_".Length);
+                    string possibleLabelNum = label.Value.Substring("bzn64label_".Length);
                     if (ushort.TryParse(possibleLabelNum, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleLabelID))
                     {
                         writer.WriteUnsignedValues(null, possibleLabelID);
@@ -588,13 +593,14 @@ namespace BZNParser.Battlezone
             }
             else if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WriteChars("label", label, Malformations);
+                writer.WriteChars("label", this, x => x.label);
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1145)
                 {
-                    writer.WriteSizedString_BZ2_1145("label", 40, label, Malformations);
+                    //writer.WriteSizedString_BZ2_1145("label", 40, label, Malformations);
+                    writer.WriteSizedString("label", this, x => x.label);
                 }
                 else
                 {
@@ -607,7 +613,8 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        writer.WriteSizedString_BZ2_1145("label", 40, label, Malformations);
+                        //writer.WriteSizedString_BZ2_1145("label", 40, label, Malformations);
+                        writer.WriteSizedString("label", this, x => x.label);
                     }
                 }
             }
@@ -618,15 +625,15 @@ namespace BZNParser.Battlezone
                 {
                     if (writer.Version < 1145)
                     {
-                        var mals = Malformations.GetMalformations(Malformation.INCORRECT_RAW, "isUser");
-                        if (preserveMalformations && mals.Length > 0)
-                        {
-                            UInt32 malValue = (UInt32)mals[0].Fields[0];
-                            // consider clearing malformations when you edit a malformed field
-
-                            writer.WriteUnsignedValues("isUser", isUser ? malValue : 0U);
-                        }
-                        else
+//                        var mals = Malformations.GetMalformations(Malformation.INCORRECT_RAW, "isUser");
+//                        if (preserveMalformations && mals.Length > 0)
+//                        {
+//                            UInt32 malValue = (UInt32)mals[0].Fields[0];
+//                            // consider clearing malformations when you edit a malformed field
+//
+//                            writer.WriteUnsignedValues("isUser", isUser ? malValue : 0U);
+//                        }
+//                        else
                         {
                             writer.WriteUnsignedValues("isUser", isUser ? 1U : 0U);
                         }
@@ -640,15 +647,15 @@ namespace BZNParser.Battlezone
             }
             else if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                var mals = Malformations.GetMalformations(Malformation.INCORRECT_RAW, "isUser");
-                if (preserveMalformations && mals.Length > 0)
-                {
-                    UInt32 malValue = (UInt32)mals[0].Fields[0];
-                    // consider clearing malformations when you edit a malformed field
-
-                    writer.WriteUnsignedValues("isUser", isUser ? malValue : 0U);
-                }
-                else
+//                var mals = Malformations.GetMalformations(Malformation.INCORRECT_RAW, "isUser");
+//                if (preserveMalformations && mals.Length > 0)
+//                {
+//                    UInt32 malValue = (UInt32)mals[0].Fields[0];
+//                    // consider clearing malformations when you edit a malformed field
+//
+//                    writer.WriteUnsignedValues("isUser", isUser ? malValue : 0U);
+//                }
+//                else
                 {
                     writer.WriteUnsignedValues("isUser", isUser ? 1U : 0U);
                 }

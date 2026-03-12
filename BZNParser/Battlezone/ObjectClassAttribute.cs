@@ -11,11 +11,13 @@ namespace BZNParser.Battlezone
     {
         public BZNFormat Format { get; set; }
         public string ClassName { get; set; }
+        public int MinimumVersion { get; set; } // should be used to rank items in MultiClass, but technicly a BZN is valid containing items that postdate its version so long as it is loaded on a game version the class predates
 
-        public ObjectClassAttribute(BZNFormat format, string className)
+        public ObjectClassAttribute(BZNFormat format, string className, int minimumVersion = 0)
         {
             Format = format;
             ClassName = className;
+            MinimumVersion = minimumVersion;
         }
     }
 }

@@ -118,7 +118,7 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteFloats("nextSoldierDelay", preserveMalformations ? obj.Malformations : null, obj.nextSoldierDelay);
                 writer.WriteFloats("nextSoldierAngle", preserveMalformations ? obj.Malformations : null, obj.nextSoldierAngle);
                 writer.WriteFloats("nextReturnTimer", preserveMalformations ? obj.Malformations : null, obj.nextReturnToAPC);
-                writer.WriteBooleans("DeployOnLanding", preserveMalformations ? obj.Malformations : null, obj.DeployOnLanding);
+                writer.WriteBoolean("DeployOnLanding", obj, x => x.DeployOnLanding);
                 writer.WriteSignedValues("undeployTimeout", obj.undeployTimeout);
             }
             

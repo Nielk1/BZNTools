@@ -221,7 +221,7 @@ namespace BZNParser.Battlezone
         public byte[] groupTargets { get; set; }
 
         /// Mission DLL or internal class
-        public string Mission { get; set; }
+        public SizedString Mission { get; set; }
         public UInt64 sObject { get; set; }
 
         // BZ1 lua mission state block
@@ -343,8 +343,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (!tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse msn_filename/CHAR");
-                //msn_filename = tok.GetString();
-                msn_filename = Malformations.AddBinaryMessString("msn_filename", tok.GetString());
+                tok.ReadChars(this, x => x.msn_filename);
                 Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -407,7 +406,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
-                    TerrainName = tok.GetString();
+                    tok.ReadChars(this, x => x.TerrainName);
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
             }
@@ -419,8 +418,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
-
-                    TerrainName = Malformations.AddBinaryMessString("TerrainName", tok.GetString());
+                    tok.ReadChars(this, x => x.TerrainName);
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else if (reader.Version == 1171)
@@ -433,7 +431,7 @@ namespace BZNParser.Battlezone
                             throw new Exception("Failed to parse g_TerrainName/CHAR"); // might need to note a safe malformation here
                         Malformations.AddIncorrectName<BZNFileBattlezone, string>(x => x.TerrainName, "TerrainName");
                     }
-                    TerrainName = tok.GetString();
+                    tok.ReadChars(this, x => x.TerrainName);
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else
@@ -441,7 +439,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("g_TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse g_TerrainName/CHAR");
-                    TerrainName = tok.GetString();
+                    tok.ReadChars(this, x => x.TerrainName);
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
             }
@@ -479,6 +477,8 @@ namespace BZNParser.Battlezone
                     Hydrate(reader);
 
                     Malformations.AddIncorrect("missionSave", true);
+
+                    // TODO this path needs to be resolved with the new malformation engine stuff ^
                 }
             }
             else
@@ -598,7 +598,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("name", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse name/CHAR");
-                    this.Mission = Malformations.AddBinaryMessString("name", tok.GetString());
+                    tok.ReadChars(this, x => x.Mission);
                     Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else if (reader.Version < 1145)
@@ -607,21 +607,13 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (!tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse dllName/CHAR");
-                    this.Mission = Malformations.AddBinaryMessString("dllName", tok.GetString());
+                    tok.ReadChars(this, x => x.Mission);
                     Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else
                 {
-                    if (reader.InBinary)
-                    {
-                        tok = reader.ReadToken();
-                        if (!tok.Validate(null, BinaryFieldType.DATA_CHAR))
-                            throw new Exception("Failed to parse dllName/CHAR");
-                    }
-                    tok = reader.ReadToken();
-                    if (!tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
-                        throw new Exception("Failed to parse dllName/CHAR");
-                    this.Mission = Malformations.AddBinaryMessString("dllName", tok.GetString());
+                    Mission = new SizedString();
+                    Mission.Hydrate(reader, "dllName");
                     Console.WriteLine($"Mission: {this.Mission}");
                 }
             }
@@ -973,23 +965,14 @@ namespace BZNParser.Battlezone
 
             if ((writer.Format == BZNFormat.Battlezone && writer.Version > 1022) || writer.Format == BZNFormat.Battlezone2)
             {
-                if (binary != Binary)
-                {
-                    writer.WriteBooleans("binarySave", null, binary);
-                    if (binary)
-                        writer.SetBinary();
-                }
-                else
-                {
-                    writer.WriteBooleans("binarySave", preserveMalformations ? Malformations : null, binary);
-                    if (binary)
-                        writer.SetBinary();
-                }
+                writer.WriteBoolean("binarySave", this, x => x.Binary, (binarySave) => binary);
+                if (binary)
+                    writer.SetBinary();
             }
 
             if (writer.Format == BZNFormat.Battlezone && writer.Version > 1022)
             {
-                writer.WriteChars("msn_filename", msn_filename, Malformations);
+                writer.WriteChars("msn_filename", this, x => x.msn_filename);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -1026,7 +1009,7 @@ namespace BZNParser.Battlezone
                 {
                     if (writer.Format == BZNFormat.Battlezone)
                     {
-                        var mals = Malformations.GetMalformations(Malformation.INCORRECT, "missionSave");
+                        var mals = Malformations.GetMalformations(Malformation.INCORRECT_RAW, "missionSave");
                         if (mals.Length > 0)
                         {
                             // we aren't writing this field because the original lacked it
@@ -1044,17 +1027,7 @@ namespace BZNParser.Battlezone
                     //if ((1017 <= reader.Version && reader.Version <= 1037) || reader.Version == 1043 || reader.Version == 1045 || reader.Version == 2003 || reader.Version == 2016)
                     else
                     {
-                        switch (SaveType)
-                        {
-                            case SaveType.BZN:
-                                writer.WriteBooleans("missionSave", preserveMalformations ? Malformations : null, true);
-                                break;
-                            case SaveType.SAVE:
-                                writer.WriteBooleans("missionSave", preserveMalformations ? Malformations : null, false);
-                                break;
-                            default:
-                                throw new NotImplementedException();
-                        }
+                        writer.WriteBoolean("missionSave", this, x => x.SaveType, (saveType) => saveType switch { SaveType.BZN => true, SaveType.SAVE => false, _ => throw new InvalidCastException("TODO message") });
                     }
                 }
             }
@@ -1063,7 +1036,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1001)
                 {
-                    writer.WriteChars("TerrainName", TerrainName, Malformations);
+                    writer.WriteChars("TerrainName", this, x => x.TerrainName);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)
@@ -1071,26 +1044,16 @@ namespace BZNParser.Battlezone
                 if (writer.Version < 1171)
                 {
                     // BZ2: 1123 1124s
-                    if (preserveMalformations)
-                        writer.WriteChars("TerrainName", Malformations.CheckBinaryMessString("TerrainName", TerrainName), Malformations);
-                    else
-                        writer.WriteChars("TerrainName", TerrainName, Malformations);
+                    writer.WriteChars("TerrainName", this, x => x.TerrainName);
                 }
                 else if (writer.Version == 1171)
                 {
-                    var mal = Malformations.GetMalformations(Malformation.INCORRECT_NAME, "g_TerrainName");
-                    if (preserveMalformations && mal.Length > 0)
-                    {
-                        writer.WriteChars((string)mal[0].Fields[0], TerrainName, Malformations);
-                    }
-                    else
-                    {
-                        writer.WriteChars("g_TerrainName", TerrainName, Malformations);
-                    }
+                    // check for the malformation where sometimes it has the wrong string nae of "TerrainName"
+                    writer.WriteChars("g_TerrainName", this, x => x.TerrainName);
                 }
                 else
                 {
-                    writer.WriteChars("g_TerrainName", TerrainName, Malformations);
+                    writer.WriteChars("g_TerrainName", this, x => x.TerrainName);
                 }
             }
 
@@ -1123,15 +1086,17 @@ namespace BZNParser.Battlezone
                 }
                 if (writer.Version == 1100 || writer.Version == 1041 || writer.Version == 1047 || writer.Version == 1070) // not sure what versions this happens
                 {
-                    writer.WriteChars("name", Malformations.CheckBinaryMessString("name", Mission), Malformations);
+                    writer.WriteChars("name", this, x => x.Mission);
                 }
                 else if (writer.Version < 1145)
                 {
                     // max length 40
-                    writer.WriteChars("dllName", Malformations.CheckBinaryMessString("dllName", Mission), Malformations);
+                    writer.WriteChars("dllName", this, x => x.Mission);
                 }
                 else
                 {
+                    Mission.Dehydrate(writer);
+
                     if (writer.InBinary)
                     {
                         writer.WriteUnsignedValues(null, (byte)Mission.Length);
@@ -1151,7 +1116,7 @@ namespace BZNParser.Battlezone
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WriteChars("name", Mission, Malformations);
+                writer.WriteChars("name", this, x => x.Mission);
 
                 // read the old sObject ptr, not sure what can be done with it
                 if (writer.Version < 1002)
@@ -1173,7 +1138,7 @@ namespace BZNParser.Battlezone
                 {
                     if (SaveType == SaveType.BZN ? writer.Version == 1044 : writer.Version >= 1044)
                     {
-                        writer.WriteBooleans("undefbool", preserveMalformations ? Malformations : null, bz1_luamission_started ?? SaveType == SaveType.BZN);
+                        writer.WriteBoolean("undefbool", this, x => x.bz1_luamission_started, (bz1_luamission_started) => bz1_luamission_started ?? SaveType == SaveType.BZN);
 
                         // TODO other lua state values here?
                     }
@@ -1211,7 +1176,7 @@ namespace BZNParser.Battlezone
                 writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_1.Value);
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_2.Value);
-                writer.WriteBooleans("exited", preserveMalformations ? Malformations : null, UserProcess_exited.Value);
+                writer.WriteBoolean("exited", this, x => x.UserProcess_exited);
             }
 
             writer.WriteValidation("AOIs");

@@ -12,18 +12,18 @@ namespace BZNParser.Tokenizer;
 public enum Malformation
 {
     UNKNOWN = 0,
-    INCOMPAT,        // ?????????                           // Not loadable by game
-    EXTRA_FIELD,     // "EXTRA_FIELD:CTX", <fields>         // Extra data
-    MISINTERPRET,    // <fieldName>,       <interpretedAs>  // Misinterpreted by game but thus is loadable
-    OVERCOUNT,       // <fieldName>                         // Too many objects of this type, maximum may have changed
-    NOT_IMPLEMENTED, // <fieldName>                         // Field not implemented, but it probably won't break the BZN read
-    INCORRECT,       // <fieldName>,       <incorrectValue> // Value is incorrect and has been corrected; incorrectValue is the correct type
-    INCORRECT_TEXT,  // <fieldName>,       <incorrectValue> // Value is incorrect and has been corrected; incorrectValue is unparsed text
-    LINE_ENDING,     // "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
-    STRING_PAD,      // <fieldName>,       <length>         // String is padded by nuls to reach this length
-    INCORRECT_NAME,  // <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
-    FLOAT_FORMAT,    // "ALL:FLOAT_TEXT",  <formatApplied>  // Float is in an unexpected text format
-    RIGHT_TRIM,      // <fieldName>                         // Field is a 1-liner with an empty field that got Right-Trimmed
+    INCOMPAT,        //X ?????????                           // Not loadable by game
+    EXTRA_FIELD,     //X "EXTRA_FIELD:CTX", <fields>         // Extra data
+    MISINTERPRET,    //X <fieldName>,       <interpretedAs>  // Misinterpreted by game but thus is loadable
+    OVERCOUNT,       //X <fieldName>                         // Too many objects of this type, maximum may have changed
+    NOT_IMPLEMENTED, //X <fieldName>                         // Field not implemented, but it probably won't break the BZN read
+    INCORRECT_RAW,   // <byte[] originalRaw> // value parsed improperly or otherwise differently than expected, preserved original raw bytes, ASCII and Binary modes (in text mode the bytes are dumped directly into the file, not converted)
+    INCORRECT_TEXT,  // <string originalString> // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
+    LINE_ENDING,     //X "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
+    STRING_PAD,      //X <fieldName>,       <length>         // String is padded by nuls to reach this length
+    INCORRECT_NAME,  //X <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
+    FLOAT_FORMAT,    //X "ALL:FLOAT_TEXT",  <formatApplied>  // Float is in an unexpected text format
+    RIGHT_TRIM,      //X <fieldName>                         // Field is a 1-liner with an empty field that got Right-Trimmed
 }
 
 public static class MalformationExtensions
@@ -90,7 +90,7 @@ public static class MalformationExtensions
     /// <param name="incorrectValue">The value that is considered incorrect for the specified field. Can be <c>null</c> if the field's incorrect state is due to a missing or invalid value.</param>
     [Obsolete]
     public static void AddIncorrect(this MalformationManager manager, string fieldName, object incorrectValue) =>
-        manager.Add(Malformation.INCORRECT, fieldName, incorrectValue);
+        manager.Add(Malformation.INCORRECT_RAW, fieldName, incorrectValue);
 
 
 
@@ -108,22 +108,60 @@ public static class MalformationExtensions
         manager.Add(Malformation.STRING_PAD, filedName, length);
 
 
-    [Obsolete]
-    public static void AddRightTrimmed(this MalformationManager manager, string filedName) =>
-        manager.Add(Malformation.RIGHT_TRIM, filedName);
 
 
 
+    public static bool IsRightTrimmed<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, index, Malformation.RIGHT_TRIM);
+            if (mals.Length > 0)
+                return true;
+            return false;
+        }
+        throw new ArgumentException("Expression is not a property", nameof(property));
+    }
+
+    public static void AddRightTrimmed<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable =>
+        manager.Add(property, index, Malformation.RIGHT_TRIM);
 
 
 
+    // This value is byte incorrect, which means the value here must be emitted as raw bytes
+    public static (bool, byte[]?) GetIncorrectRaw<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, index, Malformation.INCORRECT_RAW);
+            if (mals.Length > 0)
+                return (true, (byte[])mals[0].Fields[0]);
+            return (false, null);
+        }
+        throw new ArgumentException("Expression is not a property", nameof(property));
+    }
+
+    public static void AddIncorrectRaw<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index = 0, byte[] originalBytes) where T : IMalformable =>
+        manager.Add(property, index, Malformation.INCORRECT_RAW, originalBytes);
 
 
 
+    // This value is text incorrect, which means this value is the text representation not matching what it should be
+    public static (bool, string?) GetIncorrectTextParse<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, index, Malformation.INCORRECT_TEXT);
+            if (mals.Length > 0)
+                return (true, (string)mals[0].Fields[0]);
+            return (false, null);
+        }
+        throw new ArgumentException("Expression is not a property", nameof(property));
+    }
 
-    // might be able to unify with INCORRECT, or maybe INCORRECT applies in both modes and INCORRECT_TEXT only in text mode?
-    public static void AddIncorrectTextParse<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int? index, string originalText) where T : IMalformable =>
+    public static void AddIncorrectTextParse<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index = 0, string originalText) where T : IMalformable =>
         manager.Add(property, index, Malformation.INCORRECT_TEXT, originalText);
+
 
 
 

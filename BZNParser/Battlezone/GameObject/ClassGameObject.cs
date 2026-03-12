@@ -789,14 +789,14 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("hasPilot", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse hasPilot/BOOL");
-                    bool hasPilot = tok.GetBoolean();
-                    if (obj != null) obj.curPilot = hasPilot ? obj.isUser ? obj.PrjID[0] + "suser" : obj.PrjID[0] + "spilo" : string.Empty;
+                    // test this works
+                    tok.ReadBoolean(obj, x => x.curPilot, 0, (hasPilot) => hasPilot ? obj.isUser ? obj.PrjID[0] + "suser" : obj.PrjID[0] + "spilo" : string.Empty);
                 }
                 else
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("curPilot", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse curPilot/ID");
-                    if (obj != null) obj.curPilot = tok.GetString();
+                    tok.ReadID(obj, x => x.curPilot);
                 }
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -912,7 +912,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version < 1145)
                 {
-                    writer.WriteBooleans("isObjective", preserveMalformations ? obj.Malformations : null, obj.isObjective);
+                    writer.WriteBoolean("isObjective", obj, x => x.isObjective);
                 }
                 else
                 {
@@ -921,7 +921,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version < 1145)
                 {
-                    writer.WriteBooleans("isSelected", preserveMalformations ? obj.Malformations : null, obj.isSelected);
+                    writer.WriteBoolean("isSelected", obj, x => x.isSelected);
                 }
                 else
                 {
@@ -1055,7 +1055,7 @@ namespace BZNParser.Battlezone.GameObject
                 // not sure if this is on the n64 build
                 if ((writer.Version >= 1046 && writer.Version < 2000) || writer.Version >= 2010)
                 {
-                    writer.WriteBooleans("isCritical", preserveMalformations ? obj.Malformations : null, obj.isCritical);
+                    writer.WriteBoolean("isCritical", obj, x => x.isCritical);
                 }
             }
 
@@ -1077,13 +1077,13 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteBooleans("isObjective", preserveMalformations ? obj.Malformations : null, obj.isObjective);
+                writer.WriteBoolean("isObjective", obj, x => x.isObjective);
 
                 // I seriously don't understand why this is a thing, it must be wrong, but this is where we get into BZ98R or 1.5 (unclear)
                 // code says it should always be read in???
                 //if (/*reader.Version != 2004 &&*/ reader.Version != 2003)
                 {
-                    writer.WriteBooleans("isSelected", preserveMalformations ? obj.Malformations : null, obj.isSelected);
+                    writer.WriteBoolean("isSelected", obj, x => x.isSelected);
                 }
 
                 writer.WriteUnsignedHexLValues("isVisible", obj.isVisible);
@@ -1256,7 +1256,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (parent.SaveType == 0)
                 {
                     writer.WriteAiCmdInfo(obj.nextCmd, preserveMalformations);
-                    writer.WriteBooleans("aiProcess", preserveMalformations ? obj.Malformations : null, obj.aiProcess);
+                    writer.WriteBoolean("aiProcess", obj, x => x.aiProcess);
                 }
                 else
                 {
@@ -1281,17 +1281,17 @@ namespace BZNParser.Battlezone.GameObject
                     // aiProcess?
                     if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1011 || writer.Version == 1012))
                     {
-                        writer.WriteBooleans("aiProcess", preserveMalformations ? obj.Malformations : null, obj.aiProcess);
+                        writer.WriteBoolean("aiProcess", obj, x => x.aiProcess);
                     }
                     else if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001))
                     {
-                        writer.WriteBooleans("undefptr", preserveMalformations ? obj.Malformations : null, obj.aiProcess);
+                        writer.WriteBoolean("undefptr", obj, x => x.aiProcess);
                     }
                     else
                     {
                         if (writer.Format == BZNFormat.BattlezoneN64 || (writer.Version != 1017 && writer.Version != 1018))
                         {
-                            writer.WriteBooleans("aiProcess", preserveMalformations ? obj.Malformations : null, obj.aiProcess);
+                            writer.WriteBoolean("aiProcess", obj, x => x.aiProcess);
                         }
                     }
                 }
@@ -1309,14 +1309,14 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1007)
                 {
-                    writer.WriteBooleans("isCargo", preserveMalformations ? obj.Malformations : null, obj.isCargo);
+                    writer.WriteBoolean("isCargo", obj, x => x.isCargo);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1145)
                 {
-                    writer.WriteBooleans("isCargo", preserveMalformations ? obj.Malformations : null, obj.isCargo);
+                    writer.WriteBoolean("isCargo", obj, x => x.isCargo);
                 }
                 else
                 {
@@ -1389,11 +1389,12 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1030)
                 {
-                    writer.WriteBooleans("hasPilot", preserveMalformations ? obj.Malformations : null, obj.curPilot.Length > 0);
+                    //writer.WriteBooleans("hasPilot", preserveMalformations ? obj.Malformations : null, obj.curPilot.Length > 0);
+                    writer.WriteBoolean("hasPilot", obj, x => x.curPilot, (curPilot => !string.IsNullOrEmpty(curPilot));
                 }
                 else
                 {
-                    writer.WriteIDs("curPilot", obj.curPilot);
+                    writer.WriteID("curPilot", obj, x => x.curPilot);
                 }
             }
             if (writer.Format == BZNFormat.Battlezone2)

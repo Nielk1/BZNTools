@@ -49,16 +49,6 @@ namespace BZNParser.Tokenizer
 
     public class BZNStreamReader : IDisposable
     {
-        private static Encoding win1252;
-        static BZNStreamReader()
-        {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            win1252 = Encoding.GetEncoding(1252);
-        }
-
-
-
-
         public enum FloatTextFormat
         {
             G, // common, sometimes appears when new format should
@@ -1001,7 +991,7 @@ namespace BZNParser.Tokenizer
                 else
                 {
                     //buffer += (char)character;
-                    buffer += win1252.GetChars(new byte[] { character })[0];
+                    buffer += BZNEncoding.win1252.GetChars(new byte[] { character })[0];
                 }
             }
 

@@ -91,7 +91,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 writer.WriteFloats("buildTime", preserveMalformations ? obj.Malformations : null, obj.buildTime);
             }
-            writer.WriteBooleans("buildActive", preserveMalformations ? obj.Malformations : null, obj.buildActive);
+            writer.WriteBoolean("buildActive", obj, x => x.buildActive);
             writer.WriteSignedValues("buildCount", obj.buildItems.Length);
             for (int i = 0; i < obj.buildItems.Length; i++)
             {

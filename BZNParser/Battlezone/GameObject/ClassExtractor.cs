@@ -96,7 +96,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (writer.Version > 1102)
             {
-                writer.WriteBooleans("animStart", preserveMalformations ? obj.Malformations : null, obj.animStart);
+                writer.WriteBoolean("animStart", obj, x => x.animStart);
             }
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

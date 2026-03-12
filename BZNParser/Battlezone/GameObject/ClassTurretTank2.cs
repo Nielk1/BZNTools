@@ -213,7 +213,7 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteFloats("timeUndeploy", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy);
                 writer.WriteUnsignedValues("change_state", obj.change_state);
                 writer.WriteFloats("delayTimer", preserveMalformations ? obj.Malformations : null, obj.delayTimer);
-                writer.WriteBooleans("turretAligned", preserveMalformations ? obj.Malformations : null, obj.turretAligned);
+                writer.WriteBoolean("turretAligned", obj, x => x.turretAligned);
                 writer.WriteFloats("prevYaw", preserveMalformations ? obj.Malformations : null, obj.prevYaw);
 
                 throw new NotImplementedException("Turret Control loading loop needed here");
@@ -242,16 +242,16 @@ namespace BZNParser.Battlezone.GameObject
                         var mal = obj.Malformations.GetMalformations(Malformation.MISINTERPRET, "wantTurret");
                         if (mal.Length > 0)
                         {
-                            writer.WriteBooleans("wantTurret", preserveMalformations ? obj.Malformations : null, obj.turretAligned);
+                            writer.WriteBoolean("wantTurret", obj, x => x.turretAligned);
                         }
                         else
                         {
-                            writer.WriteBooleans("wantTurret", preserveMalformations ? obj.Malformations : null, obj.wantTurret);
+                            writer.WriteBoolean("wantTurret", obj, x => x.wantTurret);
                         }
                     }
                     else
                     {
-                        writer.WriteBooleans("turretAligned", preserveMalformations ? obj.Malformations : null, obj.turretAligned);
+                        writer.WriteBoolean("turretAligned", obj, x => x.turretAligned);
                     }
 
                     if (parent.SaveType != SaveType.BZN && writer.Version >= 1140)
@@ -272,7 +272,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (obj.m_Use13Aim)
                 {
-                    writer.WriteBooleans("turretAligned", preserveMalformations ? obj.Malformations : null, obj.turretAligned);
+                    writer.WriteBoolean("turretAligned", obj, x => x.turretAligned);
                 }
 
                 if (parent.SaveType != SaveType.BZN)

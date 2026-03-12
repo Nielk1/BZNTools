@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
 {
-    // BZ2
+    [ObjectClass(BZNFormat.Battlezone2, "tracked")]
     public class ClassTrackedVehicleFactory : IClassFactory
     {
         public bool Create(BZNFileBattlezone parent, BZNStreamReader reader, EntityDescriptor preamble, string classLabel, out Entity? obj, bool create = true)

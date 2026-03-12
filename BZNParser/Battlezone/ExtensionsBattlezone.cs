@@ -21,6 +21,7 @@ namespace BZNParser.Battlezone
             win1252 = Encoding.GetEncoding(1252);
         }
 
+        [Obsolete]
         public static string AddBinaryMessString(this IMalformable.MalformationManager Malformations, string name, string value)
         {
             // TODO make this function usable without a malformation context for if we're not tracking malformations but still need to clean data
@@ -50,7 +51,7 @@ namespace BZNParser.Battlezone
         public static string CheckBinaryMessString(this IMalformable.MalformationManager Malformations, string name, string value)
         {
             var mal = Malformations.GetMalformations(Malformation.STRING_PAD, name);
-            var mal2 = Malformations.GetMalformations(Malformation.INCORRECT, name);
+            var mal2 = Malformations.GetMalformations(Malformation.INCORRECT_RAW, name);
             if (mal.Length > 0)
             {
                 return value.PadRight((int)mal[0].Fields[0], '\0');

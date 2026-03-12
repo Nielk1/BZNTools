@@ -94,7 +94,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (!tok.Validate("buildClass", BinaryFieldType.DATA_ID))
                         throw new Exception("Failed to parse buildClass/ID");
-                    if (obj != null) obj.buildClass = tok.GetString();
+                    tok.ReadID(obj, x => x.buildClass);
                 }
 
                 tok = reader.ReadToken();
@@ -191,7 +191,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    writer.WriteIDs("buildClass", obj.buildClass);
+                    writer.WriteID("buildClass", obj, x => x.buildClass);
                 }
 
                 writer.WriteFloats("buildDoneTime", preserveMalformations ? obj.Malformations : null, obj.buildDoneTime);

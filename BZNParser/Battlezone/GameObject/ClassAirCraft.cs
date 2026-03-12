@@ -105,8 +105,8 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version >= 1138)
                 {
-                    writer.WriteBooleans("lockMode", preserveMalformations ? obj.Malformations : null, obj.m_bLockMode);
-                    writer.WriteBooleans("lockModeDeployed", preserveMalformations ? obj.Malformations : null, obj.m_bLockModeDeployed);
+                    writer.WriteBoolean("lockMode", obj, x => x.m_bLockMode);
+                    writer.WriteBoolean("lockModeDeployed", obj, x => x.m_bLockModeDeployed);
                 }
             }
 

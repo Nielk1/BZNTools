@@ -103,7 +103,7 @@ namespace BZNParser.Battlezone.GameObject
                     if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
                     {
                         // obsolete
-                        writer.WriteBooleans("undefbool", preserveMalformations ? obj.Malformations : null, obj.wantTurret); // wantTurret
+                        writer.WriteBoolean("undefbool", obj, x => x.wantTurret); // wantTurret
                     }
                 }
             }

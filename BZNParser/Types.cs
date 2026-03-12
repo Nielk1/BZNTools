@@ -1,9 +1,11 @@
-﻿using BZNParser.Tokenizer;
+﻿using BZNParser.Battlezone;
+using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
@@ -121,7 +123,48 @@ namespace BZNParser
         }
     }
 
+    public class SizedString : IMalformable
+    {
+        private readonly IMalformable.MalformationManager _malformationManager;
+        public IMalformable.MalformationManager Malformations => _malformationManager;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public SizedString()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        {
+            this._malformationManager = new IMalformable.MalformationManager(this);
+        }
 
+        public byte? Size { get; set; }
+        public string Value { get; set; }
+
+        public void Hydrate(BZNStreamReader reader, string name)
+        {
+            IBZNToken tok;
+            if (reader.InBinary)
+            {
+                tok = reader.ReadToken();
+                if (!tok.Validate(null, BinaryFieldType.DATA_CHAR))
+                    throw new Exception($"Failed to parse {name}/CHAR");
+                tok.ReadUInt(this, x => x.Value);
+            }
+            tok = reader.ReadToken();
+            if (!tok.Validate(name, BinaryFieldType.DATA_CHAR))
+                throw new Exception($"Failed to parse {name}/CHAR");
+            tok.ReadChars(this, x => x.Value);
+        }
+
+        public override string ToString()
+        {
+            return Value;
+        }
+
+        internal void Dehydrate(BZNStreamWriter writer, string name)
+        {
+            if (writer.InBinary)
+                writer.WriteUInt(null, this, x => x.Size);
+            writer.WriteChars(name, this, x => x.Value);
+        }
+    }
 
     public class Vector3D : IMalformable
     {

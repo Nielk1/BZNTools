@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using System.Xml.Linq;
 using static BZNParser.Tokenizer.IMalformable;
 
 namespace BZNParser.Tokenizer;
@@ -8,10 +9,93 @@ namespace BZNParser.Tokenizer;
 // These functions should return the cleaned value and set the value on the property if the parent instance is set
 public static class TokenExtensions
 {
+
+    // TODO handle the RIGHT_TRIM malformation
+    /// <summary>
+    /// Read a chars string from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
+    /// while also checking for common malformations.
+    /// </summary>
+    /// <remarks>
+    /// Handles the following malformations: <see cref="Malformation.INCORRECT_RAW"/>, <see cref="Malformation.RIGHT_TRIM"/>
+    /// </remarks>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TProp"></typeparam>
+    /// <param name="tok"></param>
+    /// <param name="parent"></param>
+    /// <param name="property"></param>
+    /// <param name="index"></param>
+    /// <param name="convert"></param>
+    /// <returns></returns>
+    public static (TProp, string) ReadChars<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        string valueInternal = tok.GetString(index);
+        string valueProcessed = valueInternal;
+
+        // clean up intake data
+        int idx = valueProcessed.IndexOf('\0');
+        if (idx > -1)
+            valueProcessed = valueProcessed.Substring(0, idx);
+
+        // register malformations if possible
+        if (propInfo != null && parent != null)
+        {
+            // the processed value doesn't match the internal value, log the malformation
+            if (!string.Equals(valueInternal, valueProcessed, StringComparison.Ordinal))
+                parent.Malformations.AddIncorrectRaw<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(valueInternal));
+        }
+
+        if (parent != null && property != null)
+        {
+            var tmp = tok as BZNTokenString;
+            if (tmp != null)
+            {
+                if (tmp.RightTrimmedOneLiner)
+                    parent.Malformations.AddRightTrimmed(property, index);
+            }
+        }
+
+        TProp finalValue = default!;
+        bool finalValueReady = false;
+        if (convert != null)
+        {
+            // if a converter is given, use it on the raw value
+            finalValue = convert(valueProcessed);
+            finalValueReady = true;
+        }
+        else
+        {
+            // no converter so try to cast
+            if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+            {
+                finalValue = (TProp)(object)valueProcessed;
+                finalValueReady = true;
+            }
+            else if(typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
+            {
+                finalValue = (TProp)(object)new SizedString() { Value = valueProcessed };
+                finalValueReady = true;
+            }
+        }
+
+        // apply the value if possible
+        if (propInfo != null && parent != null && finalValueReady)
+            propInfo.SetValue(parent, finalValue);
+
+        // always return processed data, even if we didn't attach it to the property or store malformations, we still read the value
+        return (finalValue, valueProcessed);
+    }
+
     /// <summary>
     /// Read a boolean from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
     /// while also checking for common malformations.
     /// </summary>
+    /// <remarks>
+    /// Handles the following malformations: <see cref="Malformation.INCORRECT_TEXT"/>
+    /// </remarks>
     /// <typeparam name="T">Type that contains the target property and implements <see cref="IMalformable"/></typeparam>
     /// <typeparam name="TProp">Property type</typeparam>
     /// <param name="tok">Token</param>
@@ -27,6 +111,7 @@ public static class TokenExtensions
             propInfo = propInfo_;
 
         bool valueInternal = tok.GetBoolean(index);
+        string textValue = valueInternal ? "true" : "false";
         if (tok.IsBinary)
         {
             // no binary exclusive paths yet
@@ -37,7 +122,7 @@ public static class TokenExtensions
             {
                 // basic string issue like True vs true
                 string rawString = tok.GetString(index);
-                if (string.Equals(valueInternal.ToString().ToLowerInvariant(), rawString, StringComparison.Ordinal))
+                if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
                     parent.Malformations.AddIncorrectTextParse(property, index, rawString);
             }
         }
@@ -59,5 +144,69 @@ public static class TokenExtensions
             propInfo.SetValue(parent, setVal);
 
         return (setVal, valueInternal);
+    }
+
+    // Only used by BZ1, never BZ2, others unknown
+    /// <summary>
+    /// Read an ID from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
+    /// while also checking for common malformations.
+    /// </summary>
+    /// <remarks>
+    /// Handles the following malformations: <see cref="Malformation.INCORRECT_RAW"/>
+    /// </remarks>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TProp"></typeparam>
+    /// <param name="tok"></param>
+    /// <param name="parent"></param>
+    /// <param name="property"></param>
+    /// <param name="index"></param>
+    /// <param name="convert"></param>
+    /// <returns></returns>
+    public static (TProp, string) ReadID<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        string valueInternal = tok.GetString(index);
+        string valueProcessed = valueInternal;
+
+        // clean up intake data
+        int idx = valueProcessed.IndexOf('\0');
+        if (idx > -1)
+            valueProcessed = valueProcessed.Substring(0, idx);
+
+        // register malformations if possible
+        if (propInfo != null && parent != null)
+        {
+            // the processed value doesn't match the internal value, log the malformation
+            if (!string.Equals(valueInternal, valueProcessed, StringComparison.Ordinal))
+                parent.Malformations.AddIncorrectRaw<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(valueInternal));
+        }
+
+        TProp finalValue = default!;
+        bool finalValueReady = false;
+        if (convert != null)
+        {
+            // if a converter is given, use it on the raw value
+            finalValue = convert(valueProcessed);
+            finalValueReady = true;
+        }
+        else
+        {
+            // no converter so try to cast
+            if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+            {
+                finalValue = (TProp)(object)valueProcessed;
+                finalValueReady = true;
+            }
+        }
+
+        // apply the value if possible
+        if (propInfo != null && parent != null && finalValueReady)
+            propInfo.SetValue(parent, finalValue);
+
+        // always return processed data, even if we didn't attach it to the property or store malformations, we still read the value
+        return (finalValue, valueProcessed);
     }
 }

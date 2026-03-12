@@ -9,15 +9,6 @@ namespace BZNParser.Tokenizer
 {
     public class BZNTokenBinary : IBZNToken
     {
-        private static Encoding win1252;
-        static BZNTokenBinary()
-        {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            win1252 = Encoding.GetEncoding(1252);
-        }
-
-
-
         private BinaryFieldType type;
         private byte[] data;
         private bool IsBigEndian;
@@ -144,7 +135,7 @@ namespace BZNParser.Tokenizer
         public string GetString(int index = 0)
         {
             if (index > 0) throw new ArgumentOutOfRangeException();
-            string retVal = win1252.GetString(data);
+            string retVal = BZNEncoding.win1252.GetString(data);
             return retVal;
         }
 

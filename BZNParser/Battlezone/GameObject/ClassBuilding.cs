@@ -206,7 +206,7 @@ namespace BZNParser.Battlezone.GameObject
             // BZ1/BZn64
             if (parent.SaveType != SaveType.BZN)
             {
-                writer.WriteBooleans("tempBuilding", preserveMalformations ? obj.Malformations : null, obj.tempBuilding);
+                writer.WriteBoolean("tempBuilding", obj, x => x.tempBuilding);
             }
 
             ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

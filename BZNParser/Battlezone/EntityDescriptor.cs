@@ -71,14 +71,10 @@ namespace BZNParser.Battlezone
                     throw new Exception("Failed to parse PrjID/ID");
                 //if (!tok.Validate("PrjID", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse PrjID/ID");
                 string PrjID = tok.GetString();
-                //if (reader.Version == 1001)
-                //{
-                    if (obj != null) obj.PrjID = PrjID = obj.Malformations.AddBinaryMessString("PrjID", PrjID);
-                //}
-                //else
-                //{
-                //    if (obj != null) obj.PrjID = PrjID;
-                //}
+
+                // version 1001 may require the string be 8 bytes but our only sample is 1 ASCII atm
+                // version 1001 has it written as a raw 1-liner and not a normal ID, but that might be how IDs work that far back
+                tok.ReadID(obj, x => x.PrjID);
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -503,10 +499,10 @@ namespace BZNParser.Battlezone
             }
             else if (writer.Format == BZNFormat.Battlezone)
             {
-                if (preserveMalformations)
-                    writer.WriteIDs("PrjID", Malformations.CheckBinaryMessString("PrjID", PrjID), oneLiner: writer.Version == 1001);
+                if (writer.Version == 1001)
+                    writer.WriteID("PrjID", this, x => x.PrjID, oneLiner: true); // confirm when we can if this actually an ID
                 else
-                    writer.WriteIDs("PrjID", PrjID, oneLiner: writer.Version == 1001);
+                    writer.WriteID("PrjID", this, x => x.PrjID);
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -622,7 +618,7 @@ namespace BZNParser.Battlezone
                 {
                     if (writer.Version < 1145)
                     {
-                        var mals = Malformations.GetMalformations(Malformation.INCORRECT, "isUser");
+                        var mals = Malformations.GetMalformations(Malformation.INCORRECT_RAW, "isUser");
                         if (preserveMalformations && mals.Length > 0)
                         {
                             UInt32 malValue = (UInt32)mals[0].Fields[0];
@@ -637,14 +633,14 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        writer.WriteBooleans("isUser", preserveMalformations ? Malformations : null, isUser);
+                        writer.WriteBoolean("isUser", this, x => x.isUser);
                     }
                 }
                 //else{}
             }
             else if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                var mals = Malformations.GetMalformations(Malformation.INCORRECT, "isUser");
+                var mals = Malformations.GetMalformations(Malformation.INCORRECT_RAW, "isUser");
                 if (preserveMalformations && mals.Length > 0)
                 {
                     UInt32 malValue = (UInt32)mals[0].Fields[0];

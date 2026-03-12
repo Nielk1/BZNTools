@@ -51,7 +51,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (!tok.Validate("dropClass", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse dropClass/ID");
-                    if (obj != null) obj.dropClass = tok.GetString();
+                    tok.ReadID(obj, x => x.dropClass);
                 }
 
                 if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2001)
@@ -125,7 +125,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    writer.WriteIDs("dropClass", obj.dropClass);
+                    writer.WriteID("dropClass", obj, x => x.dropClass);
                 }
 
                 if (writer.Format == BZNFormat.Battlezone && writer.Version >= 2001)

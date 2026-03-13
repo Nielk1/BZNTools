@@ -61,6 +61,20 @@ public static class TokenExtensions
             setVal = (TProp)(object)(Single)valueInternal;
             did = true;
         }
+        else if (typeof(TProp).IsGenericType && typeof(TProp).GetGenericTypeDefinition() == typeof(DualModeValue<,>))
+        {
+            var genericArgs = typeof(TProp).GetGenericArguments();
+            if (genericArgs[0] == typeof(Single))
+            {
+                setVal = (TProp)Activator.CreateInstance(typeof(TProp), (object)valueInternal);
+                did = true;
+            }
+            else if (genericArgs[1] == typeof(Single))
+            {
+                setVal = (TProp)Activator.CreateInstance(typeof(TProp), (object)valueInternal);
+                did = true;
+            }
+        }
 
         if (propInfo != null && parent != null && did)
             propInfo.SetValue(parent, setVal);
@@ -132,6 +146,20 @@ public static class TokenExtensions
         {
             setVal = (TProp)(object)(Int64)valueInternal;
             did = true;
+        }
+        else if (typeof(TProp).IsGenericType && typeof(TProp).GetGenericTypeDefinition() == typeof(DualModeValue<,>))
+        {
+            var genericArgs = typeof(TProp).GetGenericArguments();
+            if (genericArgs[0] == typeof(Int32))
+            {
+                setVal = (TProp)Activator.CreateInstance(typeof(TProp), (object)valueInternal);
+                did = true;
+            }
+            else if (genericArgs[1] == typeof(Int32))
+            {
+                setVal = (TProp)Activator.CreateInstance(typeof(TProp), (object)valueInternal);
+                did = true;
+            }
         }
 
         if (propInfo != null && parent != null && did)

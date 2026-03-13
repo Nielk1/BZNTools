@@ -173,17 +173,20 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse curAmmo/FLOAT");
-                    if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle());
+                    //if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle());
+                    tok.ReadSingle(obj, x => x.curAmmo);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse maxAmmo/FLOAT");
-                    if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle());
+                    //if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle());
+                    tok.ReadSingle(obj, x => x.maxAmmo);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse addAmmo/FLOAT");
-                    if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle());
+                    //if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle());
+                    tok.ReadSingle(obj, x => x.addAmmo);
 
                     // TODO this entire CurPilot section might be able to use our existing SaveClass logic for both binary and ASCII
                     if (reader.InBinary)
@@ -233,14 +236,16 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (!tok.Validate("m_ejectRatio", BinaryFieldType.DATA_FLOAT))
                             throw new Exception("Failed to parse m_ejectRatio/FLOAT");
-                        if (obj != null) obj.m_ejectRatio = tok.GetSingle();
+                        //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
+                        tok.ReadSingle(obj, x => x.m_ejectRatio);
                     }
                     else if (reader.Version >= 1196)
                     {
                         tok = reader.ReadToken();
                         if (!tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
                             throw new Exception("Failed to parse ejectRatio/FLOAT");
-                        if (obj != null) obj.m_ejectRatio = tok.GetSingle();
+                        //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
+                        tok.ReadSingle(obj, x => x.m_ejectRatio);
                     }
                 }
             }
@@ -288,9 +293,12 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1143)
                 {
-                    writer.WriteFloats("curAmmo", preserveMalformations ? obj.Malformations : null, obj.curAmmo.Get<Single>());
-                    writer.WriteFloats("maxAmmo", preserveMalformations ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
-                    writer.WriteFloats("addAmmo", preserveMalformations ? obj.Malformations : null, obj.addAmmo.Get<Single>());
+                    //writer.WriteFloats("curAmmo", preserveMalformations ? obj.Malformations : null, obj.curAmmo.Get<Single>());
+                    writer.WriteSingle("curAmmo", obj, x => x.curAmmo);
+                    //writer.WriteFloats("maxAmmo", preserveMalformations ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
+                    writer.WriteSingle("maxAmmo", obj, x => x.maxAmmo);
+                    //writer.WriteFloats("addAmmo", preserveMalformations ? obj.Malformations : null, obj.addAmmo.Get<Single>());
+                    writer.WriteSingle("addAmmo", obj, x => x.addAmmo);
 
                     if (writer.InBinary)
                     {
@@ -326,11 +334,13 @@ namespace BZNParser.Battlezone.GameObject
 
                     if (writer.Version == 1195)
                     {
-                        writer.WriteFloats("m_ejectRatio", preserveMalformations ? obj.Malformations : null, obj.m_ejectRatio);
+                        //writer.WriteFloats("m_ejectRatio", preserveMalformations ? obj.Malformations : null, obj.m_ejectRatio);
+                        writer.WriteSingle("m_ejectRatio", obj, x => x.m_ejectRatio);
                     }
                     else if (writer.Version >= 1196)
                     {
-                        writer.WriteFloats("ejectRatio", preserveMalformations ? obj.Malformations : null, obj.m_ejectRatio);
+                        //writer.WriteFloats("ejectRatio", preserveMalformations ? obj.Malformations : null, obj.m_ejectRatio);
+                        writer.WriteSingle("ejectRatio", obj, x => x.m_ejectRatio);
                     }
                 }
             }

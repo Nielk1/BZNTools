@@ -500,9 +500,23 @@ namespace BZNParser.Tokenizer
             {
                 value = (Single)(Double)(object)valueInternal!;
             }
+            else if (typeof(TProp).IsGenericType && typeof(TProp).GetGenericTypeDefinition() == typeof(DualModeValue<,>))
+            {
+                var genericArgs = typeof(TProp).GetGenericArguments();
+                if (genericArgs[0] == typeof(Single) || genericArgs[1] == typeof(Single))
+                {
+                    // Use dynamic to call Get<Single>() on the DualModeValue instance
+                    dynamic dual = valueInternal;
+                    value = dual.Get<Single>();
+                }
+                else
+                {
+                    throw new Exception("DualModeValue does not contain a Single type and no conversion provided");
+                }
+            }
             else
             {
-                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+                throw new Exception("Property type is not compatible with Single writing and no conversion provided");
             }
 
             if (InBinary)
@@ -570,9 +584,23 @@ namespace BZNParser.Tokenizer
             {
                 value = (Int32)(Int64)(object)valueInternal!;
             }
+            else if (typeof(TProp).IsGenericType && typeof(TProp).GetGenericTypeDefinition() == typeof(DualModeValue<,>))
+            {
+                var genericArgs = typeof(TProp).GetGenericArguments();
+                if (genericArgs[0] == typeof(Int32) || genericArgs[1] == typeof(Int32))
+                {
+                    // Use dynamic to call Get<Single>() on the DualModeValue instance
+                    dynamic dual = valueInternal;
+                    value = dual.Get<Int32>();
+                }
+                else
+                {
+                    throw new Exception("DualModeValue does not contain a Single type and no conversion provided");
+                }
+            }
             else
             {
-                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+                throw new Exception("Property type is not compatible with Single writing and no conversion provided");
             }
 
             if (InBinary)

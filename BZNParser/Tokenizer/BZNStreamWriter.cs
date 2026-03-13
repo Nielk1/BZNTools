@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using static BZNParser.Tokenizer.BZNStreamReader;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Int8 = sbyte;
 using UInt8 = byte;
 
 namespace BZNParser.Tokenizer
@@ -470,6 +471,138 @@ namespace BZNParser.Tokenizer
                 return (TProp)propInfo.GetValue(parent)!;
 
             throw new ArgumentException("Expression is not a property", nameof(property));
+        }
+
+        /// <summary>
+        /// Write a Single to the BZN
+        /// </summary>
+        /// <remarks>
+        /// Handles the following malformations: <see cref="Malformation.INCORRECT_TEXT"/>, <see cref="Malformation.INCORRECT_NAME"/>
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="parent"></param>
+        /// <param name="property"></param>
+        public (Single written, TProp stored) WriteSingle<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Single>? convert = null) where T : IMalformable
+        {
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            Single value = 0;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (typeof(TProp) == typeof(Single) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Single))
+            {
+                value = (Single)(Single)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(Double) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Double))
+            {
+                value = (Single)(Double)(object)valueInternal!;
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_FLOAT);
+                InternalWriteBinarySize(4);
+                BaseStream.Write(BitConverter.GetBytes(value), 0, 4);
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueInternal);
+            }
+
+            (bool hasIncorrectName, string? incorrectName) = parent.Malformations.GetIncorrectName(property);
+            if (hasIncorrectName)
+                name = incorrectName;
+
+            string textValue = value.ToString();
+
+            // handle incorrect raw value
+            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+            if (hasIncorrectRaw)
+                textValue = incorrectText ?? string.Empty;
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            InternalWriteNewline();
+            TokenIndex++;
+
+            return (value, valueInternal);
+        }
+
+        /// <summary>
+        /// Write a UInt32 to the BZN
+        /// </summary>
+        /// <remarks>
+        /// Handles the following malformations: <see cref="Malformation.INCORRECT_TEXT"/>, <see cref="Malformation.INCORRECT_NAME"/>
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="parent"></param>
+        /// <param name="property"></param>
+        public (Int32 written, TProp stored) WriteInt32<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Int32>? convert = null) where T : IMalformable
+        {
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            Int32 value = 0;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (typeof(TProp) == typeof(Int8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int8))
+            {
+                value = (Int32)(Int8)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(Int16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int16))
+            {
+                value = (Int32)(Int16)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(Int32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int32))
+            {
+                value = (Int32)(Int32)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(Int64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int64))
+            {
+                value = (Int32)(Int64)(object)valueInternal!;
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_LONG);
+                InternalWriteBinarySize(4);
+                BaseStream.Write(BitConverter.GetBytes(value), 0, 4);
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueInternal);
+            }
+
+            (bool hasIncorrectName, string? incorrectName) = parent.Malformations.GetIncorrectName(property);
+            if (hasIncorrectName)
+                name = incorrectName;
+
+            string textValue = value.ToString();
+
+            // handle incorrect raw value
+            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+            if (hasIncorrectRaw)
+                textValue = incorrectText ?? string.Empty;
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            InternalWriteNewline();
+            TokenIndex++;
+
+            return (value, valueInternal);
         }
 
         /// <summary>

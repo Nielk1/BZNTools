@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Xml.Linq;
 using static BZNParser.Tokenizer.IMalformable;
+using Int8 = sbyte;
 using UInt8 = byte;
 
 namespace BZNParser.Tokenizer;
@@ -10,6 +11,135 @@ namespace BZNParser.Tokenizer;
 // These functions should return the cleaned value and set the value on the property if the parent instance is set
 public static class TokenExtensions
 {
+    /// <summary>
+    /// Read a Single from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
+    /// while also checking for common malformations.
+    /// </summary>
+    /// <remarks>
+    /// Handles the following malformations: <see cref="Malformation.INCORRECT_TEXT"/>
+    /// </remarks>
+    /// <typeparam name="T">Type that contains the target property and implements <see cref="IMalformable"/></typeparam>
+    /// <typeparam name="TProp">Property type</typeparam>
+    /// <param name="tok">Token</param>
+    /// <param name="parent"><see cref="IMalformable"/> instance containing properties</param>
+    /// <param name="property">Lambda to access the property to register malformations to and apply the value</param>
+    /// <param name="index">Index of the value in the token</param>
+    /// <param name="convert">Optional conversion function for the read boolean</param>
+    /// <returns></returns>
+    public static (TProp stored, Single raw) ReadSingle<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<Single, TProp>? convert = null) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        Single valueInternal = tok.GetSingle(index);
+        string textValue = valueInternal.ToString();
+        if (tok.IsBinary)
+        {
+            // no binary exclusive paths yet
+        }
+        else
+        {
+            if (propInfo != null && parent != null)
+            {
+                // basic string issue like True vs true
+                string rawString = tok.GetString(index);
+                if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
+                    parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+            }
+        }
+
+        TProp setVal = default!;
+        bool did = false;
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Single) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Single))
+        {
+            setVal = (TProp)(object)(Single)valueInternal;
+            did = true;
+        }
+
+        if (propInfo != null && parent != null && did)
+            propInfo.SetValue(parent, setVal);
+
+        return (setVal, valueInternal);
+    }
+
+    /// <summary>
+    /// Read a Int32 from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
+    /// while also checking for common malformations.
+    /// </summary>
+    /// <remarks>
+    /// Handles the following malformations: <see cref="Malformation.INCORRECT_TEXT"/>
+    /// </remarks>
+    /// <typeparam name="T">Type that contains the target property and implements <see cref="IMalformable"/></typeparam>
+    /// <typeparam name="TProp">Property type</typeparam>
+    /// <param name="tok">Token</param>
+    /// <param name="parent"><see cref="IMalformable"/> instance containing properties</param>
+    /// <param name="property">Lambda to access the property to register malformations to and apply the value</param>
+    /// <param name="index">Index of the value in the token</param>
+    /// <param name="convert">Optional conversion function for the read boolean</param>
+    /// <returns></returns>
+    public static (TProp stored, Int32 raw) ReadInt32<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<Int32, TProp>? convert = null) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        Int32 valueInternal = tok.GetInt32(index);
+        string textValue = valueInternal.ToString();
+        if (tok.IsBinary)
+        {
+            // no binary exclusive paths yet
+        }
+        else
+        {
+            if (propInfo != null && parent != null)
+            {
+                // basic string issue like True vs true
+                string rawString = tok.GetString(index);
+                if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
+                    parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+            }
+        }
+
+        TProp setVal = default!;
+        bool did = false;
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Int8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int8))
+        {
+            setVal = (TProp)(object)(Int8)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Int16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int16))
+        {
+            setVal = (TProp)(object)(Int16)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Int32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int32))
+        {
+            setVal = (TProp)(object)(Int32)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Int64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int64))
+        {
+            setVal = (TProp)(object)(Int64)valueInternal;
+            did = true;
+        }
+
+        if (propInfo != null && parent != null && did)
+            propInfo.SetValue(parent, setVal);
+
+        return (setVal, valueInternal);
+    }
+
     /// <summary>
     /// Read a UInt32 from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
     /// while also checking for common malformations.

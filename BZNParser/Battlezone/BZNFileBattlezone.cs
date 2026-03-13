@@ -212,6 +212,7 @@ namespace BZNParser.Battlezone
         public Int32 Version { get; private set; }
         public bool Binary { get; private set; }
         public SaveType SaveType { get; private set; }
+        public SaveType? SaveType2 { get; private set; }
 
         public SizedString msn_filename { get; set; }
         public UInt32 seq_count { get; set; }
@@ -309,7 +310,7 @@ namespace BZNParser.Battlezone
             if (reader.Format != BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                Version = tok.GetInt32();
+                tok.ReadInt32(this, x => x.Version);
                 Console.WriteLine($"Version: {Version}"); // don't bother validating first field maybe?
                 if (!tok.IsBinary)
                 {
@@ -325,8 +326,8 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("saveType", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse saveType/UNKNOWN");
-                Console.WriteLine($"saveType: {tok.GetUInt32()}");
-                SaveType = (SaveType)tok.GetUInt32();
+                tok.ReadUInt32(this, x => x.SaveType, 0, (raw) => (SaveType)raw);
+                Console.WriteLine($"saveType: {SaveType}");
             }
 
             if ((reader.Format == BZNFormat.Battlezone && reader.Version > 1022) || reader.Format == BZNFormat.Battlezone2)
@@ -350,9 +351,6 @@ namespace BZNParser.Battlezone
             {
                 //msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16, Malformations);
                 reader.ReadSizedString("msn_filename", this, x => x.msn_filename);
-
-                
-
                 Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
 
@@ -362,7 +360,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse seq_count/LONG");
-                seq_count = tok.GetUInt32();
+                tok.ReadUInt32(this, x => x.seq_count);
                 Console.WriteLine($"seq_count: {seq_count}");
             }
             else
@@ -372,7 +370,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse seq_count/LONG");
-                seq_count = tok.GetUInt32();
+                tok.ReadUInt32(this, x => x.seq_count);
                 Console.WriteLine($"seq_count: {seq_count}");
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -380,8 +378,8 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("saveType", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse saveType/LONG");
-                Int32 saveType2 = tok.GetInt32();
-                Console.WriteLine($"saveType (redundant?): {saveType2}"); // maybe not if the first one is missing
+                tok.ReadUInt32(this, x => x.SaveType2, 0, (raw) => (SaveType)raw);
+                Console.WriteLine($"saveType (redundant?): {SaveType2}"); // maybe not if the first one is missing
             }
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
@@ -730,12 +728,12 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cycle", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse cycle/UNKNOWN");
-                UserProcess_cycle = tok.GetInt32();
+                tok.ReadInt32(this, x => x.UserProcess_cycle);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cycleMax", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse cycleMax/UNKNOWN");
-                UserProcess_cycleMax = tok.GetInt32();
+                tok.ReadInt32(this, x => x.UserProcess_cycleMax);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("selectList", BinaryFieldType.DATA_UNKNOWN))
@@ -949,21 +947,14 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    string name = "version";
-                    if (preserveMalformations)
-                    {
-                        (bool found, string? value) = Malformations.GetIncorrectName<BZNFileBattlezone, Int32>(x => x.Version);
-                        if (found && value != null)
-                            name = value;
-                    }
-                    writer.WriteSignedValues(name, Version);
+                    writer.WriteInt32("version", this, x => x.Version);
                 }
             }
 
             // Breadcrumb BZ2001-QUIRK
             if (writer.Format == BZNFormat.Battlezone2 && writer.Version != 1041 && writer.Version != 1047) // version is special case for bz2001.bzn
             {
-                writer.WriteUnsignedValues("saveType", (UInt32)SaveType); // only in ASCII format in our testing
+                writer.WriteUInt32("saveType", this, x => x.SaveType, (saveType) => (UInt32)saveType);
             }
 
             if ((writer.Format == BZNFormat.Battlezone && writer.Version > 1022) || writer.Format == BZNFormat.Battlezone2)
@@ -986,7 +977,7 @@ namespace BZNParser.Battlezone
             // todo this is oddly messy, clean it up and confirm
             if (writer.Format == BZNFormat.BattlezoneN64 || (writer.Format == BZNFormat.Battlezone && writer.Version <= 1001))
             {
-                writer.WriteUnsignedValues("seq_count", seq_count);
+                writer.WriteUInt32("seq_count", this, x => x.seq_count);
             }
             else
             {
@@ -998,12 +989,13 @@ namespace BZNParser.Battlezone
                 {
                     writer.WriteUnsignedValues("seq_count", seq_count);
                 }*/
-                writer.WriteUnsignedValues("seq_count", seq_count);
+                //writer.WriteUnsignedValues("seq_count", seq_count);
+                writer.WriteUInt32("seq_count", this, x => x.seq_count);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 // this these save types don't match the game aborts the load
-                writer.WriteUnsignedValues("saveType", (UInt32)SaveType);
+                writer.WriteUInt32("saveType", this, x => x.SaveType2, (saveType) => (UInt32)saveType);
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
@@ -1065,7 +1057,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Version == 1011 || writer.Version == 1012)
                 {
-                    writer.WriteFloats("start_time", preserveMalformations ? Malformations : null, start_time ?? 0f);
+                    writer.WriteSingle("start_time", this, x => x.start_time);
                 }
             }
 
@@ -1155,7 +1147,7 @@ namespace BZNParser.Battlezone
             {
                 // this might also be due to the above count being 1 instead of 0, unknown, for now we're using the version
                 
-                writer.WriteChars("name", "AiMission", Malformations);
+                writer.WriteChars("name", "AiMission", null);
 
                 // read the old sObject ptr, not sure what can be done with it
                 if (writer.Version < 1002)
@@ -1169,8 +1161,10 @@ namespace BZNParser.Battlezone
 
                 writer.WriteValidation("UserProcess");
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_sObject.Value);
-                writer.WriteSignedValues("cycle", UserProcess_cycle.Value);
-                writer.WriteSignedValues("cycleMax", UserProcess_cycleMax.Value);
+                //writer.WriteSignedValues("cycle", UserProcess_cycle.Value);
+                writer.WriteInt32("cycle", this, x => x.UserProcess_cycle);
+                //writer.WriteSignedValues("cycleMax", UserProcess_cycleMax.Value);
+                writer.WriteInt32("cycleMax", this, x => x.UserProcess_cycleMax);
                 writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_1.Value);
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_2.Value);

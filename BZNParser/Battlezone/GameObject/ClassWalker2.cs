@@ -28,12 +28,12 @@ namespace BZNParser.Battlezone.GameObject
         public ClassWalker2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassWalker2? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Version == 1041) // version is special case for bz2001.bzn
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("Walker_IK", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Walker_IK/VOID");
+                if (tok == null || !tok.Validate("Walker_IK", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Walker_IK/VOID");
                 if (obj != null) obj.Walker_IK = tok.GetBytes();
 
                 ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
@@ -43,27 +43,29 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Version < 1067)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("Pin_Foot", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Pin_Foot/VOID");
+                if (tok == null || !tok.Validate("Pin_Foot", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Pin_Foot/VOID");
                 if (obj != null) obj.Pin_Foot = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("Current_Index", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse Current_Index/FLOAT");
-                if (obj != null) obj.Current_Index = tok.GetSingle();
+                if (tok == null || !tok.Validate("Current_Index", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse Current_Index/FLOAT");
+                tok.ReadSingle(obj, x => x.Current_Index);
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("Anim_State", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Anim_State/VOID");
+                if (tok == null || !tok.Validate("Anim_State", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Anim_State/VOID");
                 if (obj != null) obj.Anim_State = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("Lead", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Lead/LONG");
-                if (obj != null) obj.Lead = tok.GetUInt32H();
+                if (tok == null || !tok.Validate("Lead", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Lead/LONG");
+                //if (obj != null) obj.Lead = tok.GetUInt32H(); // I don't think this should be hex, but do confirm, if so the writer needs fixing too
+                tok.ReadUInt32(obj, x => x.Current_Index);
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("Tail", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Tail/LONG");
-                if (obj != null) obj.Tail = tok.GetUInt32H();
+                if (tok == null || !tok.Validate("Tail", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Tail/LONG");
+                //if (obj != null) obj.Tail = tok.GetUInt32H(); // I don't think this should be hex, but do confirm, if so the writer needs fixing too
+                tok.ReadUInt32(obj, x => x.Current_Index);
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("Control_Queue", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Control_Queue/VOID");
+                if (tok == null || !tok.Validate("Control_Queue", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Control_Queue/VOID");
                 if (obj != null) obj.Control_Queue = tok.GetUInt32H();
             }
 
@@ -88,10 +90,10 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Version < 1067)
             {
                 writer.WriteVoidBytes("Pin_Foot", obj.Pin_Foot);
-                writer.WriteFloats("Current_Index", preserveMalformations ? obj.Malformations : null, obj.Current_Index);
+                writer.WriteSingle("Current_Index", obj, x => x.Current_Index);
                 writer.WriteVoidBytes("Anim_State", obj.Anim_State);
-                writer.WriteUnsignedValues("Lead", obj.Lead);
-                writer.WriteUnsignedValues("Tail", obj.Tail);
+                writer.WriteUInt32("Lead", obj, x => x.Lead);
+                writer.WriteUInt32("Tail", obj, x => x.Tail);
                 writer.WriteVoidBytes("Control_Queue", obj.Control_Queue);
             }
 

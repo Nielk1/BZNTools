@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -76,7 +77,7 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse team/LONG");
-            if (obj != null) obj.team = tok.GetUInt32();
+            tok.ReadUInt32(obj, x => x.team);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("interesting", BinaryFieldType.DATA_BOOL))
@@ -91,12 +92,12 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("value", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse value/LONG");
-            if (obj != null) obj.value = tok.GetInt32();
+            tok.ReadInt32(obj, x => x.value);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("force", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse force/LONG");
-            if (obj != null) obj.force = tok.GetUInt32();
+            tok.ReadUInt32(obj, x => x.force);
 
             return true;
         }
@@ -125,11 +126,11 @@ namespace BZNParser.Battlezone
                 writer.WritePtr32("path", path);
             }
 
-            writer.WriteUnsignedValues("team", team);
+            writer.WriteUInt32("team", this, x => x.team);
             writer.WriteBoolean("interesting", this, x => x.interesting);
             writer.WriteBoolean("inside", this, x => x.inside);
-            writer.WriteSignedValues("value", value);
-            writer.WriteUnsignedValues("force", force);
+            writer.WriteInt32("value", this, x => x.value);
+            writer.WriteUInt32("force", this, x => x.force);
         }
     }
 }

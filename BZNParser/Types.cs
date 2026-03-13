@@ -221,7 +221,7 @@ namespace BZNParser
         }
 
         /// <summary>
-        /// Read a normal chars string unless BZ2 and version > 1128
+        /// Sized path name string
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="reader"></param>

@@ -166,7 +166,7 @@ namespace BZNParser
             SizedString? value = null;
             if (parent != null)
                 value = (SizedString?)(propInfo?.GetValue(parent));
-            if (value != null && propInfo != null)
+            if (value == null && propInfo != null)
                 value = new SizedString();
             if (propInfo != null)
             {
@@ -239,7 +239,7 @@ namespace BZNParser
             SizedString? value = null;
             if (parent != null)
                 value = (SizedString?)(propInfo?.GetValue(parent));
-            if (value != null && propInfo != null)
+            if (value == null && propInfo != null)
                 value = new SizedString();
             if (propInfo != null)
             {
@@ -478,6 +478,106 @@ namespace BZNParser
         public double posity;
         public double positz;
         public double positw;
+    }
+
+    static class MatrixExtension
+    {
+        public static Matrix ReadMatrix<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Matrix>>? property, int index = 0) where T : IMalformable
+        {
+            PropertyInfo? propInfo = null;
+            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+                propInfo = propInfo_;
+
+
+            IBZNToken? tok;
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_MAT3D))
+                throw new Exception($"Failed to parse {name}/MAT3D");
+
+            Matrix value = tok.GetMatrix();
+
+            // store the value into the property if possible
+            if (parent != null && propInfo != null)
+                propInfo.SetValue(parent, value);
+
+            // we can't process anything, so just serve the matrix as is
+            if (parent == null || propInfo == null)
+                return value;
+
+            // binary doesn't have subtokens, it's just a blob of data
+            if (tok.IsBinary)
+                return value;
+
+            // we have stuff to play with, so lets re-read the values back into the matrix again, but this time pass through our validation function
+            IBZNToken subTok;
+            subTok = tok.GetSubToken(index,  0); subTok.ReadSingle(value, x => x.rightx); if (subTok.GetRawName() != @"  right.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.rightx, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  1); subTok.ReadSingle(value, x => x.righty); if (subTok.GetRawName() != @"  right.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.righty, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  2); subTok.ReadSingle(value, x => x.rightz); if (subTok.GetRawName() != @"  right.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.rightz, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  3); subTok.ReadSingle(value, x => x.upx   ); if (subTok.GetRawName() != @"  up.x"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upx   , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  4); subTok.ReadSingle(value, x => x.upy   ); if (subTok.GetRawName() != @"  up.y"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upy   , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  5); subTok.ReadSingle(value, x => x.upz   ); if (subTok.GetRawName() != @"  up.z"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upz   , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  6); subTok.ReadSingle(value, x => x.frontx); if (subTok.GetRawName() != @"  front.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.frontx, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  7); subTok.ReadSingle(value, x => x.fronty); if (subTok.GetRawName() != @"  front.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.fronty, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  8); subTok.ReadSingle(value, x => x.frontz); if (subTok.GetRawName() != @"  front.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.frontz, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  9); subTok.ReadSingle(value, x => x.positx); if (subTok.GetRawName() != @"  posit.x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positx, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 10); subTok.ReadSingle(value, x => x.posity); if (subTok.GetRawName() != @"  posit.y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.posity, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 11); subTok.ReadSingle(value, x => x.positz); if (subTok.GetRawName() != @"  posit.z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positz, subTok.GetRawName()); }
+
+            return value;
+        }
+        public static Matrix ReadMatrixOld<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Matrix>>? property, int index = 0) where T : IMalformable
+        {
+            PropertyInfo? propInfo = null;
+            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+                propInfo = propInfo_;
+
+
+            IBZNToken? tok;
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_MAT3DOLD))
+                throw new Exception($"Failed to parse {name}/MAT3DOLD");
+
+            Matrix value = tok.GetMatrixOld();
+
+            // store the value into the property if possible
+            if (parent != null && propInfo != null)
+                propInfo.SetValue(parent, value);
+
+            // we can't process anything, so just serve the matrix as is
+            if (parent == null || propInfo == null)
+                return value;
+
+            // binary doesn't have subtokens, it's just a blob of data
+            if (tok.IsBinary)
+                return value;
+
+            // we have stuff to play with, so lets re-read the values back into the matrix again, but this time pass through our validation function
+            IBZNToken subTok;
+            subTok = tok.GetSubToken(index, 0); subTok.ReadSingle(value, x => x.rightx); if (subTok.GetRawName() != @"  right_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.rightx, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 1); subTok.ReadSingle(value, x => x.righty); if (subTok.GetRawName() != @"  right_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.righty, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 2); subTok.ReadSingle(value, x => x.rightz); if (subTok.GetRawName() != @"  right_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.rightz, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 3); subTok.ReadSingle(value, x => x.upx   ); if (subTok.GetRawName() != @"  up_x"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upx   , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 4); subTok.ReadSingle(value, x => x.upy   ); if (subTok.GetRawName() != @"  up_y"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upy   , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 5); subTok.ReadSingle(value, x => x.upz   ); if (subTok.GetRawName() != @"  up_z"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upz   , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 6); subTok.ReadSingle(value, x => x.frontx); if (subTok.GetRawName() != @"  front_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.frontx, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 7); subTok.ReadSingle(value, x => x.fronty); if (subTok.GetRawName() != @"  front_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.fronty, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 8); subTok.ReadSingle(value, x => x.frontz); if (subTok.GetRawName() != @"  front_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.frontz, subTok.GetRawName()); }
+
+            //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 0) // BREADCRUMB VER_BIGPOSIT
+            //{
+            //    subTok = tok.GetSubToken(index,  9); subTok.ReadDouble(value, x => x.positx); if (subTok.GetRawName() != @"  posit_x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positx, subTok.GetRawName()); }
+            //    subTok = tok.GetSubToken(index, 10); subTok.ReadDouble(value, x => x.posity); if (subTok.GetRawName() != @"  posit_y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.posity, subTok.GetRawName()); }
+            //    subTok = tok.GetSubToken(index, 11); subTok.ReadDouble(value, x => x.positz); if (subTok.GetRawName() != @"  posit_z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positz, subTok.GetRawName()); }
+            //}
+            //else
+            {
+                subTok = tok.GetSubToken(index,  9); subTok.ReadSingle(value, x => x.positx); if (subTok.GetRawName() != @"  posit_x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positx, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 10); subTok.ReadSingle(value, x => x.posity); if (subTok.GetRawName() != @"  posit_y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.posity, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 11); subTok.ReadSingle(value, x => x.positz); if (subTok.GetRawName() != @"  posit_z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positz, subTok.GetRawName()); }
+            }
+
+            return value;
+        }
     }
 
     public struct Quaternion

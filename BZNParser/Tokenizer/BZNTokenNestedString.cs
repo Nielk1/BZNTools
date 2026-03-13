@@ -91,6 +91,8 @@ namespace BZNParser.Tokenizer
             if (!subToks[ 6].Validate("front_x")) throw new Exception("Failed to parse front_x");
             if (!subToks[ 7].Validate("front_y")) throw new Exception("Failed to parse front_y");
             if (!subToks[ 8].Validate("front_z")) throw new Exception("Failed to parse front_z");
+
+            // TODO determine if string is always single resolution or if it has its own double string format
             if (!subToks[ 9].Validate("posit_x")) throw new Exception("Failed to parse posit_x");
             if (!subToks[10].Validate("posit_y")) throw new Exception("Failed to parse posit_y");
             if (!subToks[11].Validate("posit_z")) throw new Exception("Failed to parse posit_z");
@@ -101,7 +103,7 @@ namespace BZNParser.Tokenizer
                 rightx = subToks[ 0].GetSingle(), righty = subToks[ 1].GetSingle(), rightz = subToks[ 2].GetSingle(), rightw = 0,
                 upx    = subToks[ 3].GetSingle(), upy    = subToks[ 4].GetSingle(), upz    = subToks[ 5].GetSingle(), upw    = 0,
                 frontx = subToks[ 6].GetSingle(), fronty = subToks[ 7].GetSingle(), frontz = subToks[ 8].GetSingle(), frontw = 0,
-                positx = subToks[ 9].GetSingle(), posity = subToks[10].GetSingle(), positz = subToks[11].GetSingle(), positw = 0,
+                positx = subToks[ 9].GetSingle(), posity = subToks[10].GetSingle(), positz = subToks[11].GetSingle(), positw = 1,
             };
         }
         public Matrix GetMatrix(int index = 0)

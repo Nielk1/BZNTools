@@ -11,7 +11,79 @@ namespace BZNParser.Tokenizer;
 public static class TokenExtensions
 {
     /// <summary>
-    /// Read a UInt from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
+    /// Read a UInt32 from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
+    /// while also checking for common malformations.
+    /// </summary>
+    /// <remarks>
+    /// Handles the following malformations: <see cref="Malformation.INCORRECT_TEXT"/>
+    /// </remarks>
+    /// <typeparam name="T">Type that contains the target property and implements <see cref="IMalformable"/></typeparam>
+    /// <typeparam name="TProp">Property type</typeparam>
+    /// <param name="tok">Token</param>
+    /// <param name="parent"><see cref="IMalformable"/> instance containing properties</param>
+    /// <param name="property">Lambda to access the property to register malformations to and apply the value</param>
+    /// <param name="index">Index of the value in the token</param>
+    /// <param name="convert">Optional conversion function for the read boolean</param>
+    /// <returns></returns>
+    public static (TProp stored, UInt32 raw) ReadUInt32<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        UInt32 valueInternal = tok.GetUInt32(index);
+        string textValue = valueInternal.ToString();
+        if (tok.IsBinary)
+        {
+            // no binary exclusive paths yet
+        }
+        else
+        {
+            if (propInfo != null && parent != null)
+            {
+                // basic string issue like True vs true
+                string rawString = tok.GetString(index);
+                if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
+                    parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+            }
+        }
+
+        TProp setVal = default!;
+        bool did = false;
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+        {
+            setVal = (TProp)(object)(UInt8)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+        {
+            setVal = (TProp)(object)(UInt16)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+        {
+            setVal = (TProp)(object)(UInt32)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+        {
+            setVal = (TProp)(object)(UInt64)valueInternal;
+            did = true;
+        }
+
+        if (propInfo != null && parent != null && did)
+            propInfo.SetValue(parent, setVal);
+
+        return (setVal, valueInternal);
+    }
+
+    /// <summary>
+    /// Read a UInt8 from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
     /// while also checking for common malformations.
     /// </summary>
     /// <remarks>
@@ -57,7 +129,22 @@ public static class TokenExtensions
         }
         else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
         {
-            setVal = (TProp)(object)valueInternal;
+            setVal = (TProp)(object)(UInt8)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+        {
+            setVal = (TProp)(object)(UInt16)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+        {
+            setVal = (TProp)(object)(UInt32)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+        {
+            setVal = (TProp)(object)(UInt64)valueInternal;
             did = true;
         }
 

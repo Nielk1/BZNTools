@@ -473,6 +473,72 @@ namespace BZNParser.Tokenizer
         }
 
         /// <summary>
+        /// Write a UInt32 to the BZN
+        /// </summary>
+        /// <remarks>
+        /// Handles the following malformations: <see cref="Malformation.INCORRECT_TEXT"/>
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="parent"></param>
+        /// <param name="property"></param>
+        public (UInt32 written, TProp stored) WriteUInt32<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
+        {
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            UInt32 value = 0;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+            {
+                value = (UInt32)(UInt8)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+            {
+                value = (UInt32)(UInt16)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+            {
+                value = (UInt32)(UInt32)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+            {
+                value = (UInt32)(UInt64)(object)valueInternal!;
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_LONG);
+                InternalWriteBinarySize(4);
+                BaseStream.Write(BitConverter.GetBytes(value), 0, 4);
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueInternal);
+            }
+
+            string textValue = value.ToString();
+
+            // handle incorrect raw value
+            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+            if (hasIncorrectRaw)
+                textValue = incorrectText ?? string.Empty;
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            InternalWriteNewline();
+            TokenIndex++;
+
+            return (value, valueInternal);
+        }
+
+        /// <summary>
         /// Write a UInt8 to the BZN
         /// </summary>
         /// <remarks>
@@ -493,7 +559,19 @@ namespace BZNParser.Tokenizer
             }
             else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
             {
-                value = (UInt8)(object)valueInternal!;
+                value = (UInt8)(UInt8)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+            {
+                value = (UInt8)(UInt16)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+            {
+                value = (UInt8)(UInt32)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+            {
+                value = (UInt8)(UInt64)(object)valueInternal!;
             }
             else
             {
@@ -540,7 +618,7 @@ namespace BZNParser.Tokenizer
         public void WriteChars<T>(string name, T parent, Expression<Func<T, SizedString>> property) where T : IMalformable
         {
             SizedString wrappedValue = ExtractPropertyValue(parent, property);
-            string value = wrappedValue.Value; // we don't care about the size as we're a normal char print
+            string value = wrappedValue.Value ?? string.Empty; // we don't care about the size as we're a normal char print
             byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
 
             // handle incorrect raw value
@@ -550,7 +628,7 @@ namespace BZNParser.Tokenizer
 
             if (InBinary)
             {
-                InternalWriteBinaryType(BinaryFieldType.DATA_ID);
+                InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
                 InternalWriteBinarySize(rawValue.Length);
                 BaseStream.Write(rawValue);
                 InternalAlignBinary();
@@ -565,7 +643,7 @@ namespace BZNParser.Tokenizer
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} ="));
             if (!parent.Malformations.IsRightTrimmed(property))
                 BaseStream.Write(BZNEncoding.win1252.GetBytes(" "));
-            InternalWriteNewline();
+            //InternalWriteNewline();
             BaseStream.Write(rawValue);
             InternalWriteNewline();
             TokenIndex++;
@@ -594,7 +672,7 @@ namespace BZNParser.Tokenizer
 
             if (InBinary)
             {
-                InternalWriteBinaryType(BinaryFieldType.DATA_ID);
+                InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
                 InternalWriteBinarySize(rawValue.Length);
                 BaseStream.Write(rawValue);
                 InternalAlignBinary();
@@ -609,7 +687,7 @@ namespace BZNParser.Tokenizer
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} ="));
             if (!parent.Malformations.IsRightTrimmed(property))
                 BaseStream.Write(BZNEncoding.win1252.GetBytes(" "));
-            InternalWriteNewline();
+            //InternalWriteNewline();
             BaseStream.Write(rawValue);
             InternalWriteNewline();
             TokenIndex++;
@@ -645,7 +723,7 @@ namespace BZNParser.Tokenizer
 
             if (InBinary)
             {
-                InternalWriteBinaryType(BinaryFieldType.DATA_ID);
+                InternalWriteBinaryType(BinaryFieldType.DATA_BOOL);
                 InternalWriteBinarySize(1);
                 BaseStream.WriteByte((byte)(value ? 1 : 0));
                 InternalAlignBinary();

@@ -32,7 +32,7 @@ namespace BZNParser.Battlezone.GameObject
             if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                 throw new Exception("Failed to parse name/CHAR");
             //if (obj != null) obj.name = tok.GetString();
-            reader.ReadSizedString("name", obj, x => x.name);
+            tok.ReadChars(obj, x => x.name);
 
 
             tok = reader.ReadToken();

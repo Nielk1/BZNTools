@@ -136,7 +136,7 @@ namespace BZNParser
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
 
-        public byte? Size { get; set; }
+        public UInt32? Size { get; set; }
         public string Value { get; set; }
 
         public override string ToString()
@@ -163,11 +163,17 @@ namespace BZNParser
             if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
                 propInfo = propInfo_;
 
-            SizedString? value = (SizedString?)(propInfo?.GetValue(parent));
+            SizedString? value = null;
+            if (parent != null)
+                value = (SizedString?)(propInfo?.GetValue(parent));
             if (value != null && propInfo != null)
                 value = new SizedString();
             if (propInfo != null)
-                propInfo.SetValue(parent, value);
+            {
+                value = new SizedString();
+                if (parent != null)
+                    propInfo.SetValue(parent, value);
+            }
 
             IBZNToken? tok;
             if (reader.InBinary)
@@ -177,7 +183,7 @@ namespace BZNParser
                 {
                     // TODO this might be a compressed number so do figure that out
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR))
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR) || tok.GetCount() > 1)
                         throw new Exception($"Failed to parse {name}/CHAR");
                     (_, byte size) = tok.ReadUInt8(value, x => x.Size);
 
@@ -203,12 +209,68 @@ namespace BZNParser
 
             if (writer.InBinary)
             {
-                (byte size, _) = writer.WriteUInt8(null, wrappedValue, x => x.Size);
-                if (size > 0)
-                    writer.WriteChars(name, wrappedValue, x => x.Value);
-                return;
+                if (writer.Format == BZNFormat.Battlezone2 && writer.Version > 1128)
+                {
+                    (byte size, _) = writer.WriteUInt8(null, wrappedValue, x => x.Size);
+                    if (size > 0)
+                        writer.WriteChars(name, wrappedValue, x => x.Value);
+                    return;
+                }
             }
             writer.WriteChars(name, wrappedValue, x => x.Value);
+        }
+
+        /// <summary>
+        /// Read a normal chars string unless BZ2 and version > 1128
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="reader"></param>
+        /// <param name="name"></param>
+        /// <param name="parent"></param>
+        /// <param name="property"></param>
+        /// <param name="index"></param>
+        /// <exception cref="Exception"></exception>
+        public static (string stored, string raw) ReadSizedStringType2<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, SizedString>>? property, int index = 0) where T : IMalformable
+        {
+            PropertyInfo? propInfo = null;
+            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+                propInfo = propInfo_;
+
+            SizedString? value = null;
+            if (parent != null)
+                value = (SizedString?)(propInfo?.GetValue(parent));
+            if (value != null && propInfo != null)
+                value = new SizedString();
+            if (propInfo != null)
+            {
+                value = new SizedString();
+                if (parent != null)
+                    propInfo.SetValue(parent, value);
+            }
+
+            IBZNToken? tok;
+            // TODO this might be a compressed number so do figure that out
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate("size", BinaryFieldType.DATA_LONG) || tok.GetCount() > 1)
+                throw new Exception($"Failed to parse size/LONG");
+            (_, UInt32 size) = tok.ReadUInt32(value, x => x.Size);
+
+            if (size > 0) // descision based on raw value, not cleanedsssss
+            {
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
+                    throw new Exception($"Failed to parse {name}/CHAR");
+                return tok.ReadChars(value, x => x.Value);
+            }
+            return (null, null);
+        }
+        public static void WriteSizedStringType2<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property)
+        {
+            SizedString wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
+
+            (UInt32 size, _) = writer.WriteUInt32("size", wrappedValue, x => x.Size);
+            if (size > 0)
+                writer.WriteChars(name, wrappedValue, x => x.Value);
         }
     }
 

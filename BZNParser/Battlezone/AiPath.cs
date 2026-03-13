@@ -13,7 +13,7 @@ namespace BZNParser.Battlezone
     public class AiPath : IMalformable
     {
         public UInt32? sObject { get; set; }
-        public string label { get; set; }
+        public SizedString label { get; set; }
         public Vector2D[] points { get; set; }
         public UInt32 pathType { get; set; }
 
@@ -97,39 +97,11 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 label = string.Format("bzn64path_{0,4:X4}", tok.GetUInt16());
-                if (obj != null) obj.label = label;
+                if (obj != null) obj.label = new SizedString() { Value = label };
             }
             else
             {
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("size", BinaryFieldType.DATA_LONG))
-                    throw new Exception("Failed to parse size/LONG");
-                int labelSize = tok.GetInt32();
-
-                if (labelSize > 0)
-                {
-                    tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_CHAR))
-                        throw new Exception("Failed to parse label/CHAR");
-                    label = tok.GetString();
-                    if (obj != null)
-                    {
-//                        if (label.Length != labelSize)
-//                        {
-//                            if (labelSize > label.Length)
-//                            {
-//                                obj.Malformations.AddStringPad("label", labelSize);
-//                            }
-//                            else
-//                            {
-//                                obj.Malformations.AddIncorrectTextParse("label", label);
-//                            }
-//                        }
-                    }
-                    if (label.Length > labelSize)
-                        label = label.Substring(0, labelSize);
-                }
-                if (obj != null) obj.label = label ?? string.Empty;
+                reader.ReadSizedStringType2("label", obj, x => x.label);
             }
             //Console.WriteLine($"AiPath[{i.ToString().PadLeft(countPaths.ToString().Length)}]: {(label ?? string.Empty)}");
 
@@ -197,7 +169,7 @@ namespace BZNParser.Battlezone
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
                 // extract number from label and write as UInt16
-                if (label.StartsWith("bzn64path_") && UInt16.TryParse(label.Substring(10), System.Globalization.NumberStyles.HexNumber, null, out UInt16 labelNum))
+                if (label.Value.StartsWith("bzn64path_") && UInt16.TryParse(label.Value.Substring(10), System.Globalization.NumberStyles.HexNumber, null, out UInt16 labelNum))
                 {
                     writer.WriteUnsignedValues(null, labelNum);
                 }
@@ -208,27 +180,7 @@ namespace BZNParser.Battlezone
             }
             else
             {
-                string textToWrite = label;
-                int lengthToWrite = label.Length;
-
-//                var malText = Malformations.GetMalformations(Malformation.INCORRECT_TEXT, "label");
-//                var malPad = Malformations.GetMalformations(Malformation.STRING_PAD, "label");
-//                if (preserveMalformations && malText.Length > 0)
-//                {
-//                    // string was truncated
-//                    textToWrite = (string)malText[0].Fields[0];
-//                    //lengthToWrite = textToWrite.Length;
-//                }
-//                if (preserveMalformations && malPad.Length > 0)
-//                {
-//                    // string reported as longer
-//                    lengthToWrite = (int)malPad[0].Fields[0];
-//                }
-                writer.WriteSignedValues("size", lengthToWrite);
-
-                //if (label.Length > 0)
-                if (lengthToWrite > 0)
-                    writer.WriteChars("label", textToWrite, Malformations);
+                writer.WriteSizedStringType2("label", this, x => x.label);
             }
 
             writer.WriteSignedValues("pointCount", points.Length);

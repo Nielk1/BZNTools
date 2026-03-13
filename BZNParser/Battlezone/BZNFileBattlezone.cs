@@ -571,8 +571,8 @@ namespace BZNParser.Battlezone
                 if (EntityDescriptor.Create(this, reader, CountItems - gameObjectCounter, out tmpObj, true, Hints: Hints) && tmpObj != null)
                 {
                     GameObjects[gameObjectCounter] = tmpObj;
-                    if (w.Elapsed > TimeSpan.FromMilliseconds(100))
-                        Console.WriteLine($"GameObject[{gameObjectCounter.ToString().PadLeft(CntPad)}]: {GameObjects[gameObjectCounter].seqNo.ToString("X8")} {GameObjects[gameObjectCounter].PrjID.ToString().PadRight(16)} {(GameObjects[gameObjectCounter].gameObject?.ClassLabel ?? string.Empty).PadRight(16)} {GameObjects[gameObjectCounter].gameObject?.ToString()?.Replace(@"BZNParser.Battlezone.GameObject.", string.Empty)}");
+                    //if (w.Elapsed > TimeSpan.FromMilliseconds(100))
+                        Console.WriteLine($"GameObject[{gameObjectCounter.ToString().PadLeft(CntPad)}]: {w.Elapsed.TotalSeconds:00.0000} {GameObjects[gameObjectCounter].seqNo.ToString("X8")} {GameObjects[gameObjectCounter].PrjID.ToString().PadRight(16)} {(GameObjects[gameObjectCounter].gameObject?.ClassLabel ?? string.Empty).PadRight(16)} {GameObjects[gameObjectCounter].gameObject?.ToString()?.Replace(@"BZNParser.Battlezone.GameObject.", string.Empty)}");
                     w.Restart();
                 }
             }

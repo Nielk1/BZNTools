@@ -297,6 +297,7 @@ public interface IMalformable
                 if (!head.Properties.ContainsKey(key))
                     head.Properties[key] = new List<MalformationData>();
                 head.Properties[key].Add(new MalformationData(malformation, key, fields));
+                return;
             }
             throw new ArgumentException("Expression is not a property", nameof(propertyLambda));
         }

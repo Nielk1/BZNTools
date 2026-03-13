@@ -1207,7 +1207,7 @@ namespace BZNParser.Battlezone.GameObject
                     //writer.WriteFloats("curHealth", preserveMalformations ? obj.Malformations : null, obj.curHealth.Get<Single>());
                     writer.WriteSingle("curHealth", obj, x => x.curHealth);
                     //writer.WriteFloats("maxHealth", preserveMalformations ? obj.Malformations : null, obj.maxHealth.Get<Single>());
-                    writer.WriteSingle("curHealth", obj, x => x.maxHealth);
+                    writer.WriteSingle("maxHealth", obj, x => x.maxHealth);
 
                     if (writer.Version != 1041 && writer.Version != 1047)
                     {

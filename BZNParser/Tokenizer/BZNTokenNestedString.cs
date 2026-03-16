@@ -109,18 +109,18 @@ namespace BZNParser.Tokenizer
         public Matrix GetMatrix(int index = 0)
         {
             IBZNToken[] subToks = values[index];
-            if (!subToks[ 0].Validate("right.x")) throw new Exception("Failed to parse right_x");
-            if (!subToks[ 1].Validate("right.y")) throw new Exception("Failed to parse right_y");
-            if (!subToks[ 2].Validate("right.z")) throw new Exception("Failed to parse right_z");
-            if (!subToks[ 3].Validate(   "up.x")) throw new Exception("Failed to parse up_x");
-            if (!subToks[ 4].Validate(   "up.y")) throw new Exception("Failed to parse up_y");
-            if (!subToks[ 5].Validate(   "up.z")) throw new Exception("Failed to parse up_z");
-            if (!subToks[ 6].Validate("front.x")) throw new Exception("Failed to parse front_x");
-            if (!subToks[ 7].Validate("front.y")) throw new Exception("Failed to parse front_y");
-            if (!subToks[ 8].Validate("front.z")) throw new Exception("Failed to parse front_z");
-            if (!subToks[ 9].Validate("posit.x")) throw new Exception("Failed to parse posit_x");
-            if (!subToks[10].Validate("posit.y")) throw new Exception("Failed to parse posit_y");
-            if (!subToks[11].Validate("posit.z")) throw new Exception("Failed to parse posit_z");
+            if (!subToks[ 0].Validate("right.x")) throw new Exception("Failed to parse right.x");
+            if (!subToks[ 1].Validate("right.y")) throw new Exception("Failed to parse right.y");
+            if (!subToks[ 2].Validate("right.z")) throw new Exception("Failed to parse right.z");
+            if (!subToks[ 3].Validate(   "up.x")) throw new Exception("Failed to parse up.x");
+            if (!subToks[ 4].Validate(   "up.y")) throw new Exception("Failed to parse up.y");
+            if (!subToks[ 5].Validate(   "up.z")) throw new Exception("Failed to parse up.z");
+            if (!subToks[ 6].Validate("front.x")) throw new Exception("Failed to parse front.x");
+            if (!subToks[ 7].Validate("front.y")) throw new Exception("Failed to parse front.y");
+            if (!subToks[ 8].Validate("front.z")) throw new Exception("Failed to parse front.z");
+            if (!subToks[ 9].Validate("posit.x")) throw new Exception("Failed to parse posit.x");
+            if (!subToks[10].Validate("posit.y")) throw new Exception("Failed to parse posit.y");
+            if (!subToks[11].Validate("posit.z")) throw new Exception("Failed to parse posit.z");
 
             return new Matrix()
             {

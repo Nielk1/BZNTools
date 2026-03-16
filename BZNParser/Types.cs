@@ -144,7 +144,158 @@ namespace BZNParser
             return Value;
         }
     }
+    static class OtherTypeExtenions // clean this up later
+    {
+        /*public static Vector3D ReadVector3D<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Vector3D>>? property, int index = 0) where T : IMalformable
+        {
+            PropertyInfo? propInfo = null;
+            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+                propInfo = propInfo_;
 
+            IBZNToken? tok;
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_VEC3D))
+                throw new Exception($"Failed to parse {name}/VEC3D");
+
+            Vector3D value = tok.GetVector3D(index);
+
+            // store the value into the property if possible
+            if (parent != null && propInfo != null)
+                propInfo.SetValue(parent, value);
+
+            // we can't process anything, so just serve the matrix as is
+            if (parent == null || propInfo == null)
+                return value;
+
+            // binary doesn't have subtokens, it's just a blob of data
+            if (tok.IsBinary)
+                return value;
+
+            IBZNToken subTok;
+            subTok = tok.GetSubToken(index, 0); subTok.ReadSingle(value, x => x.X); if (subTok.GetRawName() != @"  x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.X, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 1); subTok.ReadSingle(value, x => x.Y); if (subTok.GetRawName() != @"  y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.Y, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 2); subTok.ReadSingle(value, x => x.Z); if (subTok.GetRawName() != @"  z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.Z, subTok.GetRawName()); }
+
+            return value;
+        }
+        public static Vector2D ReadVector2D<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Vector2D>>? property, int index = 0) where T : IMalformable
+        {
+            PropertyInfo? propInfo = null;
+            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+                propInfo = propInfo_;
+
+            IBZNToken? tok;
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_VEC2D))
+                throw new Exception($"Failed to parse {name}/VEC2D");
+
+            Vector2D value = tok.GetVector2D(index);
+
+            // store the value into the property if possible
+            if (parent != null && propInfo != null)
+                propInfo.SetValue(parent, value);
+
+            // we can't process anything, so just serve the matrix as is
+            if (parent == null || propInfo == null)
+                return value;
+
+            // binary doesn't have subtokens, it's just a blob of data
+            if (tok.IsBinary)
+                return value;
+
+            IBZNToken subTok;
+            subTok = tok.GetSubToken(index, 0); subTok.ReadSingle(value, x => x.X); if (subTok.GetRawName() != @"  x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.X, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 1); subTok.ReadSingle(value, x => x.Z); if (subTok.GetRawName() != @"  z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.Z, subTok.GetRawName()); }
+
+            return value;
+        }*/
+        public static Euler ReadEuler<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Euler>>? property, int index = 0) where T : IMalformable
+        {
+            PropertyInfo? propInfo = null;
+            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+                propInfo = propInfo_;
+
+            IBZNToken? tok;
+
+            if (reader.InBinary)
+            {
+                Euler euler = new Euler();
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                tok.ReadSingle(euler, x => x.mass);
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                tok.ReadSingle(euler, x => x.mass_inv);
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                tok.ReadSingle(euler, x => x.v_mag);
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                tok.ReadSingle(euler, x => x.v_mag_inv);
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                tok.ReadSingle(euler, x => x.I);
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                tok.ReadSingle(euler, x => x.I_inv);
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                tok.ReadVector3D(euler, x => x.v);
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                tok.ReadVector3D(euler, x => x.omega);
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                tok.ReadVector3D(euler, x => x.Accel);
+
+                // store the value into the property if possible
+                if (parent != null && propInfo != null)
+                    propInfo.SetValue(parent, euler);
+
+                // we can't process anything, so just serve the euler as is
+                if (parent == null || propInfo == null)
+                    return euler;
+
+                return euler;
+            }
+
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_UNKNOWN))
+                throw new Exception($"Failed to parse {name}");
+
+            Euler value = tok.GetEuler(index);
+
+            // store the value into the property if possible
+            if (parent != null && propInfo != null)
+                propInfo.SetValue(parent, value);
+
+            // we can't process anything, so just serve the euler as is
+            if (parent == null || propInfo == null)
+                return value;
+            
+            IBZNToken subTok;
+            subTok = tok.GetSubToken(index, 0); subTok.ReadSingle(value, x => x.mass     ); if (subTok.GetRawName() != @" mass"     ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.mass     , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 1); subTok.ReadSingle(value, x => x.mass_inv ); if (subTok.GetRawName() != @" mass_inv" ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.mass_inv , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 2); subTok.ReadSingle(value, x => x.v_mag    ); if (subTok.GetRawName() != @" v_mag"    ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.v_mag    , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 3); subTok.ReadSingle(value, x => x.v_mag_inv); if (subTok.GetRawName() != @" v_mag_inv") { value.Malformations.AddIncorrectName<Euler, float>(x => x.v_mag_inv, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 4); subTok.ReadSingle(value, x => x.I        ); if (subTok.GetRawName() != @" I"        ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I        , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 5); subTok.ReadSingle(value, x => x.I_inv    ); if (subTok.GetRawName() != @" k_i"      ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I_inv    , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 6); subTok.ReadVector3D(value, x => x.v      ); if (subTok.GetRawName() != @" v"        ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.v     , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 7); subTok.ReadVector3D(value, x => x.omega  ); if (subTok.GetRawName() != @" omega"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.omega , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 8); subTok.ReadVector3D(value, x => x.Accel  ); if (subTok.GetRawName() != @" Accel"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.Accel , subTok.GetRawName()); }
+
+            return value;
+        }
+    }
     static class SizedStringExtension
     {
         /// <summary>
@@ -389,23 +540,23 @@ namespace BZNParser
         public const float EPSILON = 1.0e-4f;
         public const float HUGE_NUMBER = 1.0e30f;
 
-        public Quaternion Att;
+        public Quaternion Att { get; set; }
 
-        public Vector3D v;
-        public Vector3D omega;
-        public Vector3D Accel;
+        public Vector3D v { get; set; }
+        public Vector3D omega { get; set; }
+        public Vector3D Accel { get; set; }
 
-        public Vector3D Alpha;
-        public Vector3D Pos;
+        public Vector3D Alpha { get; set; }
+        public Vector3D Pos { get; set; }
 
-        public float mass;
-        public float mass_inv;
+        public float mass { get; set; }
+        public float mass_inv { get; set; }
 
-        public float I;
-        public float I_inv;
+        public float I { get; set; }
+        public float I_inv { get; set; }
 
-        public float v_mag;
-        public float v_mag_inv;
+        public float v_mag { get; set; }
+        public float v_mag_inv { get; set; }
 
         public void InitLoadSave()
         {
@@ -461,23 +612,23 @@ namespace BZNParser
         }
 
 
-        public float rightx;
-        public float righty;
-        public float rightz;
-        public float rightw;
-        public float upx;
-        public float upy;
-        public float upz;
-        public float upw;
-        public float frontx;
-        public float fronty;
-        public float frontz;
-        public float frontw;
-        public UInt32 junk; // used only in double-posit mode
-        public double positx;
-        public double posity;
-        public double positz;
-        public double positw;
+        public float rightx { get; set; }
+        public float righty { get; set; }
+        public float rightz { get; set; }
+        public float rightw { get; set; }
+        public float upx { get; set; }
+        public float upy { get; set; }
+        public float upz { get; set; }
+        public float upw { get; set; }
+        public float frontx { get; set; }
+        public float fronty { get; set; }
+        public float frontz { get; set; }
+        public float frontw { get; set; }
+        public UInt32 junk { get; set; } // used only in double-posit mode
+        public double positx { get; set; }
+        public double posity { get; set; }
+        public double positz { get; set; }
+        public double positw { get; set; }
     }
 
     static class MatrixExtension
@@ -494,7 +645,7 @@ namespace BZNParser
             if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_MAT3D))
                 throw new Exception($"Failed to parse {name}/MAT3D");
 
-            Matrix value = tok.GetMatrix();
+            Matrix value = tok.GetMatrix(index);
 
             // store the value into the property if possible
             if (parent != null && propInfo != null)

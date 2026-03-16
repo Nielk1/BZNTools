@@ -87,14 +87,15 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            if (obj != null)
+            /*if (obj != null)
             {
                 obj.euler = reader.GetEuler(parent.SaveType);
             }
             else
             {
                 reader.GetEuler(parent.SaveType);
-            }
+            }*/
+            reader.ReadEuler("euler", obj, x => x.euler);
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
@@ -882,10 +883,12 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteVector3Ds("pos", preserveMalformations, obj.pos);
+                //writer.WriteVector3Ds("pos", preserveMalformations, obj.pos);
+                writer.WriteVector3D("pos", obj, x => x.pos);
             }
 
-            writer.WriteEulerBZ(parent.SaveType, preserveMalformations, obj.euler);
+            //writer.WriteEulerBZ(parent.SaveType, preserveMalformations, obj.euler);
+            writer.WriteEuler("euler", obj, x => x.euler);
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {

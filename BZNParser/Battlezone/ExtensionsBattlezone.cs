@@ -50,17 +50,17 @@ namespace BZNParser.Battlezone
 
         public static string CheckBinaryMessString(this IMalformable.MalformationManager Malformations, string name, string value)
         {
-//            var mal = Malformations.GetMalformations(Malformation.STRING_PAD, name);
-//            var mal2 = Malformations.GetMalformations(Malformation.INCORRECT_RAW, name);
-//            if (mal.Length > 0)
-//            {
-//                return value.PadRight((int)mal[0].Fields[0], '\0');
-//            }
-//            else if (mal2.Length > 0)
-//            {
-//                return (string)mal2[0].Fields[0];
-//            }
-//            else
+            //            var mal = Malformations.GetMalformations(Malformation.STRING_PAD, name);
+            //            var mal2 = Malformations.GetMalformations(Malformation.INCORRECT_RAW, name);
+            //            if (mal.Length > 0)
+            //            {
+            //                return value.PadRight((int)mal[0].Fields[0], '\0');
+            //            }
+            //            else if (mal2.Length > 0)
+            //            {
+            //                return (string)mal2[0].Fields[0];
+            //            }
+            //            else
             {
                 return value;
             }
@@ -191,8 +191,8 @@ namespace BZNParser.Battlezone
                 var tmp = tok as BZNTokenString;
                 if (tmp != null)
                 {
-//                    if (tmp.RightTrimmedOneLiner)
-//                        malformations.AddRightTrimmed(name);
+                    //                    if (tmp.RightTrimmedOneLiner)
+                    //                        malformations.AddRightTrimmed(name);
                 }
             }
             return tok.GetString();
@@ -601,6 +601,7 @@ namespace BZNParser.Battlezone
             return;
         }
 
+        [Obsolete]
         public static Euler GetEuler(this BZNStreamReader reader, SaveType saveType)
         {
             if (reader.Format != BZNFormat.Battlezone2 || saveType == SaveType.BZN) // Battlezone 2 has side paths
@@ -751,6 +752,7 @@ namespace BZNParser.Battlezone
             throw new NotImplementedException("Euler Save");
         }
 
+        [Obsolete]
         public static void WriteEulerBZ(this BZNStreamWriter writer, SaveType saveType, bool preserveMalformations, Euler value)
         {
             if (writer.Format != BZNFormat.Battlezone2 || saveType == SaveType.BZN) // Battlezone 2 has side paths

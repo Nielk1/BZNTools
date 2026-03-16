@@ -6,6 +6,7 @@ using System.IO.Pipes;
 using System.Linq.Expressions;
 using System.Numerics;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -941,6 +942,66 @@ namespace BZNParser.Tokenizer
                 name = incorrectName;
             return name;
         }
+        private (Vector2D written, TProp stored) InternalWriteVector2DValue<T, TProp>(T parent, Expression<Func<T, TProp>> property) where T : IMalformable
+        {
+            TProp value_ = BZNStreamWriter.ExtractPropertyValue(parent, property);
+            Vector2D value = (Vector2D)(object)value_;
+
+            if (InBinary)
+            {
+                InternalWriteFloatValue(value, x => x.X);
+                InternalWriteFloatValue(value, x => x.Z);
+
+                TokenIndex++;
+                return (value, value_);
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  x", value, x => x.X)} [1] ="));
+            InternalWriteNewline();
+            InternalWriteFloatValue(value, x => x.X);
+            InternalWriteNewline();
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  z", value, x => x.Z)} [1] ="));
+            InternalWriteNewline();
+            InternalWriteFloatValue(value, x => x.Z);
+            InternalWriteNewline();
+
+            TokenIndex++;
+            return (value, value_);
+        }
+        private (Vector3D written, TProp stored) InternalWriteVector3DValue<T, TProp>(T parent, Expression<Func<T, TProp>> property) where T : IMalformable
+        {
+            TProp value_ = BZNStreamWriter.ExtractPropertyValue(parent, property);
+            Vector3D value = (Vector3D)(object)value_;
+
+            if (InBinary)
+            {
+                InternalWriteFloatValue(value, x => x.X);
+                InternalWriteFloatValue(value, x => x.Y);
+                InternalWriteFloatValue(value, x => x.Z);
+
+                TokenIndex++;
+                return (value, value_);
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  x", value, x => x.X)} [1] ="));
+            InternalWriteNewline();
+            InternalWriteFloatValue(value, x => x.X);
+            InternalWriteNewline();
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  y", value, x => x.Y)} [1] ="));
+            InternalWriteNewline();
+            InternalWriteFloatValue(value, x => x.Y);
+            InternalWriteNewline();
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  z", value, x => x.Z)} [1] ="));
+            InternalWriteNewline();
+            InternalWriteFloatValue(value, x => x.Z);
+            InternalWriteNewline();
+
+            TokenIndex++;
+            return (value, value_);
+        }
         private void InternalWriteDoubleValue<T, TProp>(T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
             TProp value_ = BZNStreamWriter.ExtractPropertyValue(parent, property);
@@ -967,7 +1028,30 @@ namespace BZNParser.Tokenizer
         private void InternalWriteFloatValue<T, TProp>(T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
             TProp value_ = BZNStreamWriter.ExtractPropertyValue(parent, property);
-            float value = (float)(object)value_;
+            float value;
+            if (value_ is float f)
+                value = f;
+            else if (value_ is double d)
+                value = (float)d;
+            else if (typeof(TProp).IsGenericType && typeof(TProp).GetGenericTypeDefinition() == typeof(DualModeValue<,>))
+            {
+                var genericArgs = typeof(TProp).GetGenericArguments();
+                dynamic dual = value_;
+                if (genericArgs[0] == typeof(float) || genericArgs[1] == typeof(float))
+                {
+                    value = dual.Get<float>();
+                }
+                else if (genericArgs[0] == typeof(double) || genericArgs[1] == typeof(double))
+                {
+                    value = (float)dual.Get<double>();
+                }
+                else
+                {
+                    throw new InvalidCastException($"DualModeValue does not contain float or double: {typeof(TProp)}");
+                }
+            }
+            else
+                throw new InvalidCastException($"Unsupported type: {typeof(TProp)}");
 
             if (InBinary)
             {
@@ -987,27 +1071,127 @@ namespace BZNParser.Tokenizer
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
         }
+        public (Vector2D written, TProp stored) WriteVector2D<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_VEC2D);
+                InternalWriteBinarySize(sizeof(float) * 2);
+                (var written_, var stored_) = InternalWriteVector2DValue(parent, property);
+                InternalAlignBinary();
+                return (written_, stored_);
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
+            InternalWriteNewline();
+            (var written, var stored) = InternalWriteVector2DValue(parent, property);
+            TokenIndex++;
+            return (written, stored);
+        }
+        public (Vector3D written, TProp stored) WriteVector3D<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
+        {
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_VEC3D);
+                InternalWriteBinarySize(sizeof(float) * 3);
+                (var written_, var stored_) = InternalWriteVector3DValue(parent, property);
+                InternalAlignBinary();
+                return (written_, stored_);
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
+            InternalWriteNewline();
+            (var written, var stored) = InternalWriteVector3DValue(parent, property);
+            TokenIndex++;
+            return (written, stored);
+        }
+        public Euler WriteEuler<T>(string name, T parent, Expression<Func<T, Euler>> property) where T : IMalformable
+        {
+            Euler value = BZNStreamWriter.ExtractPropertyValue(parent, property);
+
+            if (InBinary)
+            {
+                WriteSingle(null, value, x => x.mass);
+                WriteSingle(null, value, x => x.mass_inv);
+                WriteSingle(null, value, x => x.v_mag);
+                WriteSingle(null, value, x => x.v_mag_inv);
+                WriteSingle(null, value, x => x.I);
+                WriteSingle(null, value, x => x.I_inv);
+                WriteVector3D(null, value, x => x.v);
+                WriteVector3D(null, value, x => x.omega);
+                WriteVector3D(null, value, x => x.Accel);
+                return value;
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
+            InternalWriteNewline();
+            {
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" mass", value, x => x.mass)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteFloatValue(value, x => x.mass);
+                InternalWriteNewline();
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" mass_inv", value, x => x.mass_inv)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteFloatValue(value, x => x.mass_inv);
+                InternalWriteNewline();
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" v_mag", value, x => x.v_mag)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteFloatValue(value, x => x.v_mag);
+                InternalWriteNewline();
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" v_mag_inv", value, x => x.v_mag_inv)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteFloatValue(value, x => x.v_mag_inv);
+                InternalWriteNewline();
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" I", value, x => x.I)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteFloatValue(value, x => x.I);
+                InternalWriteNewline();
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" k_i", value, x => x.I_inv)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteFloatValue(value, x => x.I_inv);
+                InternalWriteNewline();
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" v", value, x => x.v)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteVector3DValue(value, x => x.v);
+                //InternalWriteNewline();
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" omega", value, x => x.omega)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteVector3DValue(value, x => x.omega);
+                //InternalWriteNewline();
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" Accel", value, x => x.Accel)} [1] ="));
+                InternalWriteNewline();
+                InternalWriteVector3DValue(value, x => x.Accel);
+                //InternalWriteNewline();
+            }
+            TokenIndex++;
+            return value;
+        }
+
         public void WriteMatrix<T>(string name, T parent, Expression<Func<T, Matrix>> property) where T : IMalformable
         {
             Matrix value = BZNStreamWriter.ExtractPropertyValue(parent, property);
 
             if (InBinary)
             {
-                InternalWriteBinaryType(BinaryFieldType.DATA_MAT3DOLD);
-                InternalWriteBinarySize(sizeof(float) * 12);
+                InternalWriteBinaryType(BinaryFieldType.DATA_MAT3D);
+                InternalWriteBinarySize(sizeof(float) * 16);
                 {
                     InternalWriteFloatValue(value, x => x.rightx);
                     InternalWriteFloatValue(value, x => x.righty);
                     InternalWriteFloatValue(value, x => x.rightz);
+                    InternalWriteFloatValue(value, x => x.rightw);
                     InternalWriteFloatValue(value, x => x.upx);
                     InternalWriteFloatValue(value, x => x.upy);
                     InternalWriteFloatValue(value, x => x.upz);
+                    InternalWriteFloatValue(value, x => x.upw);
                     InternalWriteFloatValue(value, x => x.frontx);
                     InternalWriteFloatValue(value, x => x.fronty);
                     InternalWriteFloatValue(value, x => x.frontz);
+                    InternalWriteFloatValue(value, x => x.frontw);
                     InternalWriteFloatValue(value, x => x.positx);
                     InternalWriteFloatValue(value, x => x.posity);
                     InternalWriteFloatValue(value, x => x.positz);
+                    InternalWriteFloatValue(value, x => x.positw);
                 }
                 InternalAlignBinary();
                 TokenIndex++;
@@ -1020,51 +1204,51 @@ namespace BZNParser.Tokenizer
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.rightx);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  right.y", value, x => x.righty)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  right.y", value, x => x.righty)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.righty);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  right.z", value, x => x.rightz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  right.z", value, x => x.rightz)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.rightz);
                 InternalWriteNewline();
 
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up.x", value, x => x.upz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up.x", value, x => x.upx)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.upx);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up.y", value, x => x.upz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up.y", value, x => x.upy)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.upy);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up.z", value, x => x.upz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up.z", value, x => x.upz)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.upz);
                 InternalWriteNewline();
 
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front.x", value, x => x.frontz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front.x", value, x => x.frontx)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.frontx);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front.y", value, x => x.frontz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front.y", value, x => x.fronty)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.fronty);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front.z", value, x => x.frontz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front.z", value, x => x.frontz)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.frontz);
                 InternalWriteNewline();
 
                 // TODO change these to double strings, whatever that looks like
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit.x", value, x => x.positx)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit.x", value, x => x.positx)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.positx);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit.y", value, x => x.posity)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit.y", value, x => x.posity)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.posity);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit.z", value, x => x.positz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit.z", value, x => x.positz)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.positz);
                 InternalWriteNewline();
@@ -1138,51 +1322,51 @@ namespace BZNParser.Tokenizer
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.rightx);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  right_y", value, x => x.righty)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  right_y", value, x => x.righty)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.righty);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  right_z", value, x => x.rightz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  right_z", value, x => x.rightz)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.rightz);
                 InternalWriteNewline();
 
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up_x", value, x => x.upz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up_x", value, x => x.upx)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.upx);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up_y", value, x => x.upz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up_y", value, x => x.upy)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.upy);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up_z", value, x => x.upz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  up_z", value, x => x.upz)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.upz);
                 InternalWriteNewline();
 
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front_x", value, x => x.frontz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front_x", value, x => x.frontx)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.frontx);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front_y", value, x => x.frontz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front_y", value, x => x.fronty)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.fronty);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front_z", value, x => x.frontz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  front_z", value, x => x.frontz)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.frontz);
                 InternalWriteNewline();
 
                 // TODO change these to double strings, whatever that looks like
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit_x", value, x => x.positx)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit_x", value, x => x.positx)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.positx);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit_y", value, x => x.posity)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit_y", value, x => x.posity)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.posity);
                 InternalWriteNewline();
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit_z", value, x => x.positz)}  [1] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  posit_z", value, x => x.positz)} [1] ="));
                 InternalWriteNewline();
                 InternalWriteFloatValue(value, x => x.positz);
                 InternalWriteNewline();

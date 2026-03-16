@@ -299,25 +299,11 @@ namespace BZNParser.Battlezone
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("transform", BinaryFieldType.DATA_MAT3D))
-                    throw new Exception("Failed to parse transform/MAT3D");
-                if (obj != null)
-                {
-                    obj.transform = tok.GetMatrix();
-                    tok.CheckMalformationsMatrix(obj.transform.Malformations, reader.FloatFormat);
-                }
+                reader.ReadMatrix("transform", obj, x => x.transform);
             }
             if ((reader.Format == BZNFormat.Battlezone && reader.Version > 1001) || reader.Format == BZNFormat.BattlezoneN64)
             {
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("transform", BinaryFieldType.DATA_MAT3DOLD))
-                    throw new Exception("Failed to parse transform/MAT3DOLD");
-                if (obj != null)
-                {
-                    obj.transform = tok.GetMatrixOld();
-                    tok.CheckMalformationsMatrix(obj.transform.Malformations, reader.FloatFormat);
-                }
+                reader.ReadMatrixOld("transform", obj, x => x.transform);
             }
 
             if (obj == null)
@@ -679,18 +665,11 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteMat3Ds("transform", preserveMalformations, transform);
+                writer.WriteMatrix("transform", this, x => x.transform);
             }
             if ((writer.Format == BZNFormat.Battlezone && writer.Version > 1001) || writer.Format == BZNFormat.BattlezoneN64)
             {
-                if (writer.Version >= 0)
-                {
-                    writer.WriteMat3DOldEnhanceds("transform", preserveMalformations, transform);
-                }
-                else
-                {
-                    writer.WriteMat3DOlds("transform", preserveMalformations, transform);
-                }
+                writer.WriteMatrixOld("transform", this, x => x.transform);
             }
 
 

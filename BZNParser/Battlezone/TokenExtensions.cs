@@ -11,6 +11,61 @@ namespace BZNParser.Tokenizer;
 // These functions should return the cleaned value and set the value on the property if the parent instance is set
 public static class TokenExtensions
 {
+    public static Vector3D ReadVector3D<T>(this IBZNToken tok, T? parent, Expression<Func<T, Vector3D>>? property, int index = 0) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        Vector3D value = tok.GetVector3D(index);
+
+        // store the value into the property if possible
+        if (parent != null && propInfo != null)
+            propInfo.SetValue(parent, value);
+
+        // we can't process anything, so just serve the vector as is
+        if (parent == null || propInfo == null)
+            return value;
+
+        // binary doesn't have subtokens, it's just a blob of data
+        if (tok.IsBinary)
+            return value;
+
+        IBZNToken subTok;
+        subTok = tok.GetSubToken(index, 0); subTok.ReadSingle(value, x => x.X); if (subTok.GetRawName() != @"  x") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.X, subTok.GetRawName()); }
+        subTok = tok.GetSubToken(index, 1); subTok.ReadSingle(value, x => x.Y); if (subTok.GetRawName() != @"  y") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.Y, subTok.GetRawName()); }
+        subTok = tok.GetSubToken(index, 2); subTok.ReadSingle(value, x => x.Z); if (subTok.GetRawName() != @"  z") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.Z, subTok.GetRawName()); }
+
+        return value;
+    }
+
+    public static Vector2D ReadVector2D<T>(this IBZNToken tok, T? parent, Expression<Func<T, Vector2D>>? property, int index = 0) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        Vector2D value = tok.GetVector2D(index);
+
+        // store the value into the property if possible
+        if (parent != null && propInfo != null)
+            propInfo.SetValue(parent, value);
+
+        // we can't process anything, so just serve the vector as is
+        if (parent == null || propInfo == null)
+            return value;
+
+        // binary doesn't have subtokens, it's just a blob of data
+        if (tok.IsBinary)
+            return value;
+
+        IBZNToken subTok;
+        subTok = tok.GetSubToken(index, 0); subTok.ReadSingle(value, x => x.X); if (subTok.GetRawName() != @"  x") { value.Malformations.AddIncorrectName<Vector2D, float>(x => x.X, subTok.GetRawName()); }
+        subTok = tok.GetSubToken(index, 1); subTok.ReadSingle(value, x => x.Z); if (subTok.GetRawName() != @"  z") { value.Malformations.AddIncorrectName<Vector2D, float>(x => x.Z, subTok.GetRawName()); }
+
+        return value;
+    }
+
     /// <summary>
     /// Read a Single from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
     /// while also checking for common malformations.

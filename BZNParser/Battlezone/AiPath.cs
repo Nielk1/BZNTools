@@ -113,15 +113,17 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("points", BinaryFieldType.DATA_VEC2D))
                 throw new Exception("Failed to parse point/VEC2D");
-            Vector2D[] points = new Vector2D[pointCount];
-            for (int j = 0; j < pointCount; j++)
+            Vector2D[] points = new Vector2D[tok.GetCount()];
+            for (int j = 0; j < points.Length; j++)
             {
-                points[j] = tok.GetVector2D(j);
-                tok.CheckMalformationsVector2D(points[j].Malformations, reader.FloatFormat, j);
-                //tok.GetSubToken(j, 0).CheckMalformationsSingle("  x", points[j].Malformations, reader.FloatFormat);
-                //tok.GetSubToken(j, 1).CheckMalformationsSingle("  z", points[j].Malformations, reader.FloatFormat);
+                //points[j] = tok.GetVector2D(j);
+                //tok.CheckMalformationsVector2D(points[j].Malformations, reader.FloatFormat, j);
+                ////tok.GetSubToken(j, 0).CheckMalformationsSingle("  x", points[j].Malformations, reader.FloatFormat);
+                ////tok.GetSubToken(j, 1).CheckMalformationsSingle("  z", points[j].Malformations, reader.FloatFormat);
+
+                tok.ReadVector2D(obj, x => x.points, j);
             }
-            if (obj != null) obj.points = points;
+            //if (obj != null) obj.points = points;
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("pathType", BinaryFieldType.DATA_VOID))
@@ -184,7 +186,8 @@ namespace BZNParser.Battlezone
             }
 
             writer.WriteSignedValues("pointCount", points.Length);
-            writer.WriteVector2Ds("points", preserveMalformations, points);
+            //writer.WriteVector2Ds("points", preserveMalformations, points);
+            writer.WriteVector2D("points", this, x => x.points);
             writer.WriteVoidBytes("pathType", pathType); // BZ2 it's written as a hex-string
         }
     }

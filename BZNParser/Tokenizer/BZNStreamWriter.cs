@@ -1082,7 +1082,7 @@ namespace BZNParser.Tokenizer
                 return (written_, stored_);
             }
 
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [{idx+1}] ="));
             InternalWriteNewline();
             (var written, var stored) = InternalWriteVector2DValue(parent, property);
             TokenIndex++;
@@ -1099,7 +1099,7 @@ namespace BZNParser.Tokenizer
                 return (written_, stored_);
             }
 
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [{idx + 1}] ="));
             InternalWriteNewline();
             (var written, var stored) = InternalWriteVector3DValue(parent, property);
             TokenIndex++;

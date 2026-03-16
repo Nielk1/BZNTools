@@ -942,18 +942,13 @@ namespace BZNParser.Tokenizer
                 name = incorrectName;
             return name;
         }
-        private (Vector2D written, TProp stored) InternalWriteVector2DValue<T, TProp>(T parent, Expression<Func<T, TProp>> property) where T : IMalformable
+        private void InternalWriteVector2DValue(Vector2D value)
         {
-            TProp value_ = BZNStreamWriter.ExtractPropertyValue(parent, property);
-            Vector2D value = (Vector2D)(object)value_;
-
             if (InBinary)
             {
                 InternalWriteFloatValue(value, x => x.X);
                 InternalWriteFloatValue(value, x => x.Z);
-
-                TokenIndex++;
-                return (value, value_);
+                return;
             }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  x", value, x => x.X)} [1] ="));
@@ -965,23 +960,15 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
             InternalWriteFloatValue(value, x => x.Z);
             InternalWriteNewline();
-
-            TokenIndex++;
-            return (value, value_);
         }
-        private (Vector3D written, TProp stored) InternalWriteVector3DValue<T, TProp>(T parent, Expression<Func<T, TProp>> property) where T : IMalformable
+        private void InternalWriteVector3DValue(Vector3D value)
         {
-            TProp value_ = BZNStreamWriter.ExtractPropertyValue(parent, property);
-            Vector3D value = (Vector3D)(object)value_;
-
             if (InBinary)
             {
                 InternalWriteFloatValue(value, x => x.X);
                 InternalWriteFloatValue(value, x => x.Y);
                 InternalWriteFloatValue(value, x => x.Z);
-
-                TokenIndex++;
-                return (value, value_);
+                return;
             }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName("  x", value, x => x.X)} [1] ="));
@@ -998,9 +985,6 @@ namespace BZNParser.Tokenizer
             InternalWriteNewline();
             InternalWriteFloatValue(value, x => x.Z);
             InternalWriteNewline();
-
-            TokenIndex++;
-            return (value, value_);
         }
         private void InternalWriteDoubleValue<T, TProp>(T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
@@ -1073,37 +1057,75 @@ namespace BZNParser.Tokenizer
         }
         public (Vector2D written, TProp stored) WriteVector2D<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
+            TProp propValue = ExtractPropertyValue(parent, property);
+            Vector2D[] vectors;
+            if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(Vector2D))
+            {
+                vectors = (Vector2D[])(object)propValue;
+            }
+            else
+            {
+                vectors = new Vector2D[] { (Vector2D)(object)propValue };
+            }
+            int length = vectors.Length;
+
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_VEC2D);
-                InternalWriteBinarySize(sizeof(float) * 2);
-                (var written_, var stored_) = InternalWriteVector2DValue(parent, property);
+                InternalWriteBinarySize(sizeof(float) * 2 * length);
+                foreach (var vec in vectors)
+                {
+                    InternalWriteVector2DValue(vec);
+                }
                 InternalAlignBinary();
-                return (written_, stored_);
             }
-
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [{idx+1}] ="));
-            InternalWriteNewline();
-            (var written, var stored) = InternalWriteVector2DValue(parent, property);
+            else
+            {
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [{length}] ="));
+                InternalWriteNewline();
+                foreach (var vec in vectors)
+                {
+                    InternalWriteVector2DValue(vec);
+                }
+            }
             TokenIndex++;
-            return (written, stored);
+            return (vectors.Length > 0 ? vectors[0] : default(Vector2D), propValue);
         }
         public (Vector3D written, TProp stored) WriteVector3D<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
+            TProp propValue = ExtractPropertyValue(parent, property);
+            Vector3D[] vectors;
+            if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(Vector3D))
+            {
+                vectors = (Vector3D[])(object)propValue;
+            }
+            else
+            {
+                vectors = new Vector3D[] { (Vector3D)(object)propValue };
+            }
+            int length = vectors.Length;
+
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_VEC3D);
-                InternalWriteBinarySize(sizeof(float) * 3);
-                (var written_, var stored_) = InternalWriteVector3DValue(parent, property);
+                InternalWriteBinarySize(sizeof(float) * 3 * length);
+                foreach (var vec in vectors)
+                {
+                    InternalWriteVector3DValue(vec);
+                }
                 InternalAlignBinary();
-                return (written_, stored_);
             }
-
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [{idx + 1}] ="));
-            InternalWriteNewline();
-            (var written, var stored) = InternalWriteVector3DValue(parent, property);
+            else
+            {
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [{length}] ="));
+                InternalWriteNewline();
+                foreach (var vec in vectors)
+                {
+                    InternalWriteVector3DValue(vec);
+                }
+            }
             TokenIndex++;
-            return (written, stored);
+            return (vectors.Length > 0 ? vectors[0] : default(Vector3D), propValue);
         }
         public Euler WriteEuler<T>(string name, T parent, Expression<Func<T, Euler>> property) where T : IMalformable
         {
@@ -1152,15 +1174,15 @@ namespace BZNParser.Tokenizer
                 InternalWriteNewline();
                 BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" v", value, x => x.v)} [1] ="));
                 InternalWriteNewline();
-                InternalWriteVector3DValue(value, x => x.v);
+                InternalWriteVector3DValue(value.v);
                 //InternalWriteNewline();
                 BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" omega", value, x => x.omega)} [1] ="));
                 InternalWriteNewline();
-                InternalWriteVector3DValue(value, x => x.omega);
+                InternalWriteVector3DValue(value.omega);
                 //InternalWriteNewline();
                 BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(" Accel", value, x => x.Accel)} [1] ="));
                 InternalWriteNewline();
-                InternalWriteVector3DValue(value, x => x.Accel);
+                InternalWriteVector3DValue(value.Accel);
                 //InternalWriteNewline();
             }
             TokenIndex++;

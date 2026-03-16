@@ -19,7 +19,7 @@ namespace BZNParser.Tokenizer
         public int GetCount()
         {
             //throw new InvalidOperationException();
-            return 1;
+            return values.Length;
         }
         public int GetSubCount(int index = 0)
         {

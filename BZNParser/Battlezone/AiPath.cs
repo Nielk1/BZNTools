@@ -114,6 +114,8 @@ namespace BZNParser.Battlezone
             if (tok == null || !tok.Validate("points", BinaryFieldType.DATA_VEC2D))
                 throw new Exception("Failed to parse point/VEC2D");
             Vector2D[] points = new Vector2D[tok.GetCount()];
+            if (obj != null)
+                obj.points = points;
             for (int j = 0; j < points.Length; j++)
             {
                 //points[j] = tok.GetVector2D(j);
@@ -121,7 +123,7 @@ namespace BZNParser.Battlezone
                 ////tok.GetSubToken(j, 0).CheckMalformationsSingle("  x", points[j].Malformations, reader.FloatFormat);
                 ////tok.GetSubToken(j, 1).CheckMalformationsSingle("  z", points[j].Malformations, reader.FloatFormat);
 
-                tok.ReadVector2D(obj, x => x.points, j);
+                tok.ReadVector2D(obj, x => x.points, j, format: reader.FloatFormat);
             }
             //if (obj != null) obj.points = points;
 

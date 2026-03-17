@@ -40,8 +40,8 @@ namespace BZNParser.Tokenizer
                 case BinaryFieldType.DATA_DOUBLE: return data.Length / 8;
                 case BinaryFieldType.DATA_ID: return data.Length / 4;
                 case BinaryFieldType.DATA_PTR: return data.Length / PtrSize;
-                case BinaryFieldType.DATA_VEC3D: throw new NotImplementedException();
-                case BinaryFieldType.DATA_VEC2D: throw new NotImplementedException();
+                case BinaryFieldType.DATA_VEC3D: return data.Length / 4 / 3;
+                case BinaryFieldType.DATA_VEC2D: return data.Length / 4 / 2;
                 case BinaryFieldType.DATA_MAT3DOLD: throw new NotImplementedException(); // make sure you account for bigPosit if you implement this
                 case BinaryFieldType.DATA_MAT3D: throw new NotImplementedException();
                 case BinaryFieldType.DATA_STRING: throw new NotImplementedException();

@@ -354,10 +354,12 @@ namespace BZNParser
             return tok.ReadChars(value, x => x.Value);
         }
 
-        public static void WriteSizedString<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property)
+        public static void WriteSizedString<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property, Func<SizedString, SizedString>? convert = null)
         {
             SizedString wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
 
+            if (convert != null)
+                wrappedValue = convert(wrappedValue);
             if (writer.InBinary)
             {
                 if (writer.Format == BZNFormat.Battlezone2 && writer.Version > 1128)

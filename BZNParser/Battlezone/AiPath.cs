@@ -12,6 +12,7 @@ namespace BZNParser.Battlezone
 {
     public class AiPath : IMalformable
     {
+        public SizedString? AiPathDummy { get; set; } // only needed to preserve malformation trash on this field if it exists, as its value is hard-coded as "AiPath"
         public UInt32? sObject { get; set; }
         public SizedString label { get; set; }
         public Vector2D[] points { get; set; }
@@ -48,7 +49,8 @@ namespace BZNParser.Battlezone
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                string? name = reader.ReadSizedString_BZ2_1145("name", 40, obj?.Malformations);
+                //string? name = reader.ReadSizedString_BZ2_1145("name", 40, obj?.Malformations);
+                (string? name, _) = reader.ReadSizedString("name", obj, x => x.AiPathDummy);
                 if (name != "AiPath")
                 {
                     throw new Exception("Failed to parse AiPath");
@@ -146,7 +148,8 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteSizedString_BZ2_1145("name", 40, "AiPath", Malformations);
+                //writer.WriteSizedString_BZ2_1145("name", 40, "AiPath", Malformations);
+                writer.WriteSizedString("name", this, x => x.AiPathDummy, (val) => val ?? new SizedString() { Value = "AiPath" });
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)

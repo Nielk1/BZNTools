@@ -79,19 +79,10 @@ namespace BZNParser.Battlezone
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {
-                // must figure out why this sometimes is missing
-                reader.Bookmark.Mark();
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("sObject", BinaryFieldType.DATA_PTR))
-                {
-                    reader.Bookmark.RevertToBookmark();
-                    //throw new Exception("Failed to parse sObject/PTR");
-                }
-                else
-                {
-                    reader.Bookmark.Commit();
-                    if (obj != null) obj.sObject = tok.GetUInt32H();
-                }
+                    throw new Exception("Failed to parse sObject/PTR");
+                if (obj != null) obj.sObject = tok.GetUInt32H();
             }
 
             string? label = null;

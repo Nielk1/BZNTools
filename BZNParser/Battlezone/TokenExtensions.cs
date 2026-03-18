@@ -262,6 +262,62 @@ public static class TokenExtensions
         return (setVal, valueInternal);
     }
 
+    public static (TProp stored, UInt32 raw) ReadUInt32H8<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        UInt32 valueInternal = tok.GetUInt32H(index);
+        string textValue = valueInternal.ToString("X8");
+        if (tok.IsBinary)
+        {
+            // no binary exclusive paths yet
+        }
+        else
+        {
+            if (propInfo != null && parent != null)
+            {
+                // basic string issue like True vs true
+                string rawString = tok.GetString(index);
+                if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
+                    parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+            }
+        }
+
+        TProp setVal = default!;
+        bool did = false;
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+        {
+            setVal = (TProp)(object)(UInt8)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+        {
+            setVal = (TProp)(object)(UInt16)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+        {
+            setVal = (TProp)(object)(UInt32)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+        {
+            setVal = (TProp)(object)(UInt64)valueInternal;
+            did = true;
+        }
+
+        if (propInfo != null && parent != null && did)
+            propInfo.SetValue(parent, setVal);
+
+        return (setVal, valueInternal);
+    }
     public static (TProp stored, UInt32 raw) ReadUInt32h<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;

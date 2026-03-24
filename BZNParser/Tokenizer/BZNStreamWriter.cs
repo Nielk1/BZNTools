@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Numerics;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -674,6 +675,173 @@ namespace BZNParser.Tokenizer
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            InternalWriteNewline();
+            TokenIndex++;
+
+            return (value, valueInternal);
+        }
+
+        public (byte[] written, TProp stored) WriteVoidBytes<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, byte[]>? convert = null) where T : IMalformable
+        {
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            byte[] value;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (valueInternal is byte[] bytes)
+            {
+                value = bytes;
+            }
+            else if (valueInternal is UInt32[] u32arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<UInt32>(u32arr)).ToArray();
+            }
+            else if (valueInternal is Int32[] i32arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<Int32>(i32arr)).ToArray();
+            }
+            else if (valueInternal is UInt16[] u16arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<UInt16>(u16arr)).ToArray();
+            }
+            else if (valueInternal is Int16[] i16arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<Int16>(i16arr)).ToArray();
+            }
+            else if (valueInternal is float[] farr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<float>(farr)).ToArray();
+            }
+            else if (valueInternal is double[] darr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<double>(darr)).ToArray();
+            }
+            else if (valueInternal is sbyte[] s8arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<sbyte>(s8arr)).ToArray();
+            }
+            else if (typeof(TProp).IsPrimitive || typeof(TProp).IsValueType)
+            {
+                if (valueInternal is byte v)
+                {
+                    value = new byte[] { v };
+                }
+                else if (valueInternal is UInt32 v1)
+                {
+                    value = BitConverter.GetBytes(v1);
+                }
+                else if (valueInternal is Int32 v2)
+                {
+                    value = BitConverter.GetBytes(v2);
+                }
+                else if (valueInternal is UInt16 v3)
+                {
+                    value = BitConverter.GetBytes(v3);
+                }
+                else if (valueInternal is Int16 v4)
+                {
+                    value = BitConverter.GetBytes(v4);
+                }
+                else if (valueInternal is float v5)
+                {
+                    value = BitConverter.GetBytes(v5);
+                }
+                else if (valueInternal is double v6)
+                {
+                    value = BitConverter.GetBytes(v6);
+                }
+                else if (valueInternal is sbyte sb)
+                {
+                    value = new byte[] { (byte)sb };
+                }
+                else
+                {
+                    throw new Exception("Property type is not compatible with byte array writing and no conversion provided");
+                }
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with byte array writing and no conversion provided");
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_VOID);
+                InternalWriteBinarySize(value.Length);
+                BaseStream.Write(value, 0, value.Length);
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueInternal);
+            }
+
+            string textValue = BitConverter.ToString(value).Replace("-", string.Empty).ToUpperInvariant(); // replace this with nicer logic
+
+            // handle incorrect raw value
+            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+            if (hasIncorrectRaw)
+                textValue = incorrectText ?? string.Empty;
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            InternalWriteNewline();
+            TokenIndex++;
+
+            return (value, valueInternal);
+        }
+        public (UInt32 written, TProp stored) WritePtr32<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
+        {
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            UInt32 value = 0;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+            {
+                value = (UInt32)(UInt8)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+            {
+                value = (UInt32)(UInt16)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+            {
+                value = (UInt32)(UInt32)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+            {
+                value = (UInt32)(UInt64)(object)valueInternal!;
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
+                InternalWriteBinarySize(4);
+                byte[] buff = BitConverter.GetBytes(value);
+                if (IsBigEndian)
+                    Array.Reverse(buff);
+                BaseStream.Write(buff, 0, 4);
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueInternal);
+            }
+
+            string textValue = value.ToString("X8");
+
+            // handle incorrect raw value
+            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+            if (hasIncorrectRaw)
+                textValue = incorrectText ?? string.Empty;
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
             InternalWriteNewline();
             TokenIndex++;

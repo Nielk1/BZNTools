@@ -15,6 +15,7 @@ namespace BZNParser.Battlezone
         public SizedString? AiPathDummy { get; set; } // only needed to preserve malformation trash on this field if it exists, as its value is hard-coded as "AiPath"
         public UInt32? sObject { get; set; }
         public SizedString label { get; set; }
+        public int pointCount { get; set; } // this is an override of points.length, need to decide how to handle that in malformations
         public Vector2D[] points { get; set; }
         public UInt32 pathType { get; set; }
 
@@ -82,7 +83,8 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("sObject", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse sObject/PTR");
-                if (obj != null) obj.sObject = tok.GetUInt32H();
+                //if (obj != null) obj.sObject = tok.GetUInt32H();
+                tok.ReadUInt32H8(obj, x => x.sObject);
             }
 
             string? label = null;
@@ -101,7 +103,8 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("pointCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse pointCount/LONG");
-            int pointCount = tok.GetInt32();
+            //int pointCount = tok.GetInt32();
+            (int pointCount, _) = tok.ReadInt32(obj, x => x.pointCount);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("points", BinaryFieldType.DATA_VEC2D))
@@ -161,7 +164,8 @@ namespace BZNParser.Battlezone
             else if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (sObject.HasValue)
-                    writer.WritePtr32("sObject", sObject.Value);
+                    //writer.WritePtr32("sObject", sObject.Value);
+                    writer.WritePtr32("sObject", this, x => x.sObject);
             }
 
             if (writer.Format == BZNFormat.BattlezoneN64)
@@ -181,7 +185,8 @@ namespace BZNParser.Battlezone
                 writer.WriteSizedStringType2("label", this, x => x.label);
             }
 
-            writer.WriteSignedValues("pointCount", points.Length);
+            //writer.WriteSignedValues("pointCount", points.Length);
+            writer.WriteInt32("pointCount", this, x => x.pointCount);
             //writer.WriteVector2Ds("points", preserveMalformations, points);
             writer.WriteVector2D("points", this, x => x.points);
             writer.WriteVoidBytes("pathType", pathType); // BZ2 it's written as a hex-string

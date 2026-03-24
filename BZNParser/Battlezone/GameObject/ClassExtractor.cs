@@ -67,7 +67,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("animStart", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse animStart/BOOL");
-                tok.ReadBoolean(obj, x => x.animStart);
+                tok.ApplyBoolean(obj, x => x.animStart);
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);

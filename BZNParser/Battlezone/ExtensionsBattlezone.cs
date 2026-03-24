@@ -443,9 +443,10 @@ namespace BZNParser.Battlezone
         {
             AiCmdInfo retVal = new AiCmdInfo();
 
-            IBZNToken tok = reader.ReadToken();
+            IBZNToken? tok = reader.ReadToken();
             if (tok == null || !tok.Validate("priority", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse priority/LONG");
-            retVal.priority = tok.GetUInt32();
+            //retVal.priority = tok.GetUInt32();
+            tok.ApplyInt32(retVal, x => x.priority);
 
             tok = reader.ReadToken();
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
@@ -465,25 +466,38 @@ namespace BZNParser.Battlezone
                 if (reader.Version < 1145)
                 {
                     if (tok == null || !tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
+                    tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v));
                 }
                 else
                 {
                     if (tok == null || !tok.Validate("what", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse what/CHAR");
+                    //tok.ReadUInt8h(retVal, x => x.what);
+                    if (reader.InBinary)
+                    {
+                        //retVal.what = tok.GetUInt8(); // 1 byte in binary
+                        tok.ApplyUInt8(retVal, x => x.what);
+                    }
+                    else
+                    {
+                        //retVal.what = tok.GetUInt32HR(); // 4 byte raw binary lowercase
+                        tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v));
+                    }
                 }
-                if (reader.InBinary)
-                {
-                    retVal.what = tok.GetUInt8();
-                }
-                else
-                {
-                    //retVal.what = tok.GetUInt32H();
-                    retVal.what = tok.GetUInt32HR();
-                }
+                //if (reader.InBinary)
+                //{
+                //    retVal.what = tok.GetUInt8();
+                //}
+                //else
+                //{
+                //    //retVal.what = tok.GetUInt32H();
+                //    retVal.what = tok.GetUInt32HR();
+                //}
             }
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("who", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse who/LONG");
-            retVal.who = tok.GetInt32();
+            //retVal.who = tok.GetInt32();
+            tok.ApplyInt32(retVal, x => x.who);
 
             //if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
@@ -496,7 +510,8 @@ namespace BZNParser.Battlezone
                 {
                     if (tok == null || !tok.Validate("where", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse where/PTR");
                 }
-                retVal.where = tok.GetUInt32H();
+                //retVal.where = tok.GetUInt32H();
+                tok.ApplyUInt32H8(retVal, x => x.where);
 
                 tok = reader.ReadToken();
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)
@@ -530,71 +545,70 @@ namespace BZNParser.Battlezone
                 else
                 {
                     if (tok == null || !tok.Validate("param", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse param/LONG");
-                    retVal.param = tok.GetUInt32();
+                    //retVal.param = tok.GetUInt32();
+                    tok.ApplyUInt32(retVal, x => x.param);
                 }
             }
 
             return retVal;
         }
 
-        // UNTESTED AI, TODO REPLACE
+        // Need to rewrap into other code logic later
         public static void WriteAiCmdInfo(this BZNStreamWriter writer, AiCmdInfo value, bool preserveMalformations)
         {
-            writer.WriteUnsignedValues("priority", value.priority);
+            //writer.WriteUnsignedValues("priority", value.priority);
+            writer.WriteInt32("priority", value, x => x.priority);
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                // can't write what we don't know how to read, breakpoint until we fix that
-                //writer.WriteVoidBytes("what", new byte[1] { (byte)value.what });
-                writer.WriteVoidBytesL("what", value.what);
+                // can't write what we don't know how to read, breakpoint until we fix that>	BZNParser.dll!BZNParser.Battlezone.ExtensionsBattlezone.GetAiCmdInfo(BZNParser.Tokenizer.BZNStreamReader reader) Line 470	C#
+
+                writer.WriteVoidBytes("what", new byte[1] { (byte)value.what });
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1145)
                 {
-                    if (writer.InBinary)
-                    {
-                        writer.WriteVoidBytes("what", (byte)value.what);
-                    }
-                    else
-                    {
-                        writer.WriteVoidBytesL("what", value.what);
-                    }
+                    writer.WriteVoidBytesL("what", value, x => x.what);
                 }
                 else
                 {
                     if (writer.InBinary)
                     {
-                        writer.WriteUnsignedValues("what", (byte)value.what);
+                        //writer.WriteUnsignedValues("what", (byte)value.what);
+                        writer.WriteUInt8h("what", value, x => x.what);
                     }
                     else
                     {
-                        writer.WriteVoidBytesL("what", value.what);
+                        writer.WriteVoidBytesL("what", value, x => x.what); // 1 liner 32bit number like VoidBytes but lowercase
                     }
                 }
             }
 
-            writer.WriteSignedValues("who", value.who);
+            //writer.WriteSignedValues("who", value.who);
+            writer.WriteInt32("who", value, x => x.who);
 
             //if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
                 {
-                    writer.WriteBZ1_Ptr("undefptr", value.where);
+                    writer.WritePtr32("undefptr", value, x => x.where);
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("where", value.where);
+                    writer.WritePtr32("where", value, x => x.where);
                 }
 
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)
                 if (writer.Format == BZNFormat.Battlezone && writer.Version >= 2012)
                 {
                     writer.WriteIDsBZ1("param", value.param, preserveMalformations ? value.Malformations : null);
+                    //writer.WriteID("param", value, x => x.param);
                 }
                 else
                 {
-                    writer.WriteUnsignedValues("param", (UInt32)value.param);
+                    //writer.WriteUnsignedValues("param", (UInt32)value.param);
+                    writer.WriteUInt32("param", value, x => x.param);
                 }
             }
 
@@ -826,11 +840,11 @@ namespace BZNParser.Battlezone
 
     public class AiCmdInfo : IMalformable
     {
-        public uint priority { get; set; }
-        public uint what { get; set; }
+        public int priority { get; set; }
+        public uint what { get; set; } // AiCommand (not sure BZ2 vs BZ1)
         public int who { get; set; }
-        public uint where { get; set; }
-        public ulong param { get; set; }
+        public uint where { get; set; } // AiPath*
+        public ulong param { get; set; } // long, not unsigned but, whatever
 
 
         private readonly IMalformable.MalformationManager _malformationManager;

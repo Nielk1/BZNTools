@@ -77,27 +77,27 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse team/LONG");
-            tok.ReadUInt32(obj, x => x.team);
+            tok.ApplyUInt32(obj, x => x.team);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("interesting", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse interesting/BOOL");
-            tok.ReadBoolean(obj, x => x.interesting);
+            tok.ApplyBoolean(obj, x => x.interesting);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("inside", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse inside/BOOL");
-            tok.ReadBoolean(obj, x => x.inside);
+            tok.ApplyBoolean(obj, x => x.inside);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("value", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse value/LONG");
-            tok.ReadInt32(obj, x => x.value);
+            tok.ApplyInt32(obj, x => x.value);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("force", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse force/LONG");
-            tok.ReadUInt32(obj, x => x.force);
+            tok.ApplyUInt32(obj, x => x.force);
 
             return true;
         }

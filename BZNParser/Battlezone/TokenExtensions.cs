@@ -52,9 +52,9 @@ public static class TokenExtensions
 
         // re-load the values again from the reader to let them pass through our malformation handlers
         IBZNToken subTok;
-        subTok = tok.GetSubToken(index, 0); subTok.ReadSingle(value, x => x.X, format: format); if (subTok.GetRawName() != @"  x") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.X, subTok.GetRawName()); }
-        subTok = tok.GetSubToken(index, 1); subTok.ReadSingle(value, x => x.Y, format: format); if (subTok.GetRawName() != @"  y") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.Y, subTok.GetRawName()); }
-        subTok = tok.GetSubToken(index, 2); subTok.ReadSingle(value, x => x.Z, format: format); if (subTok.GetRawName() != @"  z") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.Z, subTok.GetRawName()); }
+        subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.X, format: format); if (subTok.GetRawName() != @"  x") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.X, subTok.GetRawName()); }
+        subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.Y, format: format); if (subTok.GetRawName() != @"  y") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.Y, subTok.GetRawName()); }
+        subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.Z, format: format); if (subTok.GetRawName() != @"  z") { value.Malformations.AddIncorrectName<Vector3D, float>(x => x.Z, subTok.GetRawName()); }
 
         return (setVal, value);
     }
@@ -99,8 +99,8 @@ public static class TokenExtensions
 
         // re-load the values again from the reader to let them pass through our malformation handlers
         IBZNToken subTok;
-        subTok = tok.GetSubToken(index, 0); subTok.ReadSingle(value, x => x.X, format: format); if (subTok.GetRawName() != @"  x") { value.Malformations.AddIncorrectName<Vector2D, float>(x => x.X, subTok.GetRawName()); }
-        subTok = tok.GetSubToken(index, 1); subTok.ReadSingle(value, x => x.Z, format: format); if (subTok.GetRawName() != @"  z") { value.Malformations.AddIncorrectName<Vector2D, float>(x => x.Z, subTok.GetRawName()); }
+        subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.X, format: format); if (subTok.GetRawName() != @"  x") { value.Malformations.AddIncorrectName<Vector2D, float>(x => x.X, subTok.GetRawName()); }
+        subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.Z, format: format); if (subTok.GetRawName() != @"  z") { value.Malformations.AddIncorrectName<Vector2D, float>(x => x.Z, subTok.GetRawName()); }
 
         return (setVal, value);
     }
@@ -120,7 +120,7 @@ public static class TokenExtensions
     /// <param name="index">Index of the value in the token</param>
     /// <param name="convert">Optional conversion function for the read boolean</param>
     /// <returns></returns>
-    public static (TProp stored, Single raw) ReadSingle<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<Single, TProp>? convert = null, FloatTextFormat format = FloatTextFormat.G) where T : IMalformable
+    public static (TProp stored, Single raw) ApplySingle<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<Single, TProp>? convert = null, FloatTextFormat format = FloatTextFormat.G) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -191,7 +191,7 @@ public static class TokenExtensions
     /// <param name="index">Index of the value in the token</param>
     /// <param name="convert">Optional conversion function for the read boolean</param>
     /// <returns></returns>
-    public static (TProp stored, Int32 raw) ReadInt32<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<Int32, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, Int32 raw) ApplyInt32<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<Int32, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -262,7 +262,7 @@ public static class TokenExtensions
         return (setVal, valueInternal);
     }
 
-    public static (TProp stored, UInt32 raw) ReadUInt32H8<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, UInt32 raw) ApplyUInt32H8<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -390,7 +390,7 @@ public static class TokenExtensions
     /// <param name="index">Index of the value in the token</param>
     /// <param name="convert">Optional conversion function for the read boolean</param>
     /// <returns></returns>
-    public static (TProp stored, UInt32 raw) ReadUInt32<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, UInt32 raw) ApplyUInt32<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -575,7 +575,7 @@ public static class TokenExtensions
     /// <param name="index">Index of the value in the token</param>
     /// <param name="convert">Optional conversion function for the read boolean</param>
     /// <returns></returns>
-    public static (TProp stored, UInt8 raw) ReadUInt8<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt8, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, UInt8 raw) ApplyUInt8<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt8, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -710,6 +710,40 @@ public static class TokenExtensions
         return (finalValue, valueProcessed);
     }
 
+    public static (TProp stored, byte[] raw) ApplyVoidBytes<T, TProp>(
+        this IBZNToken tok,
+        T? parent,
+        Expression<Func<T, TProp>>? property,
+        int index = 0,
+        Func<byte[], TProp>? convert = null
+    ) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        // Read the raw bytes from the token
+        byte[] valueInternal = tok.GetBytes(index, -1);
+
+        TProp setVal = default!;
+        bool did = false;
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(byte[]) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(byte[]))
+        {
+            setVal = (TProp)(object)valueInternal;
+            did = true;
+        }
+
+        if (propInfo != null && parent != null && did)
+            propInfo.SetValue(parent, setVal);
+
+        return (setVal, valueInternal);
+    }
+
     /// <summary>
     /// Read a boolean from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
     /// while also checking for common malformations.
@@ -725,7 +759,7 @@ public static class TokenExtensions
     /// <param name="index">Index of the value in the token</param>
     /// <param name="convert">Optional conversion function for the read boolean</param>
     /// <returns></returns>
-    public static (TProp stored, bool raw) ReadBoolean<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<bool, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, bool raw) ApplyBoolean<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<bool, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)

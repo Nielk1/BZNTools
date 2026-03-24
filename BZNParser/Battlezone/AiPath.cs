@@ -84,7 +84,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("sObject", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse sObject/PTR");
                 //if (obj != null) obj.sObject = tok.GetUInt32H();
-                tok.ReadUInt32H8(obj, x => x.sObject);
+                tok.ApplyUInt32H8(obj, x => x.sObject);
             }
 
             string? label = null;
@@ -104,7 +104,7 @@ namespace BZNParser.Battlezone
             if (tok == null || !tok.Validate("pointCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse pointCount/LONG");
             //int pointCount = tok.GetInt32();
-            (int pointCount, _) = tok.ReadInt32(obj, x => x.pointCount);
+            (int pointCount, _) = tok.ApplyInt32(obj, x => x.pointCount);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("points", BinaryFieldType.DATA_VEC2D))
@@ -189,7 +189,7 @@ namespace BZNParser.Battlezone
             writer.WriteInt32("pointCount", this, x => x.pointCount);
             //writer.WriteVector2Ds("points", preserveMalformations, points);
             writer.WriteVector2D("points", this, x => x.points);
-            writer.WriteVoidBytes("pathType", pathType); // BZ2 it's written as a hex-string
+            writer.WriteVoidBytes("pathType", this, x => x.pathType);
         }
     }
 }

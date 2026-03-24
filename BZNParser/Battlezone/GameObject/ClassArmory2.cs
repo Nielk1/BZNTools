@@ -35,12 +35,12 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT))
                 throw new Exception("Failed to parse buildDoneTime/FLOAT");
-            if (obj != null) obj.buildDoneTime = tok.GetSingle();
+            tok.ApplySingle(obj, x => x.buildDoneTime);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL))
                 throw new Exception("Failed to parse buildActive/BOOL");
-            tok.ReadBoolean(obj, x => x.buildActive);
+            tok.ApplyBoolean(obj, x => x.buildActive);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG))
@@ -59,27 +59,27 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildStall", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse buildStall/BOOL");
-                tok.ReadBoolean(obj, x => x.buildStall);
+                tok.ApplyBoolean(obj, x => x.buildStall);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildRally", BinaryFieldType.DATA_VEC3D))
                     throw new Exception("Failed to parse buildRally/VECTOR");
-                if (obj != null) obj.buildRally = tok.GetVector3D();
+                tok.ReadVector3D(obj, x => x.buildRally);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("navHandle", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse navHandle/LONG");
-                if (obj != null) obj.navHandle = tok.GetInt32();
+                tok.ApplyInt32(obj, x => x.navHandle);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("launchHandle", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse launchHandle/LONG");
-                if (obj != null) obj.launchHandle = tok.GetInt32();
+                tok.ApplyInt32(obj, x => x.launchHandle);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("launchTarget", BinaryFieldType.DATA_VEC3D))
                     throw new Exception("Failed to parse launchTarget/VECTOR");
-                if (obj != null) obj.launchTarget = tok.GetVector3D();
+                tok.ReadVector3D(obj, x => x.launchTarget);
             }
 
             if (parent.SaveType == 0)
@@ -89,7 +89,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("navHandle", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse navHandle/LONG");
-                    if (obj != null) obj.navHandle = tok.GetInt32();
+                    tok.ApplyInt32(obj, x => x.navHandle);
                 }
             }
 
@@ -103,7 +103,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassArmory2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("buildDoneTime", preserveMalformations ? obj.Malformations : null, obj.buildDoneTime);
+            writer.WriteSingle("buildDoneTime", obj, x => x.buildDoneTime);
             writer.WriteBoolean("buildActive", obj, x => x.buildActive);
             writer.WriteSignedValues("buildCount", obj.buildQueue.Count);
 
@@ -114,17 +114,17 @@ namespace BZNParser.Battlezone.GameObject
             if (parent.SaveType != SaveType.BZN)
             {
                 writer.WriteBoolean("buildStall", obj, x => x.buildStall);
-                writer.WriteVector3Ds("buildRally", preserveMalformations, obj.buildRally);
-                writer.WriteSignedValues("navHandle", obj.navHandle);
-                writer.WriteSignedValues("launchHandle", obj.launchHandle);
-                writer.WriteVector3Ds("launchTarget", preserveMalformations, obj.launchTarget);
+                writer.WriteVector3D("buildRally", obj, x => x.buildRally);
+                writer.WriteInt32("navHandle", obj, x => x.navHandle);
+                writer.WriteInt32("launchHandle", obj, x => x.launchHandle);
+                writer.WriteVector3D("launchTarget", obj, x => x.launchTarget);
             }
 
             if (parent.SaveType == 0)
             {
                 if (writer.Version >= 1135)
                 {
-                    writer.WriteSignedValues("navHandle", obj.navHandle);
+                    writer.WriteInt32("navHandle", obj, x => x.navHandle);
                 }
             }
 

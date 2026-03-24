@@ -28,40 +28,52 @@ namespace BZNParser.Battlezone.GameObject
                 IBZNToken? tok;
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
-                if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
+                if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
+                    throw new Exception("Failed to parse state/VOID");
+                //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
+                tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                 if (parent.SaveType != SaveType.BZN)
                 {
                     // ignored
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse omegaTurret/FLOAT");
-                    if (obj != null) obj.omegaTurret = tok.GetSingle(); // omegaTurret
+                    if (tok == null || !tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))
+                        throw new Exception("Failed to parse omegaTurret/FLOAT");
+                    //if (obj != null) obj.omegaTurret = tok.GetSingle(); // omegaTurret
+                    tok.ApplySingle(obj, x => x.omegaTurret);
 
                     // ignored
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("heightDeploy", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse heightDeploy/FLOAT");
-                    if (obj != null) obj.heightDeploy = tok.GetSingle(); // heightDeploy
+                    if (tok == null || !tok.Validate("heightDeploy", BinaryFieldType.DATA_FLOAT))
+                        throw new Exception("Failed to parse heightDeploy/FLOAT");
+                    //if (obj != null) obj.heightDeploy = tok.GetSingle(); // heightDeploy
+                    tok.ApplySingle(obj, x => x.heightDeploy);
 
                     // ignored
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse timeDeploy/FLOAT");
-                    if (obj != null) obj.timeDeploy = tok.GetSingle(); // timeDeploy
+                    if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
+                        throw new Exception("Failed to parse timeDeploy/FLOAT");
+                    //if (obj != null) obj.timeDeploy = tok.GetSingle(); // timeDeploy
+                    tok.ApplySingle(obj, x => x.timeDeploy);
 
                     // ignored
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse timeUndeploy/FLOAT");
-                    if (obj != null) obj.timeUndeploy = tok.GetSingle(); // timeUndeploy
+                    if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
+                        throw new Exception("Failed to parse timeUndeploy/FLOAT");
+                    //if (obj != null) obj.timeUndeploy = tok.GetSingle(); // timeUndeploy
+                    tok.ApplySingle(obj, x => x.timeUndeploy);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse deployTimer/FLOAT");
-                    if (obj != null) obj.deployTimer = tok.GetSingle();
+                    //if (obj != null) obj.deployTimer = tok.GetSingle();
+                    tok.ApplySingle(obj, x => x.deployTimer);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse prevYaw/FLOAT");
-                    if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
+                    //if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
+                    tok.ApplySingle(obj, x => x.prevYaw);
                 }
 
                 ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
@@ -73,7 +85,8 @@ namespace BZNParser.Battlezone.GameObject
                     IBZNToken? tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse prevYaw/FLOAT");
-                    if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
+                    //if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
+                    tok.ApplySingle(obj, x => x.prevYaw);
                 }
 
                 ClassTurretTank2.Hydrate(parent, reader, obj as ClassTurretTank2);
@@ -89,16 +102,16 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version < 1110)
             {
-                writer.WriteVoidBytes("state", (UInt32)obj.state);
+                writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
 
                 if (parent.SaveType != SaveType.BZN)
                 {
-                    writer.WriteFloats("omegaTurret", preserveMalformations ? obj.Malformations : null, obj.omegaTurret); // omegaTurret
-                    writer.WriteFloats("heightDeploy", preserveMalformations ? obj.Malformations : null, obj.heightDeploy); // heightDeploy
-                    writer.WriteFloats("timeDeploy", preserveMalformations ? obj.Malformations : null, obj.timeDeploy); // timeDeploy
-                    writer.WriteFloats("timeUndeploy", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy); // timeUndeploy
-                    writer.WriteFloats("deployTimer", preserveMalformations ? obj.Malformations : null, obj.deployTimer);
-                    writer.WriteFloats("prevYaw", preserveMalformations ? obj.Malformations : null, obj.prevYaw); // prevYaw
+                    writer.WriteSingle("omegaTurret", obj, x => x.omegaTurret);
+                    writer.WriteSingle("heightDeploy", obj, x => x.heightDeploy);
+                    writer.WriteSingle("timeDeploy", obj, x => x.timeDeploy);
+                    writer.WriteSingle("timeUndeploy", obj, x => x.timeUndeploy);
+                    writer.WriteSingle("deployTimer", obj, x => x.deployTimer);
+                    writer.WriteSingle("prevYaw", obj, x => x.prevYaw);
                 }
 
                 ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
@@ -107,7 +120,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (parent.SaveType != SaveType.BZN)
                 {
-                    writer.WriteFloats("prevYaw", preserveMalformations ? obj.Malformations : null, obj.prevYaw); // prevYaw
+                    writer.WriteSingle("prevYaw", obj, x => x.prevYaw);
                 }
 
                 ClassTurretTank2.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

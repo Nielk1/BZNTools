@@ -39,7 +39,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
-                tok.ReadBoolean(obj, x => x.buildActive);
+                tok.ApplyBoolean(obj, x => x.buildActive);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");

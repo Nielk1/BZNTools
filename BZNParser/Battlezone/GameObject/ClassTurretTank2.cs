@@ -64,7 +64,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse turretAligned/BOOL");
-                tok.ReadBoolean(obj, x => x.turretAligned); // turretAligned
+                tok.ApplyBoolean(obj, x => x.turretAligned); // turretAligned
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
@@ -148,7 +148,7 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse turretAligned/BOOL");
-                        tok.ReadBoolean(obj, x => x.turretAligned); // turretAligned
+                        tok.ApplyBoolean(obj, x => x.turretAligned); // turretAligned
                     }
 
                     if (parent.SaveType != SaveType.BZN && reader.Version >= 1140)
@@ -182,7 +182,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse turretAligned/BOOL");
-                    tok.ReadBoolean(obj, x => x.turretAligned); // turretAligned
+                    tok.ApplyBoolean(obj, x => x.turretAligned); // turretAligned
                 }
 
                 if (parent.SaveType != SaveType.BZN)

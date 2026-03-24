@@ -83,7 +83,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("DeployOnLanding", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse DeployOnLanding/BOOL");
-                tok.ReadBoolean(obj, x => x.DeployOnLanding); // DeployOnLanding
+                tok.ApplyBoolean(obj, x => x.DeployOnLanding); // DeployOnLanding
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undeployTimeout", BinaryFieldType.DATA_LONG))
@@ -93,7 +93,8 @@ namespace BZNParser.Battlezone.GameObject
             
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
-            if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
+            //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
+            tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }

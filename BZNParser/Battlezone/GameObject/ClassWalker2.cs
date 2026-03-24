@@ -48,7 +48,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Current_Index", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse Current_Index/FLOAT");
-                tok.ReadSingle(obj, x => x.Current_Index);
+                tok.ApplySingle(obj, x => x.Current_Index);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Anim_State", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Anim_State/VOID");
@@ -57,12 +57,12 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Lead", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Lead/LONG");
                 //if (obj != null) obj.Lead = tok.GetUInt32H(); // I don't think this should be hex, but do confirm, if so the writer needs fixing too
-                tok.ReadUInt32(obj, x => x.Current_Index);
+                tok.ApplyUInt32(obj, x => x.Current_Index);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Tail", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Tail/LONG");
                 //if (obj != null) obj.Tail = tok.GetUInt32H(); // I don't think this should be hex, but do confirm, if so the writer needs fixing too
-                tok.ReadUInt32(obj, x => x.Current_Index);
+                tok.ApplyUInt32(obj, x => x.Current_Index);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Control_Queue", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Control_Queue/VOID");

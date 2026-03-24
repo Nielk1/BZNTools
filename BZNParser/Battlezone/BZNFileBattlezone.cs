@@ -310,7 +310,7 @@ namespace BZNParser.Battlezone
             if (reader.Format != BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                tok.ReadInt32(this, x => x.Version);
+                tok.ApplyInt32(this, x => x.Version);
                 Console.WriteLine($"Version: {Version}"); // don't bother validating first field maybe?
                 if (!tok.IsBinary)
                 {
@@ -326,7 +326,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("saveType", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse saveType/UNKNOWN");
-                tok.ReadUInt32(this, x => x.SaveType, 0, (raw) => (SaveType)raw);
+                tok.ApplyUInt32(this, x => x.SaveType, 0, (raw) => (SaveType)raw);
                 Console.WriteLine($"saveType: {SaveType}");
             }
 
@@ -335,7 +335,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("binarySave", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse binarySave/BOOL");
-                tok.ReadBoolean(this, x => x.Binary);
+                tok.ApplyBoolean(this, x => x.Binary);
                 Console.WriteLine($"binarySave: {Binary}");
             }
 
@@ -360,7 +360,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse seq_count/LONG");
-                tok.ReadUInt32(this, x => x.seq_count);
+                tok.ApplyUInt32(this, x => x.seq_count);
                 Console.WriteLine($"seq_count: {seq_count}");
             }
             else
@@ -370,7 +370,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse seq_count/LONG");
-                tok.ReadUInt32(this, x => x.seq_count);
+                tok.ApplyUInt32(this, x => x.seq_count);
                 Console.WriteLine($"seq_count: {seq_count}");
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -378,7 +378,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("saveType", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse saveType/LONG");
-                tok.ReadUInt32(this, x => x.SaveType2, 0, (raw) => (SaveType)raw);
+                tok.ApplyUInt32(this, x => x.SaveType2, 0, (raw) => (SaveType)raw);
                 Console.WriteLine($"saveType (redundant?): {SaveType2}"); // maybe not if the first one is missing
             }
 
@@ -396,7 +396,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("missionSave", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse missionSave/BOOL");
-                    (_, bool missionSave) = tok.ReadBoolean(this, x => x.SaveType, 0, x => x ? SaveType.BZN : SaveType.SAVE);
+                    (_, bool missionSave) = tok.ApplyBoolean(this, x => x.SaveType, 0, x => x ? SaveType.BZN : SaveType.SAVE);
                     Console.WriteLine($"missionSave: {missionSave}");
                 }
             }
@@ -658,7 +658,7 @@ namespace BZNParser.Battlezone
                         tok = reader.ReadToken();
                         if (!tok.Validate("undefbool", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse undefbool/BOOL");
-                        tok.ReadBoolean(this, x => x.bz1_luamission_started);
+                        tok.ApplyBoolean(this, x => x.bz1_luamission_started);
                     }
                     else
                     {
@@ -728,12 +728,12 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cycle", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse cycle/UNKNOWN");
-                tok.ReadInt32(this, x => x.UserProcess_cycle);
+                tok.ApplyInt32(this, x => x.UserProcess_cycle);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cycleMax", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse cycleMax/UNKNOWN");
-                tok.ReadInt32(this, x => x.UserProcess_cycleMax);
+                tok.ApplyInt32(this, x => x.UserProcess_cycleMax);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("selectList", BinaryFieldType.DATA_UNKNOWN))
@@ -753,7 +753,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("exited", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse exited/UNKNOWN");
-                tok.ReadBoolean(this, x => x.UserProcess_exited);
+                tok.ApplyBoolean(this, x => x.UserProcess_exited);
             }
 
             // if reader.SaveType != 0

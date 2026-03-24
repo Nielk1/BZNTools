@@ -139,7 +139,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse seqno/LONG");
-                    (seqNo, _) = tok.ReadUInt32(obj, x => x.seqNo);
+                    (seqNo, _) = tok.ApplyUInt32(obj, x => x.seqNo);
                 }
                 else
                 {
@@ -179,7 +179,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse team/LONG");
                 //if (obj != null) obj.team = tok.GetUInt32();
-                tok.ReadUInt32(obj, x => x.team);
+                tok.ApplyUInt32(obj, x => x.team);
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -188,14 +188,14 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse team/LONG");
                     //if (obj != null) obj.team = tok.GetUInt32();
-                    tok.ReadUInt32(obj, x => x.team);
+                    tok.ApplyUInt32(obj, x => x.team);
                 }
                 else
                 {
                     if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse team/CHAR");
                     //if (obj != null) obj.team = tok.GetUInt8(); // does this include perceived team in the high nybble? probably
-                    tok.ReadUInt8(obj, x => x.team);
+                    tok.ApplyUInt8(obj, x => x.team);
                 }
             }
 
@@ -269,7 +269,7 @@ namespace BZNParser.Battlezone
                         //        obj.Malformations.AddIncorrect("isUser", isUser);
                         //    obj.isUser = isUser != 0;
                         //}
-                        (_, UInt32 raw) = tok.ReadUInt32<EntityDescriptor, bool>(obj, x => x.isUser, 0, (isUser) => isUser != 0);
+                        (_, UInt32 raw) = tok.ApplyUInt32<EntityDescriptor, bool>(obj, x => x.isUser, 0, (isUser) => isUser != 0);
                         if (raw > 1)
                             obj?.Malformations.AddIncorrectRaw<EntityDescriptor, bool>(x => x.isUser, 0, BitConverter.GetBytes(raw));
                     }
@@ -277,7 +277,7 @@ namespace BZNParser.Battlezone
                     {
                         if (tok == null || !tok.Validate("isUser", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse isUser/BOOL");
-                        tok.ReadBoolean(obj, x => x.isUser);
+                        tok.ApplyBoolean(obj, x => x.isUser);
                     }
                 }
                 //else{}
@@ -296,7 +296,7 @@ namespace BZNParser.Battlezone
                 //    }
                 //    obj.isUser = isUser != 0;
                 //}
-                (_, UInt32 raw) = tok.ReadUInt32<EntityDescriptor, bool>(obj, x => x.isUser, 0, (isUser) => isUser != 0);
+                (_, UInt32 raw) = tok.ApplyUInt32<EntityDescriptor, bool>(obj, x => x.isUser, 0, (isUser) => isUser != 0);
                 if (raw > 1)
                     obj?.Malformations.AddIncorrectRaw<EntityDescriptor, bool>(x => x.isUser, 0, BitConverter.GetBytes(raw));
             }

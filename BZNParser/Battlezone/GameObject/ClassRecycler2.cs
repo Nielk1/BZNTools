@@ -22,11 +22,11 @@ namespace BZNParser.Battlezone.GameObject
         public ClassRecycler2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassRecycler2? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (!tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scrapTimer/FLOAT");
-            if (obj != null) obj.scrapTimer = tok.GetSingle();
+            if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scrapTimer/FLOAT");
+            tok.ApplySingle(obj, x => x.scrapTimer);
 
             ClassFactory2.Hydrate(parent, reader, obj as ClassFactory2);
         }
@@ -38,7 +38,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassRecycler2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("scrapTimer", preserveMalformations ? obj.Malformations : null, obj.scrapTimer);
+            writer.WriteSingle("scrapTimer", obj, x => x.scrapTimer);
 
             ClassFactory2.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

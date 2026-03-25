@@ -69,7 +69,8 @@ namespace BZNParser.Battlezone.GameObject
             if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
                 throw new Exception("Failed to parse state/VOID");
             //state = tok.GetBytes(0, 4); // probably need to reverse for n64
-            if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // probably need to reverse for n64
+            //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // probably need to reverse for n64
+            tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
@@ -118,6 +119,8 @@ namespace BZNParser.Battlezone.GameObject
                                              //-4.31602e+008
                     tok = reader.ReadToken();//buildDc [1] =
                                              //-842150451
+
+                    throw new NotImplementedException();
                 }
             }
 
@@ -148,7 +151,7 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             writer.WriteBZ1_Ptr("undefptr", obj.undefptr2);
-            writer.WriteVoidBytes("state", (UInt32)obj.state);
+            writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
             writer.WriteFloats("delayTimer", preserveMalformations ? obj.Malformations : null, obj.delayTimer);
             writer.WriteFloats("nextRepair", preserveMalformations ? obj.Malformations : null, obj.nextRepair);
 

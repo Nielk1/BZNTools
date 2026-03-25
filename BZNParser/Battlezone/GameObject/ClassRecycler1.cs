@@ -26,9 +26,10 @@ namespace BZNParser.Battlezone.GameObject
         public ClassRecycler1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassRecycler1? obj)
         {
-            IBZNToken tok = reader.ReadToken();
-            if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
-            if (obj != null) obj.undefptr = tok.GetUInt32H(); // dropObj
+            IBZNToken? tok = reader.ReadToken();
+            if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
+            //if (obj != null) obj.undefptr = tok.GetUInt32H(); // dropObj
+            tok.ApplyUInt32H8(obj, x => x.undefptr);
 
             ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
         }
@@ -40,7 +41,8 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassRecycler1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteBZ1_Ptr("undefptr", obj.undefptr); // dropObj
+            //writer.WriteBZ1_Ptr("undefptr", obj.undefptr); // dropObj
+            writer.WritePtr("undefptr", obj, x => x.undefptr);
 
             ClassProducer.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

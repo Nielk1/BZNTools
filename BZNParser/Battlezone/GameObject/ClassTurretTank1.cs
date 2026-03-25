@@ -59,7 +59,8 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("undefraw", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse undefraw/VOID");
-                    if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
+                    //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
+                    tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
@@ -98,7 +99,7 @@ namespace BZNParser.Battlezone.GameObject
                         writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.timeDeploy); // timeDeploy
                         writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy); // timeUndeploy
                     }
-                    writer.WriteVoidBytes("undefraw", (UInt32)obj.state); // state
+                    writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
                     writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.delayTimer); // delayTimer
                     if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
                     {

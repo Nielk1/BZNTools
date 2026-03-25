@@ -37,11 +37,11 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("curScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curScrap/LONG");
-                    if (obj != null) obj.curScrap = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.curScrap);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("maxScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxScrap/LONG");
-                    if (obj != null) obj.maxScrap = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.maxScrap);
                 }
 
                 tok = reader.ReadToken();
@@ -53,36 +53,38 @@ namespace BZNParser.Battlezone.GameObject
                     // severe type missmatch must be resolved
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("bornTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse bornTime/LONG");
-                    if (obj != null) obj.bornTime = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.bornTime);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lifeTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse lifeTime/LONG");
-                    if (obj != null) obj.lifeTime = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.lifeTime);
                 }
                 else
                 {
                     // severe type missmatch must be resolved
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("buildTime", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildTime/LONG");
-                    if (obj != null) obj.buildTime = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.buildTime);
                 }
 
                 if (reader.Version >= 1109)
                 {
-                    tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
-                    if (obj != null)
-                    {
-                        obj.buildMatrix = tok.GetMatrix();
-                        tok.CheckMalformationsMatrix(obj.buildMatrix.Malformations, reader.FloatFormat);
-                    }
+                    //tok = reader.ReadToken();
+                    //if (tok == null || !tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
+                    //if (obj != null)
+                    //{
+                    //    obj.buildMatrix = tok.GetMatrix();
+                    //    tok.CheckMalformationsMatrix(obj.buildMatrix.Malformations, reader.FloatFormat);
+                    //}
+
+                    reader.ReadMatrix("buildMatrix", obj, x => x.buildMatrix);
                 }
 
                 if (reader.Version >= 1148)
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("pickupScrap", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse pickupScrap/LONG");
-                    if (obj != null) obj.pickupScrap = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.pickupScrap);
                 }
 
                 if (reader.Version >= 1149)
@@ -90,7 +92,7 @@ namespace BZNParser.Battlezone.GameObject
                     // severe type missmatch must be resolved
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse scrapTimer/LONG");
-                    if (obj != null) obj.scrapTimer = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.scrapTimer);
                 }
             }
 
@@ -108,33 +110,34 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1109)
                 {
-                    writer.WriteUnsignedValues("curScrap", obj.curScrap);
-                    writer.WriteUnsignedValues("maxScrap", obj.maxScrap);
+                    writer.WriteUInt32("curScrap", obj, x => x.curScrap);
+                    writer.WriteUInt32("maxScrap", obj, x => x.maxScrap);
                 }
                 writer.WriteBoolean("buildActive", obj, x => x.buildActive);
                 if (writer.Version < 1107)
                 {
                     // severe type missmatch must be resolved
-                    writer.WriteUnsignedValues("bornTime", (UInt32)obj.bornTime);
-                    writer.WriteUnsignedValues("lifeTime", (UInt32)obj.lifeTime);
+                    writer.WriteUInt32("bornTime", obj, x => x.bornTime);
+                    writer.WriteUInt32("lifeTime", obj, x => x.lifeTime);
                 }
                 else
                 {
                     // severe type missmatch must be resolved
-                    writer.WriteUnsignedValues("buildTime", (UInt32)obj.buildTime);
+                    writer.WriteUInt32("buildTime", obj, x => x.buildTime);
                 }
                 if (writer.Version >= 1109)
                 {
-                    writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.buildMatrix); // type unconfirmed
+                    //writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.buildMatrix); // type unconfirmed
+                    writer.WriteMatrix("buildMatrix", obj, x => x.buildMatrix); // type unconfirmed
                 }
                 if (writer.Version >= 1148)
                 {
-                    writer.WriteUnsignedValues("pickupScrap", obj.pickupScrap);
+                    writer.WriteUInt32("pickupScrap", obj, x => x.pickupScrap);
                 }
                 if (writer.Version >= 1149)
                 {
                     // severe type missmatch must be resolved
-                    writer.WriteUnsignedValues("scrapTimer", (UInt32)obj.scrapTimer);
+                    writer.WriteUInt32("scrapTimer", obj, x => x.scrapTimer);
                 }
             }
 

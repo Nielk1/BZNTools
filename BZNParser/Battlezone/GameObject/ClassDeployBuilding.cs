@@ -26,7 +26,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployBuilding? obj)
         {
-            IBZNToken tok;
+            //IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -38,13 +38,16 @@ namespace BZNParser.Battlezone.GameObject
                     //    (a2->vftable->out_float)(a2, this + 2576, 4, "buildTime");
                     //}
                     //(a2->vftable->field_1C)(a2, this + 2592, 64, "buildMatrix");
-                    tok = reader.ReadToken();
-                    if (!tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
-                    if (obj != null)
-                    {
-                        obj.dropMat = tok.GetMatrix();
-                        tok.CheckMalformationsMatrix(obj.dropMat.Malformations, reader.FloatFormat);
-                    }
+
+                    //tok = reader.ReadToken();
+                    //if (tok == null || !tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
+                    //if (obj != null)
+                    //{
+                    //    obj.dropMat = tok.GetMatrix();
+                    //    tok.CheckMalformationsMatrix(obj.dropMat.Malformations, reader.FloatFormat);
+                    //}
+
+                    reader.ReadMatrix("buildMatrix", obj, x => x.dropMat);
                 }
             }
 
@@ -62,7 +65,8 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version != 1047)
                 {
-                    writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.dropMat);
+                    //writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.dropMat);
+                    writer.WriteMatrix("buildMatrix", obj, x => x.dropMat);
                 }
             }
             ClassTrackedDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

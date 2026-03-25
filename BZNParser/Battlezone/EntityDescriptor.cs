@@ -147,7 +147,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse seqno/LONG");
                     //seqNo = tok.GetUInt32H();
-                    (seqNo, _) = tok.ReadUInt32h(obj, x => x.seqNo);
+                    (seqNo, _) = tok.ApplyUInt32h(obj, x => x.seqNo);
                 }
             }
             else if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)

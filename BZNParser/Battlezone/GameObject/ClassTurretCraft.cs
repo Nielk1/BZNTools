@@ -28,13 +28,12 @@ namespace BZNParser.Battlezone.GameObject
         public Matrix? saveMatrix { get; set; }
         public UInt32? saveTeam { get; set; }
         public UInt32? saveSeqno { get; set; }
-        public string? saveLabel { get; set; }
-        public string? saveName { get; set; }
+        public SizedString? saveLabel { get; set; }
+        public SizedString? saveName { get; set; }
         public Int32? scriptPowerOverride { get; set; }
         public ClassTurretCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretCraft? obj)
         {
-
             IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
@@ -177,43 +176,40 @@ namespace BZNParser.Battlezone.GameObject
                     if (!string.IsNullOrEmpty(saveClass))
                     {
                         reader.Bookmark.Mark();
-                        tok = reader.ReadToken();
-                        if (tok.Validate("saveMatrix", BinaryFieldType.DATA_MAT3D))
+                        try
                         {
+                            reader.ReadMatrix("saveMatrix", obj, x => x.saveMatrix);
                             reader.Bookmark.Commit();
-                            Matrix saveMatrix = tok.GetMatrix();
-                            if (obj != null)
-                            {
-                                obj.saveMatrix = saveMatrix;
-                                tok.CheckMalformationsMatrix(obj.saveMatrix.Malformations, reader.FloatFormat);
-                            }
                         }
-                        else
+                        catch // TODO parse error only
                         {
-                            //throw new Exception("Failed to parse saveMatrix/MAT3D"); // type not confirmed
                             reader.Bookmark.RevertToBookmark();
                             m_AlignsToObject = true;
                         }
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
-                        if (obj != null) obj.saveTeam = tok.GetUInt32();
+                        //if (obj != null) obj.saveTeam = tok.GetUInt32();
+                        tok.ApplyUInt32(obj, x => x.saveTeam);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
-                        if (obj != null) obj.saveSeqno = tok.GetUInt32H();
+                        //if (obj != null) obj.saveSeqno = tok.GetUInt32H();
+                        tok.ApplyUInt32(obj, x => x.saveSeqno);
 
                         //tok = reader.ReadToken();
                         //if (tok == null || !tok.Validate("saveLabel", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveLabel/CHAR");
                         //tok.GetString();
-                        string saveLabel = reader.ReadBZ2InputString("saveLabel", obj?.Malformations);
-                        if (obj != null) obj.saveLabel = saveLabel;
+                        //string saveLabel = reader.ReadBZ2InputString("saveLabel", obj?.Malformations);
+                        //if (obj != null) obj.saveLabel = saveLabel;
+                        reader.ReadSizedString("saveLabel", obj, x => x.saveLabel);
 
                         //tok = reader.ReadToken();
                         //if (tok == null || !tok.Validate("saveName", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveName/CHAR");
                         //tok.GetString();
-                        string saveName = reader.ReadBZ2InputString("saveName", obj?.Malformations);
-                        if (obj != null) obj.saveName = saveName;
+                        //string saveName = reader.ReadBZ2InputString("saveName", obj?.Malformations);
+                        //if (obj != null) obj.saveName = saveName;
+                        reader.ReadSizedString("saveName", obj, x => x.saveName);
                     }
                 }
 
@@ -224,7 +220,8 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse scriptPowerOverride/LONG");
-                    if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
+                    //if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
+                    tok.ApplyInt32(obj, x => x.scriptPowerOverride);
                 }
 
                 ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
@@ -283,17 +280,17 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         if (obj.saveMatrix != null)
                         {
-                            writer.WriteMat3Ds("saveMatrix", preserveMalformations, obj.saveMatrix);
+                            writer.WriteMatrix("saveMatrix", obj, x => x.saveMatrix);
                         }
                         else
                         {
                             m_AlignsToObject = true;
                         }
 
-                        writer.WriteUnsignedValues("saveTeam", obj.saveTeam ?? 0);
-                        writer.WriteUnsignedHexLValues("saveSeqno", obj.saveSeqno ?? 0);
-                        writer.WriteBZ2InputString("saveLabel", obj.saveLabel, obj.Malformations);
-                        writer.WriteBZ2InputString("saveName", obj.saveName, obj.Malformations);
+                        writer.WriteUInt32("saveTeam", obj, x => x.saveTeam);
+                        writer.WriteUInt32("saveSeqno", obj, x => x.saveSeqno);
+                        writer.WriteSizedString("saveLabel", obj, x => x.saveLabel);
+                        writer.WriteSizedString("saveName", obj, x => x.saveName);
                     }
                 }
 
@@ -301,7 +298,8 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // because the version needs of this are even higher than that of the above we know the above will have to have run if this will run
                     // so we know the powerHandle loop is safe since it will trip into a CHAR if it overruns due to the above.
-                    writer.WriteSignedValues("scriptPowerOverride", obj.scriptPowerOverride.Value);
+                    //writer.WriteSignedValues("scriptPowerOverride", obj.scriptPowerOverride.Value);
+                    writer.WriteInt32("scriptPowerOverride", obj, x => x.scriptPowerOverride);
                 }
 
                 ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

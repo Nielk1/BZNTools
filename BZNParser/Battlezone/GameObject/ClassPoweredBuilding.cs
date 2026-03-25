@@ -62,7 +62,8 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (!tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse scriptPowerOverride/LONG");
-                if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
+                //if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
+                tok.ApplyInt32(obj, x => x.scriptPowerOverride);
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
@@ -80,6 +81,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (obj.powerHandle != null && obj.powerHandle.Length > 0)
                 {
                     writer.WriteSignedValues("powerHandle", obj.powerHandle);
+                    //writer.WriteInt32("powerHandle", obj, obj.powerHandle); // TODO update this to handle enumerable
                 }
             }
 
@@ -91,7 +93,8 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Version >= 1193)
             {
-                writer.WriteSignedValues("scriptPowerOverride", obj.scriptPowerOverride);
+                //writer.WriteSignedValues("scriptPowerOverride", obj.scriptPowerOverride);
+                writer.WriteInt32("scriptPowerOverride", obj, x => x.scriptPowerOverride);
             }
 
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

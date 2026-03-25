@@ -318,7 +318,7 @@ public static class TokenExtensions
 
         return (setVal, valueInternal);
     }
-    public static (TProp stored, UInt32 raw) ReadUInt32h<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, UInt32 raw) ApplyUInt32h<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)

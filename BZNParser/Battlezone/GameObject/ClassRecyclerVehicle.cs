@@ -31,11 +31,11 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextRepair", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextRepair/FLOAT");
-                if (obj != null) obj.nextRepair = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.nextRepair);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildDoneTime/FLOAT");
-                if (obj != null) obj.buildDoneTime = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.buildDoneTime);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
@@ -69,8 +69,8 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version == 1047)
             {
-                writer.WriteFloats("nextRepair", preserveMalformations ? obj.Malformations : null, obj.nextRepair);
-                writer.WriteFloats("buildDoneTime", preserveMalformations ? obj.Malformations : null, obj.buildDoneTime);
+                writer.WriteSingle("nextRepair", obj, x => x.nextRepair);
+                writer.WriteSingle("buildDoneTime", obj, x => x.buildDoneTime);
                 writer.WriteBoolean("buildActive", obj, x => x.buildActive);
                 writer.WriteSignedValues("buildCount", obj.buildItems.Length);
                 for (int i = 0; i < obj.buildItems.Length; i++)

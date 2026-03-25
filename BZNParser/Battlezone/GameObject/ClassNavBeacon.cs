@@ -31,14 +31,13 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                 throw new Exception("Failed to parse name/CHAR");
-            //if (obj != null) obj.name = tok.GetString();
             tok.ReadChars(obj, x => x.name);
 
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("navSlot", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse navSlot/LONG");
-            if (obj != null) obj.navSlot = tok.GetInt32();
+            tok.ApplyInt32(obj, x => x.navSlot);
 
             if (reader.Version > 1104)
             {
@@ -54,7 +53,7 @@ namespace BZNParser.Battlezone.GameObject
         public static void Dehydrate(ClassNavBeacon obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
             writer.WriteChars("name", obj, x => x.name);
-            writer.WriteSignedValues("navSlot", obj.navSlot);
+            writer.WriteInt32("navSlot", obj, x => x.navSlot);
 
             if (writer.Version > 1104)
             {

@@ -31,7 +31,8 @@ namespace BZNParser.Battlezone.GameObject
                 IBZNToken? tok = reader.ReadToken();
                 //if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/LONG");
                 if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/LONG");
-                if (obj != null) obj.undefptr = tok.GetUInt32H();
+                //if (obj != null) obj.undefptr = tok.GetUInt32H();
+                tok.ApplyUInt32H8(obj, x => x.undefptr);
             }
 
             ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
@@ -46,7 +47,8 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1020)
             {
-                writer.WriteBZ1_Ptr("undefptr", obj.undefptr);
+                //writer.WriteBZ1_Ptr("undefptr", obj.undefptr);
+                writer.WritePtr("undefptr", obj, x => x.undefptr);
             }
             ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

@@ -34,15 +34,15 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("portalState", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse portalState/LONG");
-                if (obj != null) obj.portalState = tok.GetUInt32H();
+                tok.ApplyUInt32(obj, x => x.portalState); // should be hex?
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("portalBeginTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse portalBeginTime/FLOAT");
-                if (obj != null) obj.portalBeginTime = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.portalBeginTime);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("portalEndTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse portalEndTime/FLOAT");
-                if (obj != null) obj.portalEndTime = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.portalEndTime);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("isIn", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isIn/BOOL");
@@ -61,9 +61,9 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version >= 2004)
             {
-                writer.WriteUnsignedValues("portalState", obj.portalState);
-                writer.WriteFloats("portalBeginTime", preserveMalformations ? obj.Malformations : null, obj.portalBeginTime);
-                writer.WriteFloats("portalEndTime", preserveMalformations ? obj.Malformations : null, obj.portalEndTime);
+                writer.WriteUInt32("portalState", obj, x => x.portalState); // should be hex?
+                writer.WriteSingle("portalBeginTime", obj, x => x.portalBeginTime);
+                writer.WriteSingle("portalEndTime", obj, x => x.portalEndTime);
                 writer.WriteBoolean("isIn", obj, x => x.isIn);
             }
             ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

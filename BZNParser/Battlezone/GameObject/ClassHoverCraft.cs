@@ -53,87 +53,87 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("setAltitude", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse setAltitude/FLOAT");
-                if (obj != null) obj.setAltitude = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.setAltitude);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("accelDragStop", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelDragStop/FLOAT");
-                if (obj != null) obj.accelDragStop = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.accelDragStop);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("accelDragFull", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelDragFull/FLOAT");
-                if (obj != null) obj.accelDragFull = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.accelDragFull);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("alphaTrack", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse alphaTrack/FLOAT");
-                if (obj != null) obj.alphaTrack = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.alphaTrack);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("alphaDamp", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse alphaDamp/FLOAT");
-                if (obj != null) obj.alphaDamp = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.alphaDamp);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("pitchPitch", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse pitchPitch/FLOAT");
-                if (obj != null) obj.pitchPitch = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.pitchPitch);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("pitchThrust", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse pitchThrust/FLOAT");
-                if (obj != null) obj.pitchThrust = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.pitchThrust);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("rollStrafe", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse rollStrafe/FLOAT");
-                if (obj != null) obj.rollStrafe = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.rollStrafe);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("rollSteer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse rollSteer/FLOAT");
-                if (obj != null) obj.rollSteer = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.rollSteer);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("velocForward", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse velocForward/FLOAT");
-                if (obj != null) obj.velocForward = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.velocForward);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("velocReverse", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse velocReverse/FLOAT");
-                if (obj != null) obj.velocReverse = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.velocReverse);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("velocStrafe", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse velocStrafe/FLOAT");
-                if (obj != null) obj.velocStrafe = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.velocStrafe);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("accelThrust", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelThrust/FLOAT");
-                if (obj != null) obj.accelThrust = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.accelThrust);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("accelBrake", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelBrake/FLOAT");
-                if (obj != null) obj.accelBrake = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.accelBrake);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("omegaSpin", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse omegaSpin/FLOAT");
-                if (obj != null) obj.omegaSpin = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.omegaSpin);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("omegaTurn", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse omegaTurn/FLOAT");
-                if (obj != null) obj.omegaTurn = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.omegaTurn);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("alphaSteer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse alphaSteer/FLOAT");
-                if (obj != null) obj.alphaSteer = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.alphaSteer);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("accelJump", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelJump/FLOAT");
-                if (obj != null) obj.accelJump = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.accelJump);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("thrustRatio", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse thrustRatio/FLOAT");
-                if (obj != null) obj.thrustRatio = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.thrustRatio);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("throttle", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse throttle/FLOAT");
-                if (obj != null) obj.throttle = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.throttle);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("airBorne", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse airBorne/FLOAT");
-                if (obj != null) obj.airBorne = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.airBorne);
             }
 
             ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
@@ -148,27 +148,27 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone && writer.Version > 1001 && writer.Version < 1026)
             {
-                writer.WriteFloats("setAltitude", preserveMalformations ? obj.Malformations : null, obj.setAltitude);
-                writer.WriteFloats("accelDragStop", preserveMalformations ? obj.Malformations : null, obj.accelDragStop);
-                writer.WriteFloats("accelDragFull", preserveMalformations ? obj.Malformations : null, obj.accelDragFull);
-                writer.WriteFloats("alphaTrack", preserveMalformations ? obj.Malformations : null, obj.alphaTrack);
-                writer.WriteFloats("alphaDamp", preserveMalformations ? obj.Malformations : null, obj.alphaDamp);
-                writer.WriteFloats("pitchPitch", preserveMalformations ? obj.Malformations : null, obj.pitchPitch);
-                writer.WriteFloats("pitchThrust", preserveMalformations ? obj.Malformations : null, obj.pitchThrust);
-                writer.WriteFloats("rollStrafe", preserveMalformations ? obj.Malformations : null, obj.rollStrafe);
-                writer.WriteFloats("rollSteer", preserveMalformations ? obj.Malformations : null, obj.rollSteer);
-                writer.WriteFloats("velocForward", preserveMalformations ? obj.Malformations : null, obj.velocForward);
-                writer.WriteFloats("velocReverse", preserveMalformations ? obj.Malformations : null, obj.velocReverse);
-                writer.WriteFloats("velocStrafe", preserveMalformations ? obj.Malformations : null, obj.velocStrafe);
-                writer.WriteFloats("accelThrust", preserveMalformations ? obj.Malformations : null, obj.accelThrust);
-                writer.WriteFloats("accelBrake", preserveMalformations ? obj.Malformations : null, obj.accelBrake);
-                writer.WriteFloats("omegaSpin", preserveMalformations ? obj.Malformations : null, obj.omegaSpin);
-                writer.WriteFloats("omegaTurn", preserveMalformations ? obj.Malformations : null, obj.omegaTurn);
-                writer.WriteFloats("alphaSteer", preserveMalformations ? obj.Malformations : null, obj.alphaSteer);
-                writer.WriteFloats("accelJump", preserveMalformations ? obj.Malformations : null, obj.accelJump);
-                writer.WriteFloats("thrustRatio", preserveMalformations ? obj.Malformations : null, obj.thrustRatio);
-                writer.WriteFloats("throttle", preserveMalformations ? obj.Malformations : null, obj.throttle);
-                writer.WriteFloats("airBorne", preserveMalformations ? obj.Malformations : null, obj.airBorne);
+                writer.WriteSingle("setAltitude", obj, x => x.setAltitude);
+                writer.WriteSingle("accelDragStop", obj, x => x.accelDragStop);
+                writer.WriteSingle("accelDragFull", obj, x => x.accelDragFull);
+                writer.WriteSingle("alphaTrack", obj, x => x.alphaTrack);
+                writer.WriteSingle("alphaDamp", obj, x => x.alphaDamp);
+                writer.WriteSingle("pitchPitch", obj, x => x.pitchPitch);
+                writer.WriteSingle("pitchThrust", obj, x => x.pitchThrust);
+                writer.WriteSingle("rollStrafe", obj, x => x.rollStrafe);
+                writer.WriteSingle("rollSteer", obj, x => x.rollSteer);
+                writer.WriteSingle("velocForward", obj, x => x.velocForward);
+                writer.WriteSingle("velocReverse", obj, x => x.velocReverse);
+                writer.WriteSingle("velocStrafe", obj, x => x.velocStrafe);
+                writer.WriteSingle("accelThrust", obj, x => x.accelThrust);
+                writer.WriteSingle("accelBrake", obj, x => x.accelBrake);
+                writer.WriteSingle("omegaSpin", obj, x => x.omegaSpin);
+                writer.WriteSingle("omegaTurn", obj, x => x.omegaTurn);
+                writer.WriteSingle("alphaSteer", obj, x => x.alphaSteer);
+                writer.WriteSingle("accelJump", obj, x => x.accelJump);
+                writer.WriteSingle("thrustRatio", obj, x => x.thrustRatio);
+                writer.WriteSingle("throttle", obj, x => x.throttle);
+                writer.WriteSingle("airBorne", obj, x => x.airBorne);
             }
 
             ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

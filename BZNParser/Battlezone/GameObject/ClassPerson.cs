@@ -28,27 +28,27 @@ namespace BZNParser.Battlezone.GameObject
         public ClassPerson(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPerson? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextScream/FLOAT");
-                if (obj != null) obj.nextScream = tok.GetSingle();
+                if (tok == null || !tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextScream/FLOAT");
+                tok.ApplySingle(obj, x => x.nextScream);
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 if (reader.Version == 1047)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextScream/FLOAT");
-                    if (obj != null) obj.nextScream = tok.GetSingle();
+                    if (tok == null || !tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextScream/FLOAT");
+                    tok.ApplySingle(obj, x => x.nextScream);
                 }
                 else
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                    if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
+                    if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
+                    tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                     /*if (a2[2].vftable)
                     {
@@ -77,17 +77,17 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteFloats("nextScream", preserveMalformations ? obj.Malformations : null, obj.nextScream);
+                writer.WriteSingle("nextScream", obj, x => x.nextScream);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version == 1047)
                 {
-                    writer.WriteFloats("nextScream", preserveMalformations ? obj.Malformations : null, obj.nextScream);
+                    writer.WriteSingle("nextScream", obj, x => x.nextScream);
                 }
                 else
                 {
-                    writer.WriteVoidBytes("state", (UInt32)obj.state);
+                    writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
 
                     /*if (a2[2].vftable)
                     {

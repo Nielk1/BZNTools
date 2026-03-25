@@ -392,6 +392,7 @@ namespace BZNParser.Tokenizer
         public bool HasBinary { get; private set; }
         public bool InBinary { get; private set; }
         public FloatTextFormat FloatFormat { get; set; }
+        public byte PointerSize { get; private set; }
 
         public Dictionary<int, StreamDefect>? StreamDefects { get; set; }
         public int TokenIndex { get; private set; }
@@ -406,6 +407,7 @@ namespace BZNParser.Tokenizer
             if (preserveDefects != null && preserveDefects.Count > 0)
                 StreamDefects = preserveDefects;
             TokenIndex = 0;
+            PointerSize = 4;
 
             NewLine = "\r\n";
 
@@ -416,6 +418,8 @@ namespace BZNParser.Tokenizer
                     SizeSize = 2;
                     AlignmentBytes = 0;
                     IsBigEndian = false;
+                    if (Version >= 2012)
+                        PointerSize = 8;
                     break;
                 case BZNFormat.Battlezone2:
                     TypeSize = 1;
@@ -902,10 +906,13 @@ namespace BZNParser.Tokenizer
 
             return (value, valueInternal);
         }
-        public (UInt32 written, TProp stored) WritePtr32<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
+
+
+        // Except for BZ98R this is a 32bit pointer, but for the common API we need to output a 64bit value.
+        public (UInt64 written, TProp stored) WritePtr<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
-            UInt32 value = 0;
+            UInt64 value = 0;
 
             if (convert != null)
             {
@@ -913,19 +920,19 @@ namespace BZNParser.Tokenizer
             }
             else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
             {
-                value = (UInt32)(UInt8)(object)valueInternal!;
+                value = (UInt64)(UInt8)(object)valueInternal!;
             }
             else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
             {
-                value = (UInt32)(UInt16)(object)valueInternal!;
+                value = (UInt64)(UInt16)(object)valueInternal!;
             }
             else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
             {
-                value = (UInt32)(UInt32)(object)valueInternal!;
+                value = (UInt64)(UInt32)(object)valueInternal!;
             }
             else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
             {
-                value = (UInt32)(UInt64)(object)valueInternal!;
+                value = (UInt64)(UInt64)(object)valueInternal!;
             }
             else
             {
@@ -935,17 +942,19 @@ namespace BZNParser.Tokenizer
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
-                InternalWriteBinarySize(4);
-                byte[] buff = BitConverter.GetBytes(value);
+                InternalWriteBinarySize(PointerSize);
+                byte[] buff = BitConverter.GetBytes(value).Take(PointerSize).ToArray(); // truncate to correct size
                 if (IsBigEndian)
                     Array.Reverse(buff);
-                BaseStream.Write(buff, 0, 4);
+                BaseStream.Write(buff, 0, PointerSize);
                 InternalAlignBinary();
                 TokenIndex++;
                 return (value, valueInternal);
             }
 
             string textValue = value.ToString("X8");
+            if (value > 0xFFFFFFFF)
+                textValue = value.ToString("X16");
 
             // handle incorrect raw value
             (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);

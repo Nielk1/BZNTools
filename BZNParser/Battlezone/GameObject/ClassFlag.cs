@@ -27,22 +27,15 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFlag? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                //tok = reader.ReadToken();
-                //if (!tok.Validate("startMat", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse startMat/MAT3D"); // type not confirmed
-                //if (obj != null)
-                //{
-                //    obj.startMat = tok.GetMatrix();
-                //    tok.CheckMalformationsMatrix(obj.startMat.Malformations, reader.FloatFormat);
-                //}
                 reader.ReadMatrix("startMat", obj, x => x.startMat);
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("holder", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse holder/LONG"); // type not confirmed
-                if (obj != null) obj.holder = tok.GetUInt32();
+                if (tok == null || !tok.Validate("holder", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse holder/LONG"); // type not confirmed
+                tok.ApplyUInt32(obj, x => x.holder);
             }
 
             ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
@@ -57,9 +50,8 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                //writer.WriteMat3Ds("startMat", preserveMalformations, obj.startMat);
                 writer.WriteMatrix("startMat", obj, x => x.startMat);
-                writer.WriteUnsignedValues("holder", obj.holder);
+                writer.WriteUInt32("holder", obj, x => x.holder);
             }
             ClassPowerUp.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

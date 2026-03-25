@@ -26,17 +26,17 @@ namespace BZNParser.Battlezone.GameObject
         public ClassObjectSpawn(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassObjectSpawn? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("spawnHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse spawnHandle/LONG"); // type not confirmed
-                if (obj != null) obj.spawnHandle = tok.GetInt32();
+                if (tok == null || !tok.Validate("spawnHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse spawnHandle/LONG"); // type not confirmed
+                tok.ApplyInt32(obj, x => x.spawnHandle);
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("spawnTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse spawnTimer/FLOAT"); // type not confirmed
-                if (obj != null) obj.spawnTimer = tok.GetSingle();
+                if (tok == null || !tok.Validate("spawnTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse spawnTimer/FLOAT"); // type not confirmed
+                tok.ApplySingle(obj, x => x.spawnTimer);
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
@@ -51,8 +51,8 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteSignedValues("spawnHandle", obj.spawnHandle); // value not confirmed
-                writer.WriteFloats("spawnTimer", preserveMalformations ? obj.Malformations : null, obj.spawnTimer); // value not confirmed
+                writer.WriteInt32("spawnHandle", obj, x => x.spawnHandle); // value not confirmed
+                writer.WriteSingle("spawnTimer", obj, x => x.spawnTimer); // value not confirmed
             }
 
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

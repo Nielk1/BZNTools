@@ -21,17 +21,17 @@ namespace BZNParser.Battlezone.GameObject
         public ClassBomber(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBomber? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
-            if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
+            if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
+            tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
             if (parent.SaveType != SaveType.BZN)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("m_ReloadTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse m_ReloadTime/FLOAT");
-                if (obj != null) obj.m_ReloadTime = tok.GetSingle();
+                if (tok == null || !tok.Validate("m_ReloadTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse m_ReloadTime/FLOAT");
+                tok.ApplySingle(obj, x => x.m_ReloadTime);
             }
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
@@ -44,11 +44,11 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassBomber obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteVoidBytes("state", (UInt32)obj.state);
+            writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
 
             if (parent.SaveType != SaveType.BZN)
             {
-                writer.WriteFloats("m_ReloadTime", preserveMalformations ? obj.Malformations : null, obj.m_ReloadTime);
+                writer.WriteSingle("m_ReloadTime", obj, x => x.m_ReloadTime);
             }
 
             ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

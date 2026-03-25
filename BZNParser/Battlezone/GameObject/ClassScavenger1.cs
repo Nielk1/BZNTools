@@ -34,7 +34,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     IBZNToken? tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("scrapHeld", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse scrapHeld/LONG");
-                    if (obj != null) obj.scrapHeld = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.scrapHeld);
                 }
             }
 
@@ -54,7 +54,7 @@ namespace BZNParser.Battlezone.GameObject
                 //if (writer.Version > 1037)
                 if ((writer.Version >= 1039 && writer.Version < 2000) || writer.Version > 2004)
                 {
-                    writer.WriteUnsignedValues("scrapHeld", obj.scrapHeld);
+                    writer.WriteUInt32("scrapHeld", obj, x => x.scrapHeld);
                 }
             }
             ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

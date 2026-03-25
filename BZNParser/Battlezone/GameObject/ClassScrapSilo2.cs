@@ -25,7 +25,7 @@ namespace BZNParser.Battlezone.GameObject
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scrapTimer/FLOAT");
-            if (obj != null) obj.scrapTimer = tok.GetSingle();
+            tok.ApplySingle(obj, x => x.scrapTimer);
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
@@ -37,7 +37,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassScrapSilo2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("scrapTimer", preserveMalformations ? obj.Malformations : null, obj.scrapTimer);
+            writer.WriteSingle("scrapTimer", obj, x => x.scrapTimer);
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }

@@ -32,12 +32,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
+                tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
-                //(a2->vftable->out_float)(a2, this + 2548, 4, "deployTimer");
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
-                if (obj != null) obj.deployTimer = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.deployTimer);
 
                 //if (a2[2].vftable)
                 //    (a2->vftable->read_long)(a2, this + 2544, 4, "changeState");
@@ -55,8 +54,8 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteVoidBytes("state", (UInt32)obj.state);
-                writer.WriteFloats("deployTimer", preserveMalformations ? obj.Malformations : null, obj.deployTimer);
+                writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
+                writer.WriteSingle("deployTimer", obj, x => x.deployTimer);
             }
             ClassTrackedVehicle.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

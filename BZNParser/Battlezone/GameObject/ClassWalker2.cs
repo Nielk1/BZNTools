@@ -34,7 +34,8 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Walker_IK", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Walker_IK/VOID");
-                if (obj != null) obj.Walker_IK = tok.GetBytes();
+                //if (obj != null) obj.Walker_IK = tok.GetBytes();
+                tok.ApplyVoidBytes(obj, x => x.Walker_IK);
 
                 ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
                 return;
@@ -44,7 +45,8 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Pin_Foot", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Pin_Foot/VOID");
-                if (obj != null) obj.Pin_Foot = tok.GetUInt32H();
+                //if (obj != null) obj.Pin_Foot = tok.GetUInt32H();
+                tok.ApplyVoidBytes(obj, x => x.Pin_Foot, 0, (v) => BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Current_Index", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse Current_Index/FLOAT");
@@ -52,7 +54,8 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Anim_State", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Anim_State/VOID");
-                if (obj != null) obj.Anim_State = tok.GetUInt32H();
+                //if (obj != null) obj.Anim_State = tok.GetUInt32H();
+                tok.ApplyVoidBytes(obj, x => x.Anim_State, 0, (v) => BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Lead", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Lead/LONG");
@@ -66,7 +69,8 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Control_Queue", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Control_Queue/VOID");
-                if (obj != null) obj.Control_Queue = tok.GetUInt32H();
+                //if (obj != null) obj.Control_Queue = tok.GetUInt32H();
+                tok.ApplyVoidBytes(obj, x => x.Control_Queue, 0, (v) => BitConverter.ToUInt32(v));
             }
 
             // parent.SaveType != SaveType.BZN stuff
@@ -83,18 +87,18 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version == 1041) // version is special case for bz2001.bzn
             {
-                writer.WriteVoidBytesL("Walker_IK", obj.Walker_IK);
+                writer.WriteVoidBytesL("Walker_IK", obj, x => x.Walker_IK);
                 ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
                 return;
             }
             if (writer.Version < 1067)
             {
-                writer.WriteVoidBytes("Pin_Foot", obj.Pin_Foot);
+                writer.WriteVoidBytes("Pin_Foot", obj, x => x.Pin_Foot);
                 writer.WriteSingle("Current_Index", obj, x => x.Current_Index);
-                writer.WriteVoidBytes("Anim_State", obj.Anim_State);
+                writer.WriteVoidBytes("Anim_State", obj, x => x.Anim_State);
                 writer.WriteUInt32("Lead", obj, x => x.Lead);
                 writer.WriteUInt32("Tail", obj, x => x.Tail);
-                writer.WriteVoidBytes("Control_Queue", obj.Control_Queue);
+                writer.WriteVoidBytes("Control_Queue", obj, x => x.Control_Queue);
             }
 
             // parent.SaveType != SaveType.BZN stuff

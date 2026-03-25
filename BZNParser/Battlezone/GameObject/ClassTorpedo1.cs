@@ -40,12 +40,15 @@ namespace BZNParser.Battlezone.GameObject
                     if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D))
                         throw new Exception("Failed to parse ???/VEC3D");
                     // there are 6 vectors here, but we don't know what they are for and are probably able to be forgotten
+
+                    throw new NotImplementedException();
                 }
                 else if (reader.Version > 1027)
                 {
                     // read in abandoned flag
                     IBZNToken? tok;
                     tok = reader.ReadToken();
+                    throw new NotImplementedException();
                 }
             }
 
@@ -69,10 +72,12 @@ namespace BZNParser.Battlezone.GameObject
                 if (writer.Version < 1019)
                 {
                     // not implemented
+                    throw new NotImplementedException();
                 }
                 else if (writer.Version > 1027)
                 {
                     // not implemented
+                    throw new NotImplementedException();
                 }
             }
 

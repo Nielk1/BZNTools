@@ -592,11 +592,11 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
                 {
-                    writer.WritePtr32("undefptr", value, x => x.where);
+                    writer.WritePtr("undefptr", value, x => x.where);
                 }
                 else
                 {
-                    writer.WritePtr32("where", value, x => x.where);
+                    writer.WritePtr("where", value, x => x.where);
                 }
 
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)

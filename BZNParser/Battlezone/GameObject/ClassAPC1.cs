@@ -22,17 +22,18 @@ namespace BZNParser.Battlezone.GameObject
         public ClassAPC1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAPC1? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (!tok.Validate("soldierCount", BinaryFieldType.DATA_LONG))
+            if (tok == null || !tok.Validate("soldierCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse soldierCount/LONG");
-            if (obj != null) obj.soldierCount = tok.GetInt32();
+            //if (obj != null) obj.soldierCount = tok.GetInt32();
+            tok.ApplyInt32(obj, x => x.soldierCount);
 
             tok = reader.ReadToken();
-            if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
+            if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
                 throw new Exception("Failed to parse state/VOID");
-            if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
+            tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
@@ -44,8 +45,8 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassAPC1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteSignedValues("soldierCount", obj.soldierCount);
-            writer.WriteVoidBytes("state", (UInt32)obj.state);
+            writer.WriteInt32("soldierCount", obj, x => x.soldierCount);
+            writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
             ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }

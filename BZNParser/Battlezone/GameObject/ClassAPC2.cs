@@ -122,8 +122,8 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteBoolean("DeployOnLanding", obj, x => x.DeployOnLanding);
                 writer.WriteSignedValues("undeployTimeout", obj.undeployTimeout);
             }
-            
-            writer.WriteVoidBytes("state", (UInt32)obj.state);
+
+            writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
 
             ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

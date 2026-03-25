@@ -74,7 +74,8 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("old_ptr", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse old_ptr/VOID");
-                    if (obj != null) obj.sObject = tok.GetUInt32HR(); // confirm correctness
+                    //if (obj != null) obj.sObject = tok.GetUInt32HR(); // confirm correctness
+                    tok.ApplyVoidBytes(obj, x => x.sObject, 0, (v) => BitConverter.ToUInt32(v));
                 }
                 //Int32 x = tok.GetUInt32H();
             }
@@ -91,8 +92,9 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                label = string.Format("bzn64path_{0,4:X4}", tok.GetUInt16());
-                if (obj != null) obj.label = new SizedString() { Value = label };
+                //label = string.Format("bzn64path_{0,4:X4}", tok.GetUInt16());
+                //if (obj != null) obj.label = new SizedString() { Value = label };
+                tok.ReadUInt16(obj, x => x.label, 0, (v) => new SizedString() { Value = string.Format("bzn64path_{0,4:X4}", v) });
             }
             else
             {
@@ -152,12 +154,12 @@ namespace BZNParser.Battlezone
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 2011)
                 {
                     // 2016
-                    writer.WriteBZ1_Ptr("old_ptr", sObject.Value);
+                    writer.WritePtr("old_ptr", this, x => x.sObject);
                 }
                 else
                 {
                     // 1030 1032 1034 1035 1037 1038 1039 1040 1043 1044 1045 1049 2003 2004 2010 2011
-                    writer.WriteVoidBytesL("old_ptr", sObject.Value);
+                    writer.WriteVoidBytesL("old_ptr", this, x => x.sObject);
                 }
                 //Int32 x = tok.GetUInt32H();
             }
@@ -165,7 +167,7 @@ namespace BZNParser.Battlezone
             {
                 if (sObject.HasValue)
                     //writer.WritePtr32("sObject", sObject.Value);
-                    writer.WritePtr32("sObject", this, x => x.sObject);
+                    writer.WritePtr("sObject", this, x => x.sObject);
             }
 
             if (writer.Format == BZNFormat.BattlezoneN64)

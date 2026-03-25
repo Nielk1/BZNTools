@@ -17,11 +17,13 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassDeployBuildingH : ClassDeployable
     {
+        public Matrix dropMat { get; set; }
+
         public ClassDeployBuildingH(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployBuildingH? obj)
         {
-            IBZNToken tok;
+            //IBZNToken? tok;
 
             if (parent.SaveType != SaveType.BZN) { }
 
@@ -31,9 +33,10 @@ namespace BZNParser.Battlezone.GameObject
             //    (a2->vftable->out_float)(a2, this + 2576, 4, "buildTime");
             //}
             //(a2->vftable->field_1C)(a2, this + 2592, 64, "buildMatrix");
-            tok = reader.ReadToken();
-            if (!tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
-            //dropMat = tok.GetMatrix()
+            //tok = reader.ReadToken();
+            //if (!tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
+                                                                                                                                    //dropMat = tok.GetMatrix()
+            reader.ReadMatrix("buildMatrix", obj, x => x.dropMat);
 
             ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
         }
@@ -46,7 +49,8 @@ namespace BZNParser.Battlezone.GameObject
         public static void Dehydrate(ClassDeployBuildingH obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
             if (parent.SaveType != SaveType.BZN) { }
-            writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.transform);
+            //writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.transform);
+            writer.WriteMatrix("buildMatrix", obj, x => x.dropMat);
             ClassDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }
     }

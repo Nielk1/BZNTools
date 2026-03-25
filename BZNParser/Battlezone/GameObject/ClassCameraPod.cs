@@ -26,12 +26,12 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (reader.Version >= 1148)
                 {
-                    IBZNToken tok;
+                    IBZNToken? tok;
 
                     tok = reader.ReadToken();
-                    if (!tok.Validate("navSlot", BinaryFieldType.DATA_LONG))
+                    if (tok == null || !tok.Validate("navSlot", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse navSlot/LONG");
-                    if (obj != null) obj.navSlot = tok.GetInt32();
+                    tok.ApplyInt32(obj, x => x.navSlot);
                 }
             }
 
@@ -49,7 +49,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1148)
                 {
-                    writer.WriteSignedValues("navSlot", obj.navSlot);
+                    writer.WriteInt32("navSlot", obj, x => x.navSlot);
                 }
             }
             ClassPowerUp.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

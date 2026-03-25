@@ -32,11 +32,12 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
-                if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
+                //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
+                tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
                 if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
-                if (obj != null) obj.deployTimer = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.deployTimer);
 
                 if (parent.SaveType == 0)
                 {
@@ -66,8 +67,8 @@ namespace BZNParser.Battlezone.GameObject
             // this class doesn't exist in BZ1
             //if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteVoidBytes("state", (UInt32)obj.state);
-                writer.WriteFloats("deployTimer", preserveMalformations ? obj.Malformations : null, obj.deployTimer);
+                writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
+                writer.WriteSingle("deployTimer", obj, x => x.deployTimer);
                 if (parent.SaveType == 0)
                 {
                     // setup stuff where some vars are generated

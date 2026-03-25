@@ -23,10 +23,10 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (parent.SaveType != SaveType.BZN)
             {
-                IBZNToken tok = reader.ReadToken();
-                if (!tok.Validate("nextEmptyCheck", BinaryFieldType.DATA_LONG))
+                IBZNToken? tok = reader.ReadToken();
+                if (tok == null || !tok.Validate("nextEmptyCheck", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse nextEmptyCheck/LONG");
-                if (obj != null) obj.nextEmptyCheck = tok.GetInt32();
+                tok.ApplyInt32(obj, x => x.nextEmptyCheck);
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
@@ -41,7 +41,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (parent.SaveType != SaveType.BZN)
             {
-                writer.WriteSignedValues("nextEmptyCheck", obj.nextEmptyCheck);
+                writer.WriteInt32("nextEmptyCheck", obj, x => x.nextEmptyCheck);
             }
             ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

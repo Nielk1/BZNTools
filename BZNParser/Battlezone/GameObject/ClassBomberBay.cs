@@ -24,13 +24,13 @@ namespace BZNParser.Battlezone.GameObject
         public ClassBomberBay(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBomberBay? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Version >= 1131)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("Handle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Handle/LONG");
-                if (obj != null) obj.m_MyBomber = tok.GetInt32();
+                if (tok == null || !tok.Validate("Handle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Handle/LONG");
+                tok.ApplyInt32(obj, x => x.m_MyBomber);
             }
             else
             {
@@ -54,7 +54,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version >= 1131)
             {
-                writer.WriteSignedValues("Handle", obj.m_MyBomber);
+                writer.WriteInt32("Handle", obj, x => x.m_MyBomber);
             }
             ClassPoweredBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
         }

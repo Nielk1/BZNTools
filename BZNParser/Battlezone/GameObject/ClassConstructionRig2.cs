@@ -44,15 +44,16 @@ namespace BZNParser.Battlezone.GameObject
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildTime/FLOAT");
-            if (obj != null) obj.buildTime = tok.GetSingle();
+            tok.ApplySingle(obj, x => x.buildTime);
 
-            tok = reader.ReadToken();
-            if (tok == null || !tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
-            if (obj != null)
-            {
-                obj.dropMat = tok.GetMatrix();
-                tok.CheckMalformationsMatrix(obj.dropMat.Malformations, reader.FloatFormat);
-            }
+            //tok = reader.ReadToken();
+            //if (tok == null || !tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
+            //if (obj != null)
+            //{
+            //    obj.dropMat = tok.GetMatrix();
+            //    tok.CheckMalformationsMatrix(obj.dropMat.Malformations, reader.FloatFormat);
+            //}
+            reader.ReadMatrix("buildMatrix", obj, x => x.dropMat);
 
             //tok = reader.ReadToken();
             //if (tok == null || !tok.Validate("buildClass", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse buildClass/ID");
@@ -73,7 +74,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("upgradeHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse upgradeHandle/LONG");
-                if (obj != null) obj.upgradeHandle = tok.GetUInt32();
+                tok.ApplyUInt32(obj, x => x.upgradeHandle);
             }
 
             if (parent.SaveType != SaveType.BZN)
@@ -82,7 +83,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("buildGroup", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildGroup/LONG");
-                    if (obj != null) obj.buildGroup = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.buildGroup);
                 }
 
                 //if (!mbIsHoverRig)
@@ -117,8 +118,8 @@ namespace BZNParser.Battlezone.GameObject
             }
 
             writer.WriteBoolean("buildActive", obj, x => x.buildActive);
-            writer.WriteFloats("buildTime", preserveMalformations ? obj.Malformations : null, obj.buildTime);
-            writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.dropMat);
+            writer.WriteSingle("buildTime", obj, x => x.buildTime);
+            writer.WriteMatrix("buildMatrix", obj, x => x.dropMat);
 
             if (writer.Version == 1149 || writer.Version == 1151)
             {
@@ -133,14 +134,14 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Version >= 1150)
             {
-                writer.WriteUnsignedValues("upgradeHandle", obj.upgradeHandle);
+                writer.WriteUInt32("upgradeHandle", obj, x => x.upgradeHandle);
             }
 
             if (parent.SaveType != SaveType.BZN)
             {
                 if (writer.Version >= 1120)
                 {
-                    writer.WriteUnsignedValues("buildGroup", obj.buildGroup);
+                    writer.WriteUInt32("buildGroup", obj, x => x.buildGroup);
                 }
             }
 

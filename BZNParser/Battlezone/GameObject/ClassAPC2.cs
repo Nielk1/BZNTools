@@ -36,13 +36,12 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("IsoldierCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse IsoldierCount/LONG");
-            if (obj != null) obj.InternalSoldierCount = tok.GetInt32();
+            tok.ApplyInt32(obj, x => x.InternalSoldierCount);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("EsoldierCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse EsoldierCount/LONG");
-            int ExternalSoldierCount = tok.GetInt32();
-            if (obj != null) obj.ExternalSoldierCount = ExternalSoldierCount;
+            (int ExternalSoldierCount, _) = tok.ApplyInt32(obj, x => x.ExternalSoldierCount);
 
             if (ExternalSoldierCount > 0)
             {
@@ -68,29 +67,29 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextSoldierDelay", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextSoldierDelay/FLOAT");
-                if (obj != null) obj.nextSoldierDelay = tok.GetSingle(); // nextSoldierDelay
+                tok.ApplySingle(obj, x => x.nextSoldierDelay);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextSoldierAngle", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextSoldierAngle/FLOAT");
-                if (obj != null) obj.nextSoldierAngle = tok.GetSingle(); // nextSoldierAngle
+                tok.ApplySingle(obj, x => x.nextSoldierAngle);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextReturnTimer", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextReturnTimer/FLOAT");
-                if (obj != null) obj.nextReturnToAPC = tok.GetSingle(); // nextReturnTimer
+                tok.ApplySingle(obj, x => x.nextReturnToAPC);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("DeployOnLanding", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse DeployOnLanding/BOOL");
-                tok.ApplyBoolean(obj, x => x.DeployOnLanding); // DeployOnLanding
+                tok.ApplyBoolean(obj, x => x.DeployOnLanding);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undeployTimeout", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse undeployTimeout/LONG");
-                if (obj != null) obj.undeployTimeout = tok.GetInt32(); // undeployTimeout
+                tok.ApplyInt32(obj, x => x.undeployTimeout);
             }
-            
+
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
             //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
@@ -106,8 +105,8 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassAPC2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteSignedValues("IsoldierCount", obj.InternalSoldierCount);
-            writer.WriteSignedValues("EsoldierCount", obj.ExternalSoldierCount);
+            writer.WriteInt32("IsoldierCount", obj, x => x.InternalSoldierCount);
+            writer.WriteInt32("EsoldierCount", obj, x => x.ExternalSoldierCount);
 
             if (obj.ExternalSoldierCount > 0)
             {
@@ -116,11 +115,11 @@ namespace BZNParser.Battlezone.GameObject
 
             if (parent.SaveType != SaveType.BZN)
             {
-                writer.WriteFloats("nextSoldierDelay", preserveMalformations ? obj.Malformations : null, obj.nextSoldierDelay);
-                writer.WriteFloats("nextSoldierAngle", preserveMalformations ? obj.Malformations : null, obj.nextSoldierAngle);
-                writer.WriteFloats("nextReturnTimer", preserveMalformations ? obj.Malformations : null, obj.nextReturnToAPC);
+                writer.WriteSingle("nextSoldierDelay", obj, x => x.nextSoldierDelay);
+                writer.WriteSingle("nextSoldierAngle", obj, x => x.nextSoldierAngle);
+                writer.WriteSingle("nextReturnTimer", obj, x => x.nextReturnToAPC);
                 writer.WriteBoolean("DeployOnLanding", obj, x => x.DeployOnLanding);
-                writer.WriteSignedValues("undeployTimeout", obj.undeployTimeout);
+                writer.WriteInt32("undeployTimeout", obj, x => x.undeployTimeout);
             }
 
             writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));

@@ -64,7 +64,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildRally", BinaryFieldType.DATA_VEC3D))
                     throw new Exception("Failed to parse buildRally/VECTOR");
-                tok.ReadVector3D(obj, x => x.buildRally);
+                tok.ApplyVector3D(obj, x => x.buildRally);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("navHandle", BinaryFieldType.DATA_LONG))
@@ -79,7 +79,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("launchTarget", BinaryFieldType.DATA_VEC3D))
                     throw new Exception("Failed to parse launchTarget/VECTOR");
-                tok.ReadVector3D(obj, x => x.launchTarget);
+                tok.ApplyVector3D(obj, x => x.launchTarget);
             }
 
             if (parent.SaveType == 0)

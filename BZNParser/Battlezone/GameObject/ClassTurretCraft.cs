@@ -69,9 +69,23 @@ namespace BZNParser.Battlezone.GameObject
                                             break;
                                         }
 
+                                        if (powerHandles.Count == 0)
+                                        {
+                                            // we should have, in error, read the abandoned flag here to back out
+                                            // since we didn't we know we're not a turret "craft"
+                                            throw new Exception("Not a TurretCraft");
+                                        }
+
                                         //UInt32 possibleAbandonedFlag = powerHandles.Last();
                                         //if (possibleAbandonedFlag == 0 || possibleAbandonedFlag == 1)
                                         {
+                                            UInt32 possibleAbandonedFlag = powerHandles.Last();
+                                            if (possibleAbandonedFlag != 0 && possibleAbandonedFlag != 1)
+                                            {
+                                                // very likely this isn't an abandoned flag, which it must be in all normal reads, so we are very unlikely to be this class
+                                                // TODO downrank logic
+                                            }
+
                                             // we must have eaten an abandoned flag prior, based on its value, so lets walk back to before it and stop holding it
                                             reader.Bookmark.RevertToBookmark();
                                             powerHandles.Remove(powerHandles.Last());

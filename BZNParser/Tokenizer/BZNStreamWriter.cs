@@ -686,6 +686,116 @@ namespace BZNParser.Tokenizer
             return (value, valueInternal);
         }
 
+        public (byte[] written, TProp stored) WriteVoidBytesRaw<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, byte[]>? convert = null) where T : IMalformable
+        {
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            byte[] value;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (valueInternal is byte[] bytes)
+            {
+                value = bytes;
+            }
+            else if (valueInternal is UInt32[] u32arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<UInt32>(u32arr)).ToArray();
+            }
+            else if (valueInternal is Int32[] i32arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<Int32>(i32arr)).ToArray();
+            }
+            else if (valueInternal is UInt16[] u16arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<UInt16>(u16arr)).ToArray();
+            }
+            else if (valueInternal is Int16[] i16arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<Int16>(i16arr)).ToArray();
+            }
+            else if (valueInternal is float[] farr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<float>(farr)).ToArray();
+            }
+            else if (valueInternal is double[] darr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<double>(darr)).ToArray();
+            }
+            else if (valueInternal is sbyte[] s8arr)
+            {
+                value = MemoryMarshal.AsBytes(new Span<sbyte>(s8arr)).ToArray();
+            }
+            else if (typeof(TProp).IsPrimitive || typeof(TProp).IsValueType)
+            {
+                if (valueInternal is byte v)
+                {
+                    value = new byte[] { v };
+                }
+                else if (valueInternal is UInt32 v1)
+                {
+                    value = BitConverter.GetBytes(v1);
+                }
+                else if (valueInternal is Int32 v2)
+                {
+                    value = BitConverter.GetBytes(v2);
+                }
+                else if (valueInternal is UInt16 v3)
+                {
+                    value = BitConverter.GetBytes(v3);
+                }
+                else if (valueInternal is Int16 v4)
+                {
+                    value = BitConverter.GetBytes(v4);
+                }
+                else if (valueInternal is float v5)
+                {
+                    value = BitConverter.GetBytes(v5);
+                }
+                else if (valueInternal is double v6)
+                {
+                    value = BitConverter.GetBytes(v6);
+                }
+                else if (valueInternal is sbyte sb)
+                {
+                    value = new byte[] { (byte)sb };
+                }
+                else
+                {
+                    throw new Exception("Property type is not compatible with byte array writing and no conversion provided");
+                }
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with byte array writing and no conversion provided");
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_VOID);
+                InternalWriteBinarySize(value.Length);
+                BaseStream.Write(value, 0, value.Length);
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueInternal);
+            }
+
+            //string textValue = BitConverter.ToString(value).Replace("-", string.Empty).ToUpperInvariant(); // replace this with nicer logic
+
+            //// handle incorrect raw value
+            //(bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+            //if (hasIncorrectRaw)
+            //    textValue = incorrectText ?? string.Empty;
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
+            //BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            BaseStream.Write(value);
+            InternalWriteNewline();
+            TokenIndex++;
+
+            return (value, valueInternal);
+        }
         public (byte[] written, TProp stored) WriteVoidBytes<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, byte[]>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
@@ -1445,10 +1555,22 @@ namespace BZNParser.Tokenizer
         /// <param name="parent"></param>
         /// <param name="property"></param>
         /// <param name="oneLiner"></param>
-        public void WriteID<T>(string name, T parent, Expression<Func<T, string>> property, bool oneLiner = false) where T : IMalformable
+        public void WriteID<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, bool oneLiner = false) where T : IMalformable
         {
-            string value = ExtractPropertyValue(parent, property);
-            byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
+            TProp value = ExtractPropertyValue(parent, property);
+            byte[] rawValue;
+            if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+            {
+                rawValue = BZNEncoding.win1252.GetBytes((string?)(object?)value ?? "");
+            }
+            else if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
+            {
+                rawValue = BZNEncoding.win1252.GetBytes(((SizedString?)(object?)value)?.Value ?? "");
+            }
+            else
+            {
+                throw new NotImplementedException("Unimplemented ID type");
+            }
 
             // handle incorrect raw value
             (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);

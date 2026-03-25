@@ -19,6 +19,7 @@ namespace BZNParser.Battlezone.GameObject
     {
         public float buildTime { get; set; }
         public bool buildActive { get; set; }
+        public int buildItemCount { get; set; } // oddball
         public string[] buildItems { get; set; }
         public Int32 navHandle { get; set; }
 
@@ -32,13 +33,13 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildDoneTime/FLOAT");
-                if (obj != null) obj.buildTime = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.buildTime);
             }
             else
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildTime/FLOAT");
-                if (obj != null) obj.buildTime = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.buildTime);
             }
 
             tok = reader.ReadToken();
@@ -47,7 +48,7 @@ namespace BZNParser.Battlezone.GameObject
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
-            int buildCount = tok.GetInt32();
+            (int buildCount, _) = tok.ApplyInt32(obj, x => x.buildItemCount);
             if (obj != null) obj.buildItems = new string[buildCount];
 
             for (int i = 0; i < buildCount; i++)
@@ -69,7 +70,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("navHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse navHandle/LONG");
-                    if (obj != null) obj.navHandle = tok.GetInt32();
+                    tok.ApplyInt32(obj, x => x.navHandle);
                 }
             }
 
@@ -85,14 +86,14 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Version == 1100 || writer.Version == 1104 || writer.Version == 1105)
             {
-                writer.WriteFloats("buildDoneTime", preserveMalformations ? obj.Malformations : null, obj.buildTime);
+                writer.WriteSingle("buildDoneTime", obj, x => x.buildTime);
             }
             else
             {
-                writer.WriteFloats("buildTime", preserveMalformations ? obj.Malformations : null, obj.buildTime);
+                writer.WriteSingle("buildTime", obj, x => x.buildTime);
             }
             writer.WriteBoolean("buildActive", obj, x => x.buildActive);
-            writer.WriteSignedValues("buildCount", obj.buildItems.Length);
+            writer.WriteInt32("buildCount", obj, x => x.buildItemCount);
             for (int i = 0; i < obj.buildItems.Length; i++)
             {
                 writer.WriteGameObjectClass_BZ2(parent, "buildItem", obj.buildItems[i], obj.Malformations);
@@ -102,7 +103,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1135)
                 {
-                    writer.WriteSignedValues("navHandle", obj.navHandle);
+                    writer.WriteInt32("navHandle", obj, x => x.navHandle);
                 }
             }
 

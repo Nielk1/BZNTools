@@ -454,11 +454,14 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
                 if (reader.Version == 1001)
                 {
-                    retVal.what = tok.GetUInt32Raw();
+                    //retVal.what = tok.GetUInt32Raw();
+                    //tok.ApplyVoidBytesRaw(retVal, x => x.what);
+                    tok.ApplyVoidBytesRaw(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v));
                 }
                 else
                 {
-                    retVal.what = tok.GetUInt32HR();
+                    //retVal.what = tok.GetUInt32HR();
+                    tok.ApplyUInt32H8(retVal, x => x.what);
                 }
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -518,6 +521,7 @@ namespace BZNParser.Battlezone
                 if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2012)
                 {
                     if (tok == null || !tok.Validate("param", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse param/ID");
+                    tok.ApplyID(retVal, x => x.param);
                     string tmp = tok.GetString();
                     if (tmp == string.Empty)
                     {
@@ -563,7 +567,15 @@ namespace BZNParser.Battlezone
             {
                 // can't write what we don't know how to read, breakpoint until we fix that>	BZNParser.dll!BZNParser.Battlezone.ExtensionsBattlezone.GetAiCmdInfo(BZNParser.Tokenizer.BZNStreamReader reader) Line 470	C#
 
-                writer.WriteVoidBytes("what", new byte[1] { (byte)value.what });
+                //writer.WriteVoidBytes("what", new byte[1] { (byte)value.what });
+                if (writer.Version == 1001)
+                {
+                    writer.WriteVoidBytesRaw("what", value, x => x.what);
+                }
+                else
+                {
+                    writer.WriteVoidBytes("what", value, x => x.what);
+                }
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {

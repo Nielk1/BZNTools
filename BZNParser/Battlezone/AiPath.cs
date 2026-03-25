@@ -94,7 +94,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 //label = string.Format("bzn64path_{0,4:X4}", tok.GetUInt16());
                 //if (obj != null) obj.label = new SizedString() { Value = label };
-                tok.ReadUInt16(obj, x => x.label, 0, (v) => new SizedString() { Value = string.Format("bzn64path_{0,4:X4}", v) });
+                tok.ApplyUInt16(obj, x => x.label, 0, (v) => new SizedString() { Value = string.Format("bzn64path_{0,4:X4}", v) });
             }
             else
             {

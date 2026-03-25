@@ -29,29 +29,31 @@ namespace BZNParser.Battlezone.GameObject
         public ClassConstructionRig1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassConstructionRig1? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 1030)
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("dropMat", BinaryFieldType.DATA_MAT3DOLD)) throw new Exception("Failed to parse dropMat/MAT3DOLD");
-                if (obj != null)
-                {
-                    obj.dropMat = tok.GetMatrixOld();
-                    MalformationExtensions.CheckMalformationsMatrix(tok, obj.dropMat.Malformations, reader.FloatFormat);
-                }
+                //if (obj != null)
+                //{
+                //    obj.dropMat = tok.GetMatrixOld();
+                //    MalformationExtensions.CheckMalformationsMatrix(tok, obj.dropMat.Malformations, reader.FloatFormat);
+                //}
+                reader.ReadMatrixOld("dropMat", obj, x => x.dropMat);
 
                 if (reader.Format == BZNFormat.BattlezoneN64)
                 {
                     tok = reader.ReadToken();
-                    UInt16 dropClassItemID = tok.GetUInt16();
-                    if (obj != null) obj.dropClass = parent.Hints?.EnumerationPrjID?[dropClassItemID] ?? string.Format("bzn64prjid_{0,4:X4}", dropClassItemID);
+                    if (tok == null)
+                        throw new Exception("Failed to parse dropClass/ID");
+                    tok.ApplyUInt16(obj, x => x.dropClass, 0, (v) => parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v));
                 }
                 else
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("dropClass", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse dropClass/ID");
-                    tok.ReadID(obj, x => x.dropClass);
+                    tok.ApplyID(obj, x => x.dropClass);
                 }
 
                 if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2001)
@@ -79,49 +81,32 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1030)
             {
-                if (writer.Version >= 0)
-                {
-                    writer.WriteMat3DOldEnhanceds("dropMat", preserveMalformations, obj.dropMat);
-                }
-                else
-                {
-                    writer.WriteMat3DOlds("dropMat", preserveMalformations, obj.dropMat);
-                }
+                writer.WriteMatrixOld("dropMat", obj, x => x.dropMat);
 
                 if (writer.Format == BZNFormat.BattlezoneN64)
                 {
-                    if (obj.dropClass.StartsWith("bzn64prjid_"))
+                    writer.WriteUInt16("dropClass", obj, x => x.dropClass, (v) =>
                     {
-                        string possibleLabel = obj.dropClass.Substring("bzn64prjid_".Length);
-                        if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                        if (v.StartsWith("bzn64prjid_"))
                         {
-                            writer.WriteUnsignedValues(null, possibleItemID);
+                            string possibleLabel = v.Substring("bzn64prjid_".Length);
+                            if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                                return possibleItemID;
                         }
                         else
                         {
-                            throw new Exception("Failed to parse dropClass/ID");
-                        }
-                    }
-                    else
-                    {
-                        var lookup = parent.Hints?.EnumerationPrjID;
-                        if (lookup != null)
-                        {
-                            UInt16? key = lookup.Where(dr => dr.Value == obj.dropClass).Select(dr => dr.Key).FirstOrDefault();
-                            if (key.HasValue)
+                            var lookup = parent.Hints?.EnumerationPrjID;
+                            if (lookup != null)
                             {
-                                writer.WriteUnsignedValues(null, key.Value);
-                            }
-                            else
-                            {
-                                throw new Exception("Failed to parse dropClass/ID");
+                                UInt16? key = lookup.Where(dr => dr.Value == v.ToLowerInvariant()).Select(dr => dr.Key).FirstOrDefault();
+                                if (key.HasValue)
+                                {
+                                    return key.Value;
+                                }
                             }
                         }
-                        else
-                        {
-                            throw new Exception("Failed to parse dropClass/ID");
-                        }
-                    }
+                        throw new Exception("Failed to parse dropClass/ID");
+                    });
                 }
                 else
                 {
@@ -130,7 +115,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Format == BZNFormat.Battlezone && writer.Version >= 2001)
                 {
-                    writer.WriteUnsignedValues("lastRecycled", obj.lastRecycled);
+                    writer.WriteUInt32("lastRecycled", obj, x => x.lastRecycled);
                 }
             }
             else

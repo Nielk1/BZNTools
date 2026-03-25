@@ -32,7 +32,7 @@ namespace BZNParser.Battlezone.GameObject
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scrapTimer/FLOAT");
-            if (obj != null) obj.scrapTimer = tok.GetSingle();
+            tok.ApplySingle(obj, x => x.scrapTimer);
 
             if (reader.Version < 1147)
             {
@@ -48,11 +48,12 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
-                    if (obj != null) obj.saveTeam = tok.GetInt32();
+                    tok.ApplyInt32(obj, x => x.saveTeam);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
-                    if (obj != null) obj.saveSeqno = tok.GetInt32H();
+                    //if (obj != null) obj.saveSeqno = tok.GetInt32H();
+                    tok.ApplyUInt32h(obj, x => x.saveSeqno); // Int32?
 
                     //string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32, obj?.Malformations);
                     //if (obj != null) obj.saveLabel = saveLabel;
@@ -80,7 +81,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassExtractor obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
-            writer.WriteFloats("scrapTimer", preserveMalformations ? obj.Malformations : null, obj.scrapTimer);
+            writer.WriteSingle("scrapTimer", obj, x => x.scrapTimer);
             if (writer.Version < 1147)
             {
                 //writer.WriteChars("saveClass", obj.saveClass, obj.Malformations);
@@ -89,10 +90,11 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (!string.IsNullOrEmpty(obj.saveClass.Value))
                 {
-                    writer.WriteSignedValues("saveTeam", obj.saveTeam);
+                    writer.WriteInt32("saveTeam", obj, x => x.saveTeam);
 
                     // this was a short until a version 1128 file (going backwards) where it is a long
-                    writer.WriteUnsignedHexLValues("saveSeqno", (UInt32)obj.saveSeqno); // unsure if this down-cast is safe, if bool writes LONG instead of SHORT it doesn't
+                    //writer.WriteUnsignedHexLValues("saveSeqno", (UInt32)obj.saveSeqno); // unsure if this down-cast is safe, if bool writes LONG instead of SHORT it doesn't
+                    writer.WriteUInt32h("saveSeqno", obj, x => x.saveSeqno);
 
                     //writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel, obj.Malformations); // TODO: figure out what this actually does
                     writer.WriteSizedString("saveLabel", obj, x => x.saveLabel);

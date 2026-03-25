@@ -44,7 +44,7 @@ namespace BZNParser.Battlezone.GameObject
         protected Matrix? saveMatrix { get; set; }
         protected SizedString saveClass { get; set; }
         protected int saveTeam { get; set; }
-        protected int saveSeqno { get; set; }
+        protected uint saveSeqno { get; set; } // is signed in game, very strange
         protected SizedString saveLabel { get; set; }
         protected SizedString saveName { get; set; }
         public bool CLASS_m_AlignsToObject { get; private set; } // Class fields are from the ODF and are readonly
@@ -80,19 +80,29 @@ namespace BZNParser.Battlezone.GameObject
                         if (reader.Version >= 1148)
                         {
                             reader.Bookmark.Mark();
-                            tok = reader.ReadToken();
-                            if (tok.Validate("saveMatrix", BinaryFieldType.DATA_MAT3D))
+                            //tok = reader.ReadToken();
+                            //if (tok.Validate("saveMatrix", BinaryFieldType.DATA_MAT3D))
+                            //{
+                            //    reader.Bookmark.Commit();
+                            //    if (obj != null)
+                            //    {
+                            //        obj.saveMatrix = tok.GetMatrix();
+                            //        tok.CheckMalformationsMatrix(obj.saveMatrix.Malformations, reader.FloatFormat);
+                            //    }
+                            //}
+                            //else
+                            //{
+                            //    //throw new Exception("Failed to parse saveMatrix/MAT3D"); // type not confirmed
+                            //    reader.Bookmark.RevertToBookmark();
+                            //    m_AlignsToObject = true;
+                            //    if (obj != null) obj.CLASS_m_AlignsToObject = true;
+                            //}
+                            try
                             {
-                                reader.Bookmark.Commit();
-                                if (obj != null)
-                                {
-                                    obj.saveMatrix = tok.GetMatrix();
-                                    tok.CheckMalformationsMatrix(obj.saveMatrix.Malformations, reader.FloatFormat);
-                                }
+                                reader.ReadMatrix("saveMatrix", obj, x => x.saveMatrix);
                             }
-                            else
+                            catch
                             {
-                                //throw new Exception("Failed to parse saveMatrix/MAT3D"); // type not confirmed
                                 reader.Bookmark.RevertToBookmark();
                                 m_AlignsToObject = true;
                                 if (obj != null) obj.CLASS_m_AlignsToObject = true;
@@ -101,11 +111,13 @@ namespace BZNParser.Battlezone.GameObject
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
-                        if (obj != null) obj.saveTeam = tok.GetInt32();
+                        //if (obj != null) obj.saveTeam = tok.GetInt32();
+                        tok.ApplyInt32(obj, x => x.saveTeam);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
-                        if (obj != null) obj.saveSeqno = tok.GetInt32H();
+                        //if (obj != null) obj.saveSeqno = tok.GetInt32H();
+                        tok.ApplyUInt32h(obj, x => x.saveSeqno); // TODO might need to be Int32 instead of UInt32, unsure
 
                         //string saveLabel = reader.ReadSizedString_BZ2_1145("saveLabel", 32, obj?.Malformations);
                         //if (obj != null) obj.saveLabel = saveLabel;
@@ -119,7 +131,7 @@ namespace BZNParser.Battlezone.GameObject
                 bool loadAsDummy = false;
                 reader.Bookmark.Mark();
                 tok = reader.ReadToken();
-                loadAsDummy = tok.Validate("name", BinaryFieldType.DATA_CHAR);
+                loadAsDummy = tok != null && tok.Validate("name", BinaryFieldType.DATA_CHAR);
                 reader.Bookmark.RevertToBookmark();
                 if (obj != null) obj.CLASS_loadAsDummy = loadAsDummy;
                 if (loadAsDummy)
@@ -185,7 +197,7 @@ namespace BZNParser.Battlezone.GameObject
                         {
                             if (obj.saveMatrix != null)
                             {
-                                writer.WriteMat3Ds("saveMatrix", preserveMalformations, obj.saveMatrix);
+                                writer.WriteMatrix("saveMatrix", obj, x => x.saveMatrix);
                             }
                             else
                             {
@@ -193,8 +205,8 @@ namespace BZNParser.Battlezone.GameObject
                             }
                         }
 
-                        writer.WriteSignedValues("saveTeam", obj.saveTeam);
-                        writer.WriteUnsignedHexLValues("saveSeqno", (UInt32)obj.saveSeqno);
+                        writer.WriteInt32("saveTeam", obj, x => x.saveTeam);
+                        writer.WriteUInt32h("saveSeqno", obj, x => x.saveSeqno);
                         //writer.WriteSizedString_BZ2_1145("saveLabel", 32, obj.saveLabel, obj.Malformations);
                         writer.WriteSizedString("saveLabel", obj, x => x.saveLabel);
                         //writer.WriteSizedString_BZ2_1145("saveName", 32, obj.saveName, obj.Malformations);

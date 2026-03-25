@@ -24,7 +24,7 @@ namespace BZNParser.Battlezone.GameObject
         //public float setAltitude { get; set; }
         public float timeDeploy { get; set; }
         public float timeUndeploy { get; set; }
-        public UInt32 undefptr2 { get; set; }
+        public UInt32 powerSource { get; set; }
         //public byte[] state { get; set; }
         //public UInt32 state { get; set; }
         //public UInt32 delayTimer { get; set; }
@@ -44,7 +44,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("setAltitude", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse setAltitude/FLOAT");
-                if (obj != null) obj.setAltitude = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.setAltitude);
             }
 
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version != 1042)
@@ -52,18 +52,18 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse timeDeploy/FLOAT");
-                if (obj != null) obj.timeDeploy = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.timeDeploy);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse timeUndeploy/FLOAT");
-                if (obj != null) obj.timeUndeploy = tok.GetSingle();
+                tok.ApplySingle(obj, x => x.timeUndeploy);
             }
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                 throw new Exception("Failed to parse undefptr/PTR");
-            if (obj != null) obj.undefptr2 = tok.GetUInt32H(); // powerSource
+            tok.ApplyUInt32H8(obj, x => x.powerSource);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
@@ -75,27 +75,28 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
                 throw new Exception("Failed to parse delayTimer/FLOAT");
-            if (obj != null) obj.delayTimer = tok.GetSingle();//tok.GetUInt32();
+            tok.ApplySingle(obj, x => x.delayTimer);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("nextRepair", BinaryFieldType.DATA_FLOAT))
                 throw new Exception("Failed to parse nextRepair/FLOAT");
-            if (obj != null) obj.nextRepair = tok.GetSingle();
+            tok.ApplySingle(obj, x => x.nextRepair);
 
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version >= 1006)
             {
                 if (reader.Format == BZNFormat.BattlezoneN64)
                 {
                     tok = reader.ReadToken();
-                    UInt16 buildClassItemID = tok.GetUInt16();
-                    if (obj != null) obj.buildClass = parent?.Hints?.EnumerationPrjID?[buildClassItemID] ?? string.Format("bzn64prjid_{0,4:X4}", buildClassItemID);
+                    if (tok == null)
+                        throw new Exception("Failed to parse buildClass/ID");
+                    tok.ApplyUInt16(obj, x => x.buildClass, 0, (v) => parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v));
                 }
                 else
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("buildClass", BinaryFieldType.DATA_ID))
                         throw new Exception("Failed to parse buildClass/ID");
-                    tok.ReadID(obj, x => x.buildClass);
+                    tok.ApplyID(obj, x => x.buildClass);
                 }
 
                 tok = reader.ReadToken();
@@ -141,56 +142,46 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone && writer.Version < 1011)
             {
-                writer.WriteFloats("setAltitude", preserveMalformations ? obj.Malformations : null, obj.setAltitude);
+                writer.WriteSingle("setAltitude", obj, x => x.setAltitude);
             }
 
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
             {
-                writer.WriteFloats("timeDeploy", preserveMalformations ? obj.Malformations : null, obj.timeDeploy);
-                writer.WriteFloats("timeUndeploy", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy);
+                writer.WriteSingle("timeDeploy", obj, x => x.timeDeploy);
+                writer.WriteSingle("timeUndeploy", obj, x => x.timeUndeploy);
             }
 
-            writer.WriteBZ1_Ptr("undefptr", obj.undefptr2);
+            writer.WritePtr("undefptr", obj, x => x.powerSource);
             writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
-            writer.WriteFloats("delayTimer", preserveMalformations ? obj.Malformations : null, obj.delayTimer);
-            writer.WriteFloats("nextRepair", preserveMalformations ? obj.Malformations : null, obj.nextRepair);
+            writer.WriteSingle("delayTimer", obj, x => x.delayTimer);
+            writer.WriteSingle("nextRepair", obj, x => x.nextRepair);
 
             if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version >= 1006)
             {
                 if (writer.Format == BZNFormat.BattlezoneN64)
                 {
-                    if (obj.buildClass.StartsWith("bzn64prjid_"))
+                    writer.WriteUInt16("buildClass", obj, x => x.buildClass, (v) =>
                     {
-                        string possibleLabel = obj.buildClass.Substring("bzn64prjid_".Length);
-                        if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                        if (v.StartsWith("bzn64prjid_"))
                         {
-                            writer.WriteUnsignedValues(null, possibleItemID);
+                            string possibleLabel = v.Substring("bzn64prjid_".Length);
+                            if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                                return possibleItemID;
                         }
                         else
                         {
-                            throw new Exception("Failed to parse PrjID/ID");
-                        }
-                    }
-                    else
-                    {
-                        var lookup = parent.Hints?.EnumerationPrjID;
-                        if (lookup != null)
-                        {
-                            UInt16? key = lookup.Where(dr => dr.Value == obj.buildClass).Select(dr => dr.Key).FirstOrDefault();
-                            if (key.HasValue)
+                            var lookup = parent.Hints?.EnumerationPrjID;
+                            if (lookup != null)
                             {
-                                writer.WriteUnsignedValues(null, key.Value);
-                            }
-                            else
-                            {
-                                throw new Exception("Failed to parse buildClass/ID");
+                                UInt16? key = lookup.Where(dr => dr.Value == v.ToLowerInvariant()).Select(dr => dr.Key).FirstOrDefault();
+                                if (key.HasValue)
+                                {
+                                    return key.Value;
+                                }
                             }
                         }
-                        else
-                        {
-                            throw new Exception("Failed to parse PrjID/ID");
-                        }
-                    }
+                        throw new Exception("Failed to parse dropClass/ID");
+                    });
                 }
                 else
                 {

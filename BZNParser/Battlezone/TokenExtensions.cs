@@ -12,7 +12,7 @@ namespace BZNParser.Tokenizer;
 // These functions should return the cleaned value and set the value on the property if the parent instance is set
 public static class TokenExtensions
 {
-    public static (TProp stored, Vector3D raw) ReadVector3D<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, FloatTextFormat format = FloatTextFormat.G) where T : IMalformable
+    public static (TProp stored, Vector3D raw) ApplyVector3D<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, FloatTextFormat format = FloatTextFormat.G) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -503,7 +503,7 @@ public static class TokenExtensions
 
         return (setVal, valueInternal);
     }
-    public static (TProp stored, UInt16 raw) ReadUInt16<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt16, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, UInt16 raw) ApplyUInt16<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt16, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -631,6 +631,81 @@ public static class TokenExtensions
 
         return (setVal, valueInternal);
     }
+    public static (TProp stored, UInt64 raw) ApplyID<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt64, TProp>? convert = null) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        UInt64 valueInternal;
+        if (tok.IsBinary)
+        {
+            valueInternal = tok.GetUInt64(index);
+        }
+        else
+        {
+            byte[] rawBytes = BZNEncoding.win1252.GetBytes(tok.GetString(index));
+            byte[] buf = new byte[8];
+            Array.Copy(rawBytes, buf, rawBytes.Length);
+            valueInternal = BitConverter.ToUInt64(buf, 0);
+        }
+        UInt64 valueProcessed = valueInternal;
+        string valueProcessedAsStringRaw = BZNEncoding.win1252.GetString(BitConverter.GetBytes(valueInternal));
+        string valueProcessedAsString = valueProcessedAsStringRaw;
+
+        // clean up intake data
+        int idx = valueProcessedAsString.IndexOf('\0');
+        if (idx > -1)
+            valueProcessedAsString = valueProcessedAsString.Substring(0, idx);
+
+        // register malformations if possible
+        if (propInfo != null && parent != null)
+        {
+            // the processed value doesn't match the internal value, log the malformation
+            if (!string.Equals(valueProcessedAsString, valueProcessedAsStringRaw, StringComparison.Ordinal))
+                parent.Malformations.AddIncorrectRaw<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(valueInternal));
+        }
+
+        if (parent != null && property != null)
+        {
+            var tmp = tok as BZNTokenString;
+            if (tmp != null)
+            {
+                if (tmp.RightTrimmedOneLiner)
+                    parent.Malformations.AddRightTrimmed(property, index);
+            }
+        }
+
+        TProp finalValue = default!;
+        bool finalValueReady = false;
+        if (convert != null)
+        {
+            // if a converter is given, use it on the raw value
+            finalValue = convert(valueProcessed);
+            finalValueReady = true;
+        }
+        else
+        {
+            // no converter so try to cast
+            if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+            {
+                finalValue = (TProp)(object)valueProcessed;
+                finalValueReady = true;
+            }
+            if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+            {
+                finalValue = (TProp)(object)valueProcessed;
+                finalValueReady = true;
+            }
+        }
+
+        // apply the value if possible
+        if (propInfo != null && parent != null && finalValueReady)
+            propInfo.SetValue(parent, finalValue);
+
+        // always return processed data, even if we didn't attach it to the property or store malformations, we still read the value
+        return (finalValue, valueProcessed);
+    }
 
     /// <summary>
     /// Read a chars string from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
@@ -744,6 +819,40 @@ public static class TokenExtensions
         return (setVal, valueInternal);
     }
 
+    public static (TProp stored, byte[] raw) ApplyVoidBytesRaw<T, TProp>(
+        this IBZNToken tok,
+        T? parent,
+        Expression<Func<T, TProp>>? property,
+        int index = 0,
+        Func<byte[], TProp>? convert = null
+    ) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        // Read the raw bytes from the token
+        byte[] valueInternal = tok.GetRaw(index, -1);
+
+        TProp setVal = default!;
+        bool did = false;
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(byte[]) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(byte[]))
+        {
+            setVal = (TProp)(object)valueInternal;
+            did = true;
+        }
+
+        if (propInfo != null && parent != null && did)
+            propInfo.SetValue(parent, setVal);
+
+        return (setVal, valueInternal);
+    }
+
     /// <summary>
     /// Read a boolean from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
     /// while also checking for common malformations.
@@ -817,7 +926,7 @@ public static class TokenExtensions
     /// <param name="index"></param>
     /// <param name="convert"></param>
     /// <returns></returns>
-    public static (TProp stored, string cleaned, string raw) ReadID<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, string cleaned, string raw) ApplyID<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -853,6 +962,11 @@ public static class TokenExtensions
             if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
             {
                 finalValue = (TProp)(object)valueProcessed;
+                finalValueReady = true;
+            }
+            else if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
+            {
+                finalValue = (TProp)(object)(new SizedString() { Value = valueProcessed });
                 finalValueReady = true;
             }
         }

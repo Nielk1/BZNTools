@@ -80,11 +80,12 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("pos", BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse pos/VEC3D");
-                if (obj != null)
-                {
-                    obj.pos = tok.GetVector3D();
-                    MalformationExtensions.CheckMalformationsVector3D(tok, obj.pos.Malformations, reader.FloatFormat);
-                }
+                //if (obj != null)
+                //{
+                //    obj.pos = tok.GetVector3D();
+                //    MalformationExtensions.CheckMalformationsVector3D(tok, obj.pos.Malformations, reader.FloatFormat);
+                //}
+                tok.ApplyVector3D(obj, x => x.pos2);
             }
 
             /*if (obj != null)
@@ -801,8 +802,9 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Format == BZNFormat.BattlezoneN64) // unsure of this version check
             {
                 tok = reader.ReadToken();
-                UInt16 curPilotID = tok.GetUInt16();
-                if (obj != null) obj.curPilot = new SizedString() { Value = parent?.Hints?.EnumerationPrjID?[curPilotID] ?? string.Format("bzn64prjid_{0,4:X4}", curPilotID) };
+                if (tok == null)
+                    throw new Exception("Failed to parse hasPilot/BOOL");
+                tok.ApplyUInt16(obj, x => x.curPilot, 0, (v) => new SizedString() { Value = parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v) });
             }
             if (reader.Format == BZNFormat.Battlezone && reader.Version > 1016)
             {
@@ -817,7 +819,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("curPilot", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse curPilot/ID");
-                    tok.ReadID(obj, x => x.curPilot);
+                    tok.ApplyID(obj, x => x.curPilot);
                 }
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -884,7 +886,7 @@ namespace BZNParser.Battlezone.GameObject
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
                 //writer.WriteVector3Ds("pos", preserveMalformations, obj.pos);
-                writer.WriteVector3D("pos", obj, x => x.pos);
+                writer.WriteVector3D("pos", obj, x => x.pos2);
             }
 
             //writer.WriteEulerBZ(parent.SaveType, preserveMalformations, obj.euler);
@@ -1394,38 +1396,28 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.BattlezoneN64) // unsure of this version check
             {
-                if (obj.curPilot.Value.StartsWith("bzn64prjid_"))
+                writer.WriteUInt16("curPilot", obj, x => x.curPilot, (v) =>
                 {
-                    string possibleLabel = obj.curPilot.Value.Substring("bzn64prjid_".Length);
-                    if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                    if (v.Value.StartsWith("bzn64prjid_"))
                     {
-                        writer.WriteUnsignedValues(null, possibleItemID);
+                        string possibleLabel = v.Value.Substring("bzn64prjid_".Length);
+                        if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                            return possibleItemID;
                     }
                     else
                     {
-                        throw new Exception("Failed to parse PrjID/ID");
-                    }
-                }
-                else
-                {
-                    var lookup = parent.Hints?.EnumerationPrjID;
-                    if (lookup != null)
-                    {
-                        UInt16? key = lookup.Where(dr => dr.Value == obj.curPilot.Value).Select(dr => dr.Key).FirstOrDefault();
-                        if (key.HasValue)
+                        var lookup = parent.Hints?.EnumerationPrjID;
+                        if (lookup != null)
                         {
-                            writer.WriteUnsignedValues(null, key.Value);
-                        }
-                        else
-                        {
-                            throw new Exception("Failed to parse curPilot/ID");
+                            UInt16? key = lookup.Where(dr => dr.Value == v.Value.ToLowerInvariant()).Select(dr => dr.Key).FirstOrDefault();
+                            if (key.HasValue)
+                            {
+                                return key.Value;
+                            }
                         }
                     }
-                    else
-                    {
-                        throw new Exception("Failed to parse curPilot/ID");
-                    }
-                }
+                    throw new Exception("Failed to parse curPilot/ID");
+                });
             }
             if (writer.Format == BZNFormat.Battlezone && writer.Version > 1016)
             {

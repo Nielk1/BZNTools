@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -60,9 +61,12 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                UInt16 ItemID = tok.GetUInt16();
-                string PrjID = parent.Hints?.EnumerationPrjID?[ItemID] ?? string.Format("bzn64prjid_{0,4:X4}", ItemID);
-                if (obj != null) obj.PrjID = new SizedString() { Value = PrjID };
+                if (tok == null)
+                    throw new Exception("Failed to parse PrjID/ID");
+                //UInt16 ItemID = tok.GetUInt16();
+                //string PrjID = parent.Hints?.EnumerationPrjID?[ItemID] ?? string.Format("bzn64prjid_{0,4:X4}", ItemID);
+                //if (obj != null) obj.PrjID = new SizedString() { Value = PrjID };
+                tok.ApplyUInt16(obj, x => x.PrjID, 0, (v) => new SizedString() { Value = parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v) });
             }
             else if (reader.Format == BZNFormat.Battlezone)
             {
@@ -74,7 +78,7 @@ namespace BZNParser.Battlezone
 
                 // version 1001 may require the string be 8 bytes but our only sample is 1 ASCII atm
                 // version 1001 has it written as a raw 1-liner and not a normal ID, but that might be how IDs work that far back
-                tok.ReadID(obj, x => x.PrjID);
+                tok.ApplyID(obj, x => x.PrjID);
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -132,7 +136,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
                         throw new Exception("Failed to parse seqno/SHORT");
-                    (seqNo, _) = tok.ReadUInt16(obj, x => x.seqNo);
+                    (seqNo, _) = tok.ApplyUInt16(obj, x => x.seqNo);
                 }
                 else if (reader.Version <= 1100)
                 {
@@ -156,7 +160,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
                     throw new Exception("Failed to parse seqno/SHORT");
                 //seqNo = tok.GetUInt16();
-                (seqNo, _) = tok.ReadUInt16(obj, x => x.seqNo);
+                (seqNo, _) = tok.ApplyUInt16(obj, x => x.seqNo);
             }
             //if (obj != null) obj.seqNo = seqNo;
 
@@ -170,7 +174,7 @@ namespace BZNParser.Battlezone
                 //    obj.pos = tok.GetVector3D();
                 //    tok.CheckMalformationsVector3D(obj.pos.Malformations, reader.FloatFormat);
                 //}
-                tok.ReadVector3D(obj, x => x.pos);
+                tok.ApplyVector3D(obj, x => x.pos);
             }
 
             tok = reader.ReadToken();
@@ -305,13 +309,21 @@ namespace BZNParser.Battlezone
             {
                 if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version < 1002)
                 {
-                    UInt32 obj_addr = reader.ReadBZ1_PtrDepricated("obj_addr"); // string name unconfirmed
-                    if (obj != null) obj.obj_addr = obj_addr;
+                    //UInt32 obj_addr = reader.ReadBZ1_PtrDepricated("obj_addr"); // string name unconfirmed
+                    //if (obj != null) obj.obj_addr = obj_addr;
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate("obj_addr", BinaryFieldType.DATA_VOID))
+                        throw new Exception("Failed to parse objAddr/VOID");
+                    tok.ApplyVoidBytesRaw(obj, x => x.obj_addr, 0, (v) => BitConverter.ToUInt32(v));
                 }
                 else
                 {
-                    UInt64 obj_addr = reader.ReadBZ1_Ptr("obj_addr", reader.Version);
-                    if (obj != null) obj.obj_addr = obj_addr;
+                    //UInt64 obj_addr = reader.ReadBZ1_Ptr("obj_addr", reader.Version);
+                    //if (obj != null) obj.obj_addr = obj_addr;
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate("obj_addr", BinaryFieldType.DATA_PTR))
+                        throw new Exception("Failed to parse objAddr/VOID");
+                    tok.ApplyUInt32H8(obj, x => x.obj_addr);
                 }
                 // might have posit x,y,z here
             }
@@ -478,45 +490,35 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                if (PrjID.Value.StartsWith("bzn64prjid_"))
+                writer.WriteUInt16("PrjID", this, x => x.PrjID, (v) =>
                 {
-                    string possibleLabel = PrjID.Value.Substring("bzn64prjid_".Length);
-                    if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                    if (v.Value.StartsWith("bzn64prjid_"))
                     {
-                        writer.WriteUnsignedValues(null, possibleItemID);
+                        string possibleLabel = v.Value.Substring("bzn64prjid_".Length);
+                        if (ushort.TryParse(possibleLabel, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                            return possibleItemID;
                     }
                     else
                     {
-                        throw new Exception("Failed to parse PrjID/ID");
-                    }
-                }
-                else
-                {
-                    var lookup = parent.Hints?.EnumerationPrjID;
-                    if (lookup != null)
-                    {
-                        UInt16? key = lookup.Where(dr => dr.Value == PrjID.Value).Select(dr => dr.Key).FirstOrDefault();
-                        if (key.HasValue)
+                        var lookup = parent.Hints?.EnumerationPrjID;
+                        if (lookup != null)
                         {
-                            writer.WriteUnsignedValues(null, key.Value);
-                        }
-                        else
-                        {
-                            throw new Exception("Failed to parse PrjID/ID");
+                            UInt16? key = lookup.Where(dr => dr.Value == v.Value.ToLowerInvariant()).Select(dr => dr.Key).FirstOrDefault();
+                            if (key.HasValue)
+                            {
+                                return key.Value;
+                            }
                         }
                     }
-                    else
-                    {
-                        throw new Exception("Failed to parse PrjID/ID");
-                    }
-                }
+                    throw new Exception("Failed to parse dropClass/ID");
+                });
             }
             else if (writer.Format == BZNFormat.Battlezone)
             {
                 if (writer.Version == 1001)
-                    writer.WriteID("PrjID", this, x => x.PrjID.Value, oneLiner: true); // confirm when we can if this actually an ID
+                    writer.WriteID("PrjID", this, x => x.PrjID, oneLiner: true); // confirm when we can if this actually an ID
                 else
-                    writer.WriteID("PrjID", this, x => x.PrjID.Value);
+                    writer.WriteID("PrjID", this, x => x.PrjID);
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -695,11 +697,13 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version < 1002)
                 {
-                    writer.WriteBZ1_PtrDepricated("obj_addr", (UInt32)obj_addr, raw: true); // string name unconfirmed
+                    //writer.WriteBZ1_PtrDepricated("obj_addr", (UInt32)obj_addr, raw: true); // string name unconfirmed
+                    writer.WriteVoidBytesRaw("obj_addr", this, x => x.obj_addr);
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("obj_addr", obj_addr);
+                    //writer.WriteBZ1_Ptr("obj_addr", obj_addr);
+                    writer.WritePtr("obj_addr", this, x => x.obj_addr);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)

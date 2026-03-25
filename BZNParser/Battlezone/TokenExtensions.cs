@@ -663,17 +663,19 @@ public static class TokenExtensions
 
         // Malformation: garbage after first null in string mode
         bool hasGarbageAfterNull = false;
-        if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+        if ((typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string) ||
+             typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
+            && nullIdx >= 0 && rawBytes.Skip(nullIdx + 1).Any(b => b != 0))
         {
-            if (nullIdx >= 0 && rawBytes.Skip(nullIdx + 1).Any(b => b != 0))
-                hasGarbageAfterNull = true;
+            hasGarbageAfterNull = true;
         }
 
         // Malformation: empty string in BZNTokenString means all 0x00 in UInt64 mode
         bool isEmptyString = false;
         if (tok is BZNTokenString)
         {
-            if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+            if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string) ||
+                typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
                 isEmptyString = valueString.Length == 0;
             else
                 isEmptyString = rawBytes.All(b => b == 0);
@@ -698,11 +700,6 @@ public static class TokenExtensions
         bool finalValueReady = false;
         if (convert != null)
         {
-            // Use the converter on the appropriate value
-            //if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
-            //    finalValue = convert(valueString);
-            //else
-            //    finalValue = convert(valueUInt64);
             finalValue = convert(valueUInt64);
             finalValueReady = true;
         }
@@ -729,11 +726,7 @@ public static class TokenExtensions
         if (propInfo != null && parent != null && finalValueReady)
             propInfo.SetValue(parent, finalValue);
 
-        // Return both the stored value and the raw representation (string or UInt64)
-        //if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
-        //    return (finalValue, valueStringRaw);
-        //else
-        //    return (finalValue, valueUInt64);
+        // Always return the UInt64 raw value for consistency with the new function signature
         return (finalValue, valueUInt64);
     }
 
@@ -800,7 +793,7 @@ public static class TokenExtensions
                 finalValue = (TProp)(object)valueProcessed;
                 finalValueReady = true;
             }
-            else if(typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
+            else if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
             {
                 finalValue = (TProp)(object)new SizedString() { Value = valueProcessed };
                 finalValueReady = true;
@@ -938,74 +931,5 @@ public static class TokenExtensions
             propInfo.SetValue(parent, setVal);
 
         return (setVal, valueInternal);
-    }
-
-    // Only used by BZ1, never BZ2, others unknown
-    /// <summary>
-    /// Read an ID from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,
-    /// while also checking for common malformations.
-    /// </summary>
-    /// <remarks>
-    /// Handles the following malformations: <see cref="Malformation.INCORRECT_RAW"/>
-    /// </remarks>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="TProp"></typeparam>
-    /// <param name="tok"></param>
-    /// <param name="parent"></param>
-    /// <param name="property"></param>
-    /// <param name="index"></param>
-    /// <param name="convert"></param>
-    /// <returns></returns>
-    public static (TProp stored, string cleaned, string raw) ApplyID<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null) where T : IMalformable
-    {
-        PropertyInfo? propInfo = null;
-        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
-            propInfo = propInfo_;
-
-        string valueInternal = tok.GetString(index);
-        string valueProcessed = valueInternal;
-
-        // clean up intake data
-        int idx = valueProcessed.IndexOf('\0');
-        if (idx > -1)
-            valueProcessed = valueProcessed.Substring(0, idx);
-
-        // register malformations if possible
-        if (propInfo != null && parent != null)
-        {
-            // the processed value doesn't match the internal value, log the malformation
-            if (!string.Equals(valueInternal, valueProcessed, StringComparison.Ordinal))
-                parent.Malformations.AddIncorrectRaw<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(valueInternal));
-        }
-
-        TProp finalValue = default!;
-        bool finalValueReady = false;
-        if (convert != null)
-        {
-            // if a converter is given, use it on the raw value
-            finalValue = convert(valueProcessed);
-            finalValueReady = true;
-        }
-        else
-        {
-            // no converter so try to cast
-            if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
-            {
-                finalValue = (TProp)(object)valueProcessed;
-                finalValueReady = true;
-            }
-            else if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
-            {
-                finalValue = (TProp)(object)(new SizedString() { Value = valueProcessed });
-                finalValueReady = true;
-            }
-        }
-
-        // apply the value if possible
-        if (propInfo != null && parent != null && finalValueReady)
-            propInfo.SetValue(parent, finalValue);
-
-        // always return processed data, even if we didn't attach it to the property or store malformations, we still read the value
-        return (finalValue, valueProcessed, valueInternal);
     }
 }

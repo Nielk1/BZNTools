@@ -522,29 +522,29 @@ namespace BZNParser.Battlezone
                 {
                     if (tok == null || !tok.Validate("param", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse param/ID");
                     tok.ApplyID(retVal, x => x.param);
-                    string tmp = tok.GetString();
-                    if (tmp == string.Empty)
-                    {
-                        retVal.param = 0;
-                    }
-                    else
-                    {
-                        //param = tok.GetUInt32();
-                        byte[] rawBytes = tok.GetRaw(0, -1);
-                        if (rawBytes.Length > 8)
-                        {
-                            // bugged path!
-                            // Probably not converting these properly
-                            retVal.Malformations.AddIncorrect("param", rawBytes);
-
-                            string utf8Str = Encoding.UTF8.GetString(rawBytes);
-                            byte[] newRawBytes = win1252.GetBytes(utf8Str);
-                            rawBytes = newRawBytes;
-                        }
-                        byte[] raw2 = new byte[8];
-                        Array.Copy(rawBytes, 0, raw2, 0, Math.Min(8, rawBytes.Length));
-                        retVal.param = BitConverter.ToUInt64(raw2, 0);
-                    }
+                    //string tmp = tok.GetString();
+                    //if (tmp == string.Empty)
+                    //{
+                    //    retVal.param = 0;
+                    //}
+                    //else
+                    //{
+                    //    //param = tok.GetUInt32();
+                    //    byte[] rawBytes = tok.GetRaw(0, -1);
+                    //    if (rawBytes.Length > 8)
+                    //    {
+                    //        // bugged path!
+                    //        // Probably not converting these properly
+                    //        retVal.Malformations.AddIncorrect("param", rawBytes);
+                    //
+                    //        string utf8Str = Encoding.UTF8.GetString(rawBytes);
+                    //        byte[] newRawBytes = win1252.GetBytes(utf8Str);
+                    //        rawBytes = newRawBytes;
+                    //    }
+                    //    byte[] raw2 = new byte[8];
+                    //    Array.Copy(rawBytes, 0, raw2, 0, Math.Min(8, rawBytes.Length));
+                    //    retVal.param = BitConverter.ToUInt64(raw2, 0);
+                    //}
                 }
                 else
                 {
@@ -614,8 +614,8 @@ namespace BZNParser.Battlezone
                 //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2016)
                 if (writer.Format == BZNFormat.Battlezone && writer.Version >= 2012)
                 {
-                    writer.WriteIDsBZ1("param", value.param, preserveMalformations ? value.Malformations : null);
-                    //writer.WriteID("param", value, x => x.param);
+                    //writer.WriteIDsBZ1("param", value.param, preserveMalformations ? value.Malformations : null);
+                    writer.WriteID("param", value, x => x.param);
                 }
                 else
                 {

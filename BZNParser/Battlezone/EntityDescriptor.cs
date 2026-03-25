@@ -74,7 +74,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("PrjID", BinaryFieldType.DATA_ID))
                     throw new Exception("Failed to parse PrjID/ID");
                 //if (tok == null || !tok.Validate("PrjID", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse PrjID/ID");
-                string PrjID = tok.GetString();
+                //string PrjID = tok.GetString();
 
                 // version 1001 may require the string be 8 bytes but our only sample is 1 ASCII atm
                 // version 1001 has it written as a raw 1-liner and not a normal ID, but that might be how IDs work that far back

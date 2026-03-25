@@ -637,74 +637,104 @@ public static class TokenExtensions
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
             propInfo = propInfo_;
 
-        UInt64 valueInternal;
+        // Read the raw bytes (always 8 bytes for ID)
+        byte[] rawBytes;
         if (tok.IsBinary)
         {
-            valueInternal = tok.GetUInt64(index);
+            rawBytes = tok.GetBytes(index, -1);
         }
         else
         {
-            byte[] rawBytes = BZNEncoding.win1252.GetBytes(tok.GetString(index));
-            byte[] buf = new byte[8];
-            Array.Copy(rawBytes, buf, rawBytes.Length);
-            valueInternal = BitConverter.ToUInt64(buf, 0);
+            // For text tokens, pad/truncate to 8 bytes
+            var str = tok.GetString(index);
+            var strBytes = BZNEncoding.win1252.GetBytes(str);
+            rawBytes = new byte[8];
+            int len = Math.Min(strBytes.Length, 8);
+            Array.Copy(strBytes, rawBytes, len);
         }
-        UInt64 valueProcessed = valueInternal;
-        string valueProcessedAsStringRaw = BZNEncoding.win1252.GetString(BitConverter.GetBytes(valueInternal));
-        string valueProcessedAsString = valueProcessedAsStringRaw;
 
-        // clean up intake data
-        int idx = valueProcessedAsString.IndexOf('\0');
-        if (idx > -1)
-            valueProcessedAsString = valueProcessedAsString.Substring(0, idx);
+        // Interpret as UInt64
+        UInt64 valueUInt64 = BitConverter.ToUInt64(rawBytes, 0);
 
-        // register malformations if possible
+        // Interpret as string (up to first null)
+        string valueStringRaw = BZNEncoding.win1252.GetString(rawBytes);
+        int nullIdx = valueStringRaw.IndexOf('\0');
+        string valueString = nullIdx >= 0 ? valueStringRaw.Substring(0, nullIdx) : valueStringRaw;
+
+        // Malformation: garbage after first null in string mode
+        bool hasGarbageAfterNull = false;
+        if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+        {
+            if (nullIdx >= 0 && rawBytes.Skip(nullIdx + 1).Any(b => b != 0))
+                hasGarbageAfterNull = true;
+        }
+
+        // Malformation: empty string in BZNTokenString means all 0x00 in UInt64 mode
+        bool isEmptyString = false;
+        if (tok is BZNTokenString)
+        {
+            if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+                isEmptyString = valueString.Length == 0;
+            else
+                isEmptyString = rawBytes.All(b => b == 0);
+        }
+
+        // Register malformations
         if (propInfo != null && parent != null)
         {
-            // the processed value doesn't match the internal value, log the malformation
-            if (!string.Equals(valueProcessedAsString, valueProcessedAsStringRaw, StringComparison.Ordinal))
-                parent.Malformations.AddIncorrectRaw<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(valueInternal));
+            if (hasGarbageAfterNull)
+                parent.Malformations.AddIncorrectRaw<T, TProp>(property, index, rawBytes);
         }
 
         if (parent != null && property != null)
         {
             var tmp = tok as BZNTokenString;
-            if (tmp != null)
-            {
-                if (tmp.RightTrimmedOneLiner)
-                    parent.Malformations.AddRightTrimmed(property, index);
-            }
+            if (tmp != null && tmp.RightTrimmedOneLiner)
+                parent.Malformations.AddRightTrimmed(property, index);
         }
 
+        // Prepare the return value
         TProp finalValue = default!;
         bool finalValueReady = false;
         if (convert != null)
         {
-            // if a converter is given, use it on the raw value
-            finalValue = convert(valueProcessed);
+            // Use the converter on the appropriate value
+            //if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+            //    finalValue = convert(valueString);
+            //else
+            //    finalValue = convert(valueUInt64);
+            finalValue = convert(valueUInt64);
             finalValueReady = true;
         }
         else
         {
-            // no converter so try to cast
             if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
             {
-                finalValue = (TProp)(object)valueProcessed;
+                finalValue = (TProp)(object)valueString;
                 finalValueReady = true;
             }
-            if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+            else if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
             {
-                finalValue = (TProp)(object)valueProcessed;
+                finalValue = (TProp)(object)new SizedString { Value = valueString };
+                finalValueReady = true;
+            }
+            else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+            {
+                finalValue = (TProp)(object)valueUInt64;
                 finalValueReady = true;
             }
         }
 
-        // apply the value if possible
+        // Set the property if possible
         if (propInfo != null && parent != null && finalValueReady)
             propInfo.SetValue(parent, finalValue);
 
-        // always return processed data, even if we didn't attach it to the property or store malformations, we still read the value
-        return (finalValue, valueProcessed);
+        // Return both the stored value and the raw representation (string or UInt64)
+        //if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
+        //    return (finalValue, valueStringRaw);
+        //else
+        //    return (finalValue, valueUInt64);
+        return (finalValue, valueUInt64);
     }
 
     /// <summary>

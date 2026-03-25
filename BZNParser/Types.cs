@@ -247,15 +247,15 @@ namespace BZNParser
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ReadVector3D(euler, x => x.v);
+                tok.ApplyVector3D(euler, x => x.v);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ReadVector3D(euler, x => x.omega);
+                tok.ApplyVector3D(euler, x => x.omega);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ReadVector3D(euler, x => x.Accel);
+                tok.ApplyVector3D(euler, x => x.Accel);
 
                 // store the value into the property if possible
                 if (parent != null && propInfo != null)
@@ -289,9 +289,9 @@ namespace BZNParser
             subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.v_mag_inv); if (subTok.GetRawName() != @" v_mag_inv") { value.Malformations.AddIncorrectName<Euler, float>(x => x.v_mag_inv, subTok.GetRawName()); }
             subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.I        ); if (subTok.GetRawName() != @" I"        ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I        , subTok.GetRawName()); }
             subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.I_inv    ); if (subTok.GetRawName() != @" k_i"      ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I_inv    , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 6); subTok.ReadVector3D(value, x => x.v      ); if (subTok.GetRawName() != @" v"        ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.v     , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 7); subTok.ReadVector3D(value, x => x.omega  ); if (subTok.GetRawName() != @" omega"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.omega , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 8); subTok.ReadVector3D(value, x => x.Accel  ); if (subTok.GetRawName() != @" Accel"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.Accel , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 6); subTok.ApplyVector3D(value, x => x.v      ); if (subTok.GetRawName() != @" v"        ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.v     , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 7); subTok.ApplyVector3D(value, x => x.omega  ); if (subTok.GetRawName() != @" omega"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.omega , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 8); subTok.ApplyVector3D(value, x => x.Accel  ); if (subTok.GetRawName() != @" Accel"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.Accel , subTok.GetRawName()); }
 
             return value;
         }
@@ -352,6 +352,26 @@ namespace BZNParser
             if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                 throw new Exception($"Failed to parse {name}/CHAR");
             return tok.ReadChars(value, x => x.Value);
+        }
+
+        public static (string stored, string raw) ReadGameObjectClass_BZ2<T>(this BZNStreamReader reader, SaveType saveType, string name, T? parent, Expression<Func<T, SizedString>>? property, int index = 0) where T : IMalformable
+        {
+            if (reader.Version < 1145)
+            {
+                //return reader.ReadSizedString_BZ2_1145(name, 16, malformations);
+                return reader.ReadSizedString(name, parent, property, index);
+            }
+            else
+            {
+                if (saveType == SaveType.LOCKSTEP)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    return reader.ReadSizedString(name, parent, property, index);
+                }
+            }
         }
 
         public static void WriteSizedString<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property, Func<SizedString, SizedString>? convert = null)

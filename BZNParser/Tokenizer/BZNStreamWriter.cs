@@ -1559,13 +1559,29 @@ namespace BZNParser.Tokenizer
         {
             TProp value = ExtractPropertyValue(parent, property);
             byte[] rawValue;
+
             if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
             {
-                rawValue = BZNEncoding.win1252.GetBytes((string?)(object?)value ?? "");
+                string str = (string?)(object?)value ?? "";
+                rawValue = BZNEncoding.win1252.GetBytes(str);
+                if (rawValue.Length > 8)
+                    rawValue = rawValue.Take(8).ToArray();
+                else if (rawValue.Length < 8)
+                    rawValue = rawValue.Concat(new byte[8 - rawValue.Length]).ToArray();
             }
             else if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
             {
-                rawValue = BZNEncoding.win1252.GetBytes(((SizedString?)(object?)value)?.Value ?? "");
+                string str = ((SizedString?)(object?)value)?.Value ?? "";
+                rawValue = BZNEncoding.win1252.GetBytes(str);
+                if (rawValue.Length > 8)
+                    rawValue = rawValue.Take(8).ToArray();
+                else if (rawValue.Length < 8)
+                    rawValue = rawValue.Concat(new byte[8 - rawValue.Length]).ToArray();
+            }
+            else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+            {
+                // Convert UInt64 to 8 bytes (little-endian)
+                rawValue = BitConverter.GetBytes((UInt64)(object)value!);
             }
             else
             {
@@ -1579,13 +1595,32 @@ namespace BZNParser.Tokenizer
 
             if (InBinary)
             {
+                // Always write 8 bytes in binary mode
+                if (rawValue.Length < 8)
+                    rawValue = rawValue.Concat(new byte[8 - rawValue.Length]).ToArray();
+                else if (rawValue.Length > 8)
+                    rawValue = rawValue.Take(8).ToArray();
+
                 InternalWriteBinaryType(BinaryFieldType.DATA_ID);
-                InternalWriteBinarySize(rawValue.Length);
-                BaseStream.Write(rawValue);
+                InternalWriteBinarySize(8);
+                BaseStream.Write(rawValue, 0, 8);
                 InternalAlignBinary();
                 TokenIndex++;
                 return;
             }
+
+            // In text mode, write up to the first null (or all 8 if no null)
+            //int textLen = Array.IndexOf(rawValue, (byte)0);
+            //if (textLen < 0)
+            //    textLen = Math.Min(rawValue.Length, 8);
+            //else
+            //    textLen = Math.Min(textLen, 8);
+
+            int textLen = Array.IndexOf(rawValue, (byte)0);
+            if (textLen >= 0)
+                rawValue = rawValue.Take(textLen).ToArray();
+            // text mode garbage probably doesn't work right here, consider text malformation in that case
+
             if (oneLiner)
             {
                 // maybe one-liner should be a general writer tool so it can use the malformation for no trailing space universally

@@ -99,7 +99,7 @@ namespace BZNParser.Battlezone.GameObject
                         writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.timeDeploy); // timeDeploy
                         writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy); // timeUndeploy
                     }
-                    writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
+                    writer.WriteVoidBytes("undefraw", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
                     writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.delayTimer); // delayTimer
                     if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
                     {

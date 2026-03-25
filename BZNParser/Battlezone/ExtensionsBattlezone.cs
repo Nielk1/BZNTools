@@ -461,7 +461,8 @@ namespace BZNParser.Battlezone
                 else
                 {
                     //retVal.what = tok.GetUInt32HR();
-                    tok.ApplyUInt32H8(retVal, x => x.what);
+                    //tok.ApplyUInt32H8(retVal, x => x.what);
+                    tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v));
                 }
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -574,7 +575,7 @@ namespace BZNParser.Battlezone
                 }
                 else
                 {
-                    writer.WriteVoidBytes("what", value, x => x.what);
+                    writer.WriteVoidBytesL("what", value, x => x.what);
                 }
             }
             if (writer.Format == BZNFormat.Battlezone2)

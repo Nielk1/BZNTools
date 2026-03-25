@@ -344,7 +344,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse msn_filename/CHAR");
-                tok.ReadChars(this, x => x.msn_filename);
+                tok.ApplyChars(this, x => x.msn_filename);
                 Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -408,7 +408,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
-                    tok.ReadChars(this, x => x.TerrainName);
+                    tok.ApplyChars(this, x => x.TerrainName);
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
             }
@@ -420,7 +420,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
-                    tok.ReadChars(this, x => x.TerrainName);
+                    tok.ApplyChars(this, x => x.TerrainName);
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else if (reader.Version == 1171)
@@ -433,7 +433,7 @@ namespace BZNParser.Battlezone
                             throw new Exception("Failed to parse g_TerrainName/CHAR"); // might need to note a safe malformation here
                         Malformations.AddIncorrectName<BZNFileBattlezone, string>(x => x.TerrainName, "TerrainName");
                     }
-                    tok.ReadChars(this, x => x.TerrainName);
+                    tok.ApplyChars(this, x => x.TerrainName);
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else
@@ -441,7 +441,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("g_TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse g_TerrainName/CHAR");
-                    tok.ReadChars(this, x => x.TerrainName);
+                    tok.ApplyChars(this, x => x.TerrainName);
                     Console.WriteLine($"TerrainName: {TerrainName}");
                 }
             }
@@ -600,7 +600,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse name/CHAR");
-                    tok.ReadChars(this, x => x.Mission);
+                    tok.ApplyChars(this, x => x.Mission);
                     Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else if (reader.Version < 1145)
@@ -609,7 +609,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse dllName/CHAR");
-                    tok.ReadChars(this, x => x.Mission);
+                    tok.ApplyChars(this, x => x.Mission);
                     Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else
@@ -632,7 +632,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse name/CHAR");
-                tok.ReadChars(this, x => x.Mission);
+                tok.ApplyChars(this, x => x.Mission);
                 Console.WriteLine($"Mission: {this.Mission}");
 
                 // read the old sObject ptr, not sure what can be done with it
@@ -1187,7 +1187,8 @@ namespace BZNParser.Battlezone
 
             // maybe we should just null check this instead?
             if (preserveMalformations && Malformations.HasExtraField<BZNFileBattlezone, Vector2D>(x => ExtraVec2D))
-                writer.WriteVector2Ds(null, preserveMalformations, ExtraVec2D);
+                //writer.WriteVector2Ds(null, preserveMalformations, ExtraVec2D);
+                writer.WriteVector2D(null, this, x => x.ExtraVec2D);
         }
     }
 }

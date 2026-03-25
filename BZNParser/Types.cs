@@ -343,7 +343,7 @@ namespace BZNParser
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                             throw new Exception($"Failed to parse {name}/CHAR");
-                        return tok.ReadChars(value, x => x.Value);
+                        return tok.ApplyChars(value, x => x.Value);
                     }
                     return (null, null);
                 }
@@ -351,7 +351,7 @@ namespace BZNParser
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                 throw new Exception($"Failed to parse {name}/CHAR");
-            return tok.ReadChars(value, x => x.Value);
+            return tok.ApplyChars(value, x => x.Value);
         }
 
         public static (string stored, string raw) ReadGameObjectClass_BZ2<T>(this BZNStreamReader reader, SaveType saveType, string name, T? parent, Expression<Func<T, SizedString>>? property, int index = 0) where T : IMalformable
@@ -433,7 +433,7 @@ namespace BZNParser
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                     throw new Exception($"Failed to parse {name}/CHAR");
-                return tok.ReadChars(value, x => x.Value);
+                return tok.ApplyChars(value, x => x.Value);
             }
             return (null, null);
         }

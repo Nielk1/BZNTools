@@ -36,7 +36,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                 throw new Exception("Failed to parse name/CHAR");
-            tok.ReadChars(obj, x => x.name);
+            tok.ApplyChars(obj, x => x.name);
 
             // Terrain doesn't call base data load
             //base.Build(reader, obj);

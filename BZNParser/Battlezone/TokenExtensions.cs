@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using System.Xml.Linq;
 using static BZNParser.Tokenizer.BZNStreamReader;
 using static BZNParser.Tokenizer.IMalformable;
@@ -645,9 +646,20 @@ public static class TokenExtensions
         }
         else
         {
-            // For text tokens, pad/truncate to 8 bytes
-            var str = tok.GetString(index);
-            var strBytes = BZNEncoding.win1252.GetBytes(str);
+            rawBytes = tok.GetRaw(0, -1);
+            if (rawBytes.Length > 8)
+            {
+                // bugged path!
+                // Probably not converting these properly
+                if (parent != null)
+                    parent.Malformations.AddIncorrectRaw(property, index, rawBytes);
+            
+                string utf8Str = Encoding.UTF8.GetString(rawBytes);
+                byte[] newRawBytes = BZNEncoding.win1252.GetBytes(utf8Str);
+                rawBytes = newRawBytes;
+            }
+
+            byte[] strBytes = rawBytes;
             rawBytes = new byte[8];
             int len = Math.Min(strBytes.Length, 8);
             Array.Copy(strBytes, rawBytes, len);
@@ -745,7 +757,7 @@ public static class TokenExtensions
     /// <param name="index"></param>
     /// <param name="convert"></param>
     /// <returns></returns>
-    public static (TProp stored, string raw) ReadChars<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, string raw) ApplyChars<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)

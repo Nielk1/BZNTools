@@ -216,7 +216,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse label/CHAR");
                 //if (obj != null) obj.label = tok.GetString();
-                tok.ReadChars(obj, x => x.label);
+                tok.ApplyChars(obj, x => x.label);
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {

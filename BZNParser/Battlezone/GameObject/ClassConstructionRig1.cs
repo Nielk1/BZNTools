@@ -33,8 +33,8 @@ namespace BZNParser.Battlezone.GameObject
 
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 1030)
             {
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("dropMat", BinaryFieldType.DATA_MAT3DOLD)) throw new Exception("Failed to parse dropMat/MAT3DOLD");
+                //tok = reader.ReadToken();
+                //if (tok == null || !tok.Validate("dropMat", BinaryFieldType.DATA_MAT3DOLD)) throw new Exception("Failed to parse dropMat/MAT3DOLD");
                 //if (obj != null)
                 //{
                 //    obj.dropMat = tok.GetMatrixOld();

@@ -122,25 +122,13 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
-                tok.ReadChars(obj, x => x.name);
+                tok.ApplyChars(obj, x => x.name);
             }
             if (reader.Format == BZNFormat.Battlezone)
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
-                if (obj != null)
-                {
-                    if (obj.Malformations != null)
-                    {
-                        var tmp = tok as BZNTokenString;
-                        if (tmp != null)
-                        {
-//                            if (tmp.RightTrimmedOneLiner)
-//                                obj.Malformations.AddRightTrimmed("name");
-                        }
-                    }
-                }
-                obj.name = new SizedString() { Value = tok.GetString() };
+                tok.ApplyChars(obj, x => x.name);
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -832,7 +820,7 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         //if (!tok.Validate("curPilot", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse curPilot/ID");
                         if (tok == null || !tok.Validate("curPilot", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse curPilot/CHAR");
-                        tok.ReadChars(obj, x => x.curPilot);
+                        tok.ApplyChars(obj, x => x.curPilot);
                     }
                 }
             }
@@ -1428,7 +1416,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    writer.WriteID("curPilot", obj, x => x.curPilot.Value);
+                    writer.WriteID("curPilot", obj, x => x.curPilot);
                 }
             }
             if (writer.Format == BZNFormat.Battlezone2)

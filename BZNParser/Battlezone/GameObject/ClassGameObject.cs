@@ -217,34 +217,26 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (reader.Version < 1145)
                 {
-                    // maybe this is reader.ReadCompressedNumberFromBinary?
                     tok = reader.ReadToken();
-                    if (tok.Validate("isVisible", BinaryFieldType.DATA_LONG))
-                    {
-                        if (obj != null) obj.isVisible = tok.GetUInt32H();
-                    }
-                    //else if (tok.Validate("isVisible", BinaryFieldType.DATA_SHORT))
-                    //{
-                    //    // not sure if this should ever happen, the code doesn't handle it as a thing
-                    //    if (obj != null) obj.isVisible = tok.GetUInt16H();
-                    //}
-                    else
-                    {
-                        throw new Exception("Failed to parse isVisible/LONG/SHORT");
-                    }
+                    if (tok == null || !tok.Validate("isVisible", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse isVisible/LONG");
+                    //if (obj != null) obj.isVisible = tok.GetUInt32H();
+                    tok.ApplyUInt32h(obj, x => x.isVisible);
                 }
                 else
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("isVisible", BinaryFieldType.DATA_SHORT)) throw new Exception("Failed to parse isVisible/SHORT");
-                    if (obj != null) obj.isVisible = tok.GetUInt16();
+                    //if (obj != null) obj.isVisible = tok.GetUInt16();
+                    tok.ApplyUInt16(obj, x => x.isVisible);
                 }
 
                 if (reader.Version >= 1197)
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("isDamped", BinaryFieldType.DATA_SHORT)) throw new Exception("Failed to parse isDamped/SHORT");
-                    if (obj != null) obj.isDamped = tok.GetUInt16();
+                    //if (obj != null) obj.isDamped = tok.GetUInt16();
+                    tok.ApplyUInt16(obj, x => x.isDamped);
                 }
                 else
                 {
@@ -259,7 +251,8 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("EffectsMask", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse EffectsMask/LONG");
-                    if (obj != null) obj.EffectsMask = tok.GetUInt32();
+                    //if (obj != null) obj.EffectsMask = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.EffectsMask);
                 }
 
                 if (reader.Version == 1041 || reader.Version == 1047 || reader.Version == 1070)
@@ -267,23 +260,15 @@ namespace BZNParser.Battlezone.GameObject
                     // bz2001.bzn // 1041
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seen", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse seen/LONG");
-                    if (obj != null) obj.seen = tok.GetUInt32H();
+                    //if (obj != null) obj.seen = tok.GetUInt32H();
+                    tok.ApplyUInt32h(obj, x => x.seen);
                 }
                 else if (reader.Version < 1145)
                 {
                     tok = reader.ReadToken();
-                    if (tok.Validate("isSeen", BinaryFieldType.DATA_LONG))
-                    {
-                        if (obj != null) obj.seen = tok.GetUInt32H();
-                    }
-                    else if (tok.Validate("isSeen", BinaryFieldType.DATA_SHORT))
-                    {
-                        if (obj != null) obj.seen = tok.GetUInt16H();
-                    }
-                    else
-                    {
-                        throw new Exception("Failed to parse isSeen/LONG/SHORT");
-                    }
+                    if (tok == null || !tok.Validate("isSeen", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse isSeen/LONG");
+                    tok.ApplyUInt32h(obj, x => x.seen);
                 }
                 else
                 {
@@ -291,11 +276,13 @@ namespace BZNParser.Battlezone.GameObject
                     if (tok == null || !tok.Validate("isSeen", BinaryFieldType.DATA_SHORT)) throw new Exception("Failed to parse isSeen/SHORT");
                     if (reader.Version >= 1165)
                     {
-                        if (obj != null) obj.seen = tok.GetUInt16(); // seen should be 16bit shouldn't it?
+                        //if (obj != null) obj.seen = tok.GetUInt16(); // seen should be 16bit shouldn't it?
+                        tok.ApplyUInt16(obj, x => x.seen);
                     }
                     else
                     {
-                        if (obj != null) obj.seen = tok.GetUInt16H(); // seen should be 16bit shouldn't it?
+                        //if (obj != null) obj.seen = tok.GetUInt16H(); // seen should be 16bit shouldn't it?
+                        tok.ApplyUInt16h(obj, x => x.seen);
                     }
                 }
                 /*if (reader.Version > 1105)
@@ -463,17 +450,18 @@ namespace BZNParser.Battlezone.GameObject
 
             if (reader.Format == BZNFormat.Battlezone2 && reader.Version != 1041 && reader.Version != 1047) // avoid bz2001.bzn via != 1041
             {
-                if (reader.InBinary)
-                {
-                    Int32 groupNumber = (Int32)reader.ReadCompressedNumberFromBinary();
-                    if (obj != null) obj.groupNumber = groupNumber;
-                }
-                else
+                //if (reader.InBinary)
+                //{
+                //    Int32 groupNumber = (Int32)reader.ReadCompressedNumberFromBinary();
+                //    if (obj != null) obj.groupNumber = groupNumber;
+                //}
+                //else
                 {
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("groupNumber"))
+                    if (tok == null || !tok.Validate("groupNumber", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse groupNumber/?");
-                    if (obj != null) obj.groupNumber = tok.GetInt32();
+                    //if (obj != null) obj.groupNumber = tok.GetInt32();
+                    tok.ApplyInt8(obj, x => x.groupNumber);
                 }
 
                 /*tok = reader.ReadToken();
@@ -948,13 +936,15 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteUnsignedValues("seqNo", obj.seqNo);
+                //writer.WriteUnsignedValues("seqNo", obj.seqNo);
+                writer.WriteUInt32("seqNo", obj, x => x.seqNo);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1145)
                 {
-                    writer.WriteUnsignedHexLValues("seqNo", obj.seqNo);
+                    //writer.WriteUnsignedHexLValues("seqNo", obj.seqNo);
+                    writer.WriteUInt32h("seqNo", obj, x => x.seqNo);
                 }
             }
 
@@ -984,7 +974,6 @@ namespace BZNParser.Battlezone.GameObject
 
             // if save type != 0, msgString
 
-            byte saveFlags = 0;
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version >= 1145)
@@ -1013,40 +1002,19 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version < 1145)
                 {
-                    if (writer.InBinary)
-                    {
-                        // 1128 - long
-                        if (writer.Version <= 1128)
-                        {
-                            writer.WriteLongFlags(null, obj.isVisible);
-                        }
-                        else
-                        {
-                            writer.WriteCompressedNumberFromBinary(obj.isVisible);
-                        }
-                    }
-                    else
-                    {
-                        if (writer.Version == 1041 || writer.Version == 1123)
-                        {
-                            writer.WriteLongFlags("isVisible", obj.isVisible);
-                        }
-                        else
-                        {
-                            writer.WriteUnsignedHexLValues("isVisible", obj.isVisible);
-                        }
-                    }
+                    writer.WriteUInt32h("isVisible", obj, x => x.isVisible);
                 }
                 else
                 {
                     //writer.WriteShortFlags("isVisible", (UInt16)obj.isVisible);
-                    writer.WriteUnsignedValues("isVisible", (UInt16)obj.isVisible);
+                    //writer.WriteUnsignedValues("isVisible", (UInt16)obj.isVisible);
+                    writer.WriteUInt16("isVisible", obj, x => x.isVisible);
                 }
 
                 if (writer.Version >= 1197)
                 {
                     //writer.WriteUnsignedHexLValues("isDamped", obj.isDamped);
-                    writer.WriteUnsignedValues("isDamped", obj.isDamped);
+                    writer.WriteUInt16("isDamped", obj, x => x.isDamped);
                 }
                 else
                 {
@@ -1057,43 +1025,30 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version >= 1151)
                 {
-                    writer.WriteUnsignedValues("EffectsMask", obj.EffectsMask);
+                    //writer.WriteUnsignedValues("EffectsMask", obj.EffectsMask);
+                    writer.WriteUInt32("EffectsMask", obj, x => x.EffectsMask);
                 }
 
                 if (writer.Version == 1041 || writer.Version == 1047 || writer.Version == 1070)
                 {
                     // bz2001.bzn // 1041
-                    writer.WriteUnsignedHexLValues("seen", obj.seen);
+                    //writer.WriteUnsignedHexLValues("seen", obj.seen);
+                    writer.WriteUInt32h("seen", obj, x => x.seen);
                 }
                 else if (writer.Version < 1145)
                 {
-                    if (writer.InBinary)
-                    {
-                        if (writer.Version <= 1128)
-                        {
-                            writer.WriteLongFlags(null, obj.seen);
-                        }
-                        else
-                        {
-                            writer.WriteCompressedNumberFromBinary(obj.seen);
-                        }
-                    }
-                    else
-                    {
-                        //writer.WriteUnsignedValues("isSeen", obj.seen);
-                        writer.WriteUnsignedHexLValues("isSeen", obj.seen); // fresh change
-                    }
+                    writer.WriteUInt32h("isSeen", obj, x => x.seen);
                 }
                 else
                 {
                     // 1165 1180, 1183, 1192, 1197
                     if (writer.Version >= 1165)
                     {
-                        writer.WriteUnsignedValues("isSeen", (UInt16)obj.seen);
+                        writer.WriteUInt16("isSeen", obj, x => x.seen);
                     }
                     else
                     {
-                        writer.WriteUnsignedHexLValues("isSeen", (UInt16)obj.seen);
+                        writer.WriteUInt16h("isSeen", obj, x => x.seen);
                     }
                 }
                 /*if (reader.Version > 1105)
@@ -1175,20 +1130,20 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone2 && writer.Version != 1041 && writer.Version != 1047) // avoid bz2001.bzn via != 1041
             {
-                if (writer.InBinary)
+                //if (writer.InBinary)
+                //{
+                //    if (writer.Version <= 1128)
+                //    {
+                //        writer.WriteLongFlags(null, (UInt32)obj.groupNumber);
+                //    }
+                //    else
+                //    {
+                //        writer.WriteCompressedNumberFromBinary((UInt32)obj.groupNumber);
+                //    }
+                //}
+                //else
                 {
-                    if (writer.Version <= 1128)
-                    {
-                        writer.WriteLongFlags(null, (UInt32)obj.groupNumber);
-                    }
-                    else
-                    {
-                        writer.WriteCompressedNumberFromBinary((UInt32)obj.groupNumber);
-                    }
-                }
-                else
-                {
-                    writer.WriteSignedValues("groupNumber", obj.groupNumber);
+                    writer.WriteInt8("groupNumber", obj, x => x.groupNumber);
                 }
             }
 

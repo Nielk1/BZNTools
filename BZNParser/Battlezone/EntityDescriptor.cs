@@ -129,7 +129,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
                         throw new Exception("Failed to parse seqno/SHORT");
                     //seqNo = tok.GetUInt16H();
-                    (seqNo, _) = tok.ReadUInt16h(obj, x => x.seqNo);
+                    (seqNo, _) = tok.ApplyUInt16h(obj, x => x.seqNo);
                 }
                 else if (reader.Version <= 1070)
                 {

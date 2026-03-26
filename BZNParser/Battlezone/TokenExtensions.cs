@@ -448,7 +448,7 @@ public static class TokenExtensions
         return (setVal, valueInternal);
     }
 
-    public static (TProp stored, UInt16 raw) ReadUInt16h<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt16, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, UInt16 raw) ApplyUInt16h<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt16, TProp>? convert = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -552,6 +552,62 @@ public static class TokenExtensions
         else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
         {
             setVal = (TProp)(object)(UInt64)valueInternal;
+            did = true;
+        }
+
+        if (propInfo != null && parent != null && did)
+            propInfo.SetValue(parent, setVal);
+
+        return (setVal, valueInternal);
+    }
+    public static (TProp stored, Int8 raw) ApplyInt8<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<Int8, TProp>? convert = null) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        Int8 valueInternal = tok.GetInt8(index);
+        string textValue = valueInternal.ToString();
+        if (tok.IsBinary)
+        {
+            // no binary exclusive paths yet
+        }
+        else
+        {
+            if (propInfo != null && parent != null)
+            {
+                // basic string issue like True vs true
+                string rawString = tok.GetString(index);
+                if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
+                    parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+            }
+        }
+
+        TProp setVal = default!;
+        bool did = false;
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Int8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int8))
+        {
+            setVal = (TProp)(object)(Int8)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Int16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int16))
+        {
+            setVal = (TProp)(object)(Int16)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Int32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int32))
+        {
+            setVal = (TProp)(object)(Int32)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(Int64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int64))
+        {
+            setVal = (TProp)(object)(Int64)valueInternal;
             did = true;
         }
 

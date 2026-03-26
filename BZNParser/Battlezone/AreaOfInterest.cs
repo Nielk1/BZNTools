@@ -64,14 +64,14 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse undefptr/PTR");
-                if (obj != null) obj.path = tok.GetUInt32H();
+                tok.ApplyUInt32H8(obj, x => x.path);
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("path", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse path/PTR");
-                if (obj != null) obj.path = tok.GetUInt32H();
+                tok.ApplyUInt32H8(obj, x => x.path);
             }
 
             tok = reader.ReadToken();
@@ -119,11 +119,11 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WriteBZ1_Ptr("undefptr", path);
+                writer.WritePtr("undefptr", this, x => x.path);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WritePtr32("path", path);
+                writer.WritePtr("path", this, x => x.path);
             }
 
             writer.WriteUInt32("team", this, x => x.team);

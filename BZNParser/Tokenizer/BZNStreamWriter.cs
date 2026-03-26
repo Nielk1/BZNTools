@@ -1343,6 +1343,61 @@ namespace BZNParser.Tokenizer
 
             return (value, valueInternal);
         }
+        public (Int8 written, TProp stored) WriteInt8<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Int8>? convert = null) where T : IMalformable
+        {
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            Int8 value = 0;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (typeof(TProp) == typeof(Int8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int8))
+            {
+                value = (Int8)(Int8)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(Int16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int16))
+            {
+                value = (Int8)(Int16)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(Int32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int32))
+            {
+                value = (Int8)(Int32)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(Int64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(Int64))
+            {
+                value = (Int8)(Int64)(object)valueInternal!;
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
+                InternalWriteBinarySize(1);
+                BaseStream.WriteByte((byte)(value));
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueInternal);
+            }
+
+            string textValue = value.ToString();
+
+            // handle incorrect raw value
+            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+            if (hasIncorrectRaw)
+                textValue = incorrectText ?? string.Empty;
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
+            InternalWriteNewline();
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            InternalWriteNewline();
+            TokenIndex++;
+
+            return (value, valueInternal);
+        }
 
         /// <summary>
         /// Write a UInt8 to the BZN

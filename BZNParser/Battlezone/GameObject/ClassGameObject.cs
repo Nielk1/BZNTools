@@ -181,7 +181,16 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("saveFlags", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse saveFlags/CHAR");
-                    (saveFlags, _) = tok.ApplyUInt8(obj, x => x.saveFlags);
+                    if (reader.Version >= 1187)
+                    {
+                        //1187A and up tested
+                        (saveFlags, _) = tok.ApplyUInt8(obj, x => x.saveFlags);
+                    }
+                    else
+                    {
+                        //1183A and under tested
+                        (saveFlags, _) = tok.ApplyVoidBytesRaw(obj, x => x.saveFlags, 0, (v) => v[0]);
+                    }
                 }
 
                 if (reader.Version < 1145)
@@ -981,7 +990,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (writer.Version >= 1145)
                 {
                     //writer.WriteBytePossibleRawPossibleSigned_BZ2("saveFlags", obj.saveFlags); // TODO break apart saveflags into its parts instead of reading and writing it as is
-                    writer.WriteUInt8("saveFlags", obj, x => x.saveFlags); // will need to change all of this handling when we break this apart later
+                    writer.WriteSaveFlags("saveFlags", obj, x => x.saveFlags);
                 }
 
                 if (writer.Version < 1145)

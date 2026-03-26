@@ -7657,3 +7657,5 @@ bvrecy_n64_2	recycler
 bvrecy_n64_3	recycler
 svslf_n64_ammo_hull_only	armory
 svmammoth	wingman
+
+hbtowe	turret

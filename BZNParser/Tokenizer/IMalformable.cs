@@ -19,6 +19,7 @@ public enum Malformation
     NOT_IMPLEMENTED, //X <fieldName>                         // Field not implemented, but it probably won't break the BZN read
     INCORRECT_RAW,   // <byte[] originalRaw> // value parsed improperly or otherwise differently than expected, preserved original raw bytes, ASCII and Binary modes (in text mode the bytes are dumped directly into the file, not converted)
     INCORRECT_TEXT,  // <string originalString> // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
+    INCORRECT_CASE,  // <char 'U' or 'L'> // casing present instead of expected
     LINE_ENDING,     //X "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
     STRING_PAD,      //X <fieldName>,       <length>         // String is padded by nuls to reach this length
     INCORRECT_NAME,  //X <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
@@ -162,6 +163,22 @@ public static class MalformationExtensions
     public static void AddIncorrectTextParse<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index, string originalText) where T : IMalformable =>
         manager.Add(property, index, Malformation.INCORRECT_TEXT, originalText);
 
+
+
+
+    public static (bool, char?) GetIncorrectCase<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, index, Malformation.INCORRECT_CASE);
+            if (mals.Length > 0)
+                return (true, (char)mals[0].Fields[0]);
+            return (false, null);
+        }
+        throw new ArgumentException("Expression is not a property", nameof(property));
+    }
+    public static void AddIncorrectCase<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index, char casing) where T : IMalformable =>
+    manager.Add(property, index, Malformation.INCORRECT_CASE, casing);
 
 
 

@@ -42,29 +42,28 @@ namespace BZNParser.Battlezone.GameObject
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                        if (obj != null) obj.omegaTurret = tok.GetSingle(); // omegaTurret
+                        tok.ApplySingle(obj, x => x.omegaTurret);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                        if (obj != null) obj.alphaTurret = tok.GetSingle(); // alphaTurret
+                        tok.ApplySingle(obj, x => x.alphaTurret);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                        if (obj != null) obj.timeDeploy = tok.GetSingle(); // timeDeploy
+                        tok.ApplySingle(obj, x => x.timeDeploy);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                        if (obj != null) obj.timeUndeploy = tok.GetSingle(); // timeUndeploy
+                        tok.ApplySingle(obj, x => x.timeUndeploy);
                     }
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("undefraw", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse undefraw/VOID");
-                    //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
                     tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                    if (obj != null) obj.delayTimer = tok.GetSingle(); // delayTimer
+                    tok.ApplySingle(obj, x => x.delayTimer);
 
                     if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version != 1042)
                     {
@@ -94,13 +93,13 @@ namespace BZNParser.Battlezone.GameObject
                     if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
                     {
                         // obsolete
-                        writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.omegaTurret); // omegaTurret
-                        writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.alphaTurret); // alphaTurret
-                        writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.timeDeploy); // timeDeploy
-                        writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.timeUndeploy); // timeUndeploy
+                        writer.WriteSingle("undeffloat", obj, x => x.omegaTurret); // omegaTurret
+                        writer.WriteSingle("undeffloat", obj, x => x.alphaTurret); // alphaTurret
+                        writer.WriteSingle("undeffloat", obj, x => x.timeDeploy); // timeDeploy
+                        writer.WriteSingle("undeffloat", obj, x => x.timeUndeploy); // timeUndeploy
                     }
                     writer.WriteVoidBytes("undefraw", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
-                    writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.delayTimer); // delayTimer
+                    writer.WriteSingle("undeffloat", obj, x => x.delayTimer); // delayTimer
                     if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1042)
                     {
                         // obsolete

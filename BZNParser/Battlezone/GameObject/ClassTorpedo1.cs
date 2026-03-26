@@ -19,6 +19,8 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassTorpedo1 : ClassPowerUp
     {
+        public Int32 abandoned { get; set; } // only used in older code paths where Torpedo is actually Craft based
+
         public ClassTorpedo1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTorpedo1? obj)
         {
@@ -48,7 +50,11 @@ namespace BZNParser.Battlezone.GameObject
                     // read in abandoned flag
                     IBZNToken? tok;
                     tok = reader.ReadToken();
-                    throw new NotImplementedException();
+                    if (tok == null || !tok.Validate("abandoned", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse abandoned/LONG");
+                    if (tok.GetCount() != 1)
+                        throw new Exception("Failed to parse abandoned/LONG (wrong entry count)");
+                    tok.ApplyInt32(obj, x => x.abandoned);
                 }
             }
 
@@ -76,8 +82,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else if (writer.Version > 1027)
                 {
-                    // not implemented
-                    throw new NotImplementedException();
+                    writer.WriteInt32("abandoned", obj, x => x.abandoned);
                 }
             }
 

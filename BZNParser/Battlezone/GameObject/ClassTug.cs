@@ -33,21 +33,22 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                if (reader.Format == BZNFormat.Battlezone && reader.Version == 1045)
+                if (reader.Format == BZNFormat.Battlezone)
                 {
                     // This is due to bvapc26, assumed to be a tug,in "bdmisn26.bzn"
-                    if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
-                        if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_PTR))
+                    if (tok == null)
+                        throw new Exception("Failed to parse undefptr/state/PTR");
+                    if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
+                    {
+                        if (reader.Version == 1045 && tok.Validate("state", BinaryFieldType.DATA_PTR))
+                        {
+                            obj?.Malformations?.AddIncorrectName<ClassTug, UInt32>(x => x.cargo, "state");
+                        }
+                        else
+                        {
                             throw new Exception("Failed to parse undefptr/state/PTR");
-                    // TODO field name quirk malformation
-                    //if (obj != null) obj.cargo = tok.GetUInt32H(); // cargo
-                    tok.ApplyUInt32H8(obj, x => x.cargo);
-                }
-                else
-                {
-                    //if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/PTR");
-                    if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/PTR");
-                    //if (obj != null) obj.cargo = tok.GetUInt32H(); // cargo
+                        }
+                    }
                     tok.ApplyUInt32H8(obj, x => x.cargo);
                 }
             }

@@ -86,7 +86,19 @@ namespace BZNParser.Tokenizer
         public UInt32 GetUInt32H(int index = 0)
         {
             if (index >= values.Length) throw new ArgumentOutOfRangeException();
-            return UInt32.Parse(values[index], System.Globalization.NumberStyles.HexNumber);
+            try
+            {
+                return UInt32.Parse(values[index], System.Globalization.NumberStyles.HexNumber);
+            }
+            catch (OverflowException)
+            {
+                UInt32 midVal = UInt32.Parse(values[index], System.Globalization.NumberStyles.Number);
+                if ((midVal & 0x80000000) == 0x80000000)
+                {
+                    return midVal;
+                }
+                throw;
+            }
         }
 
         public UInt32 GetUInt32HR(int index = 0)
@@ -183,10 +195,13 @@ namespace BZNParser.Tokenizer
         }
 
         public byte[] GetBytes(int index = 0, int length = -1) {
+            string hex = values[0];
+            if (hex.Length != (hex.Length / 2 * 2))
+                hex = '0' + hex;
             if (length == -1)
-                length = (values[0].Length / 2) - index;
-            if (index + length > values[0].Length / 2) throw new ArgumentOutOfRangeException();
-            char[] rawDataArray = values[0].Skip(index * 2).Take(length * 2).ToArray();
+                length = (hex.Length / 2) - index;
+            if (index + length > hex.Length / 2) throw new ArgumentOutOfRangeException();
+            char[] rawDataArray = hex.Skip(index * 2).Take(length * 2).ToArray();
             byte[] dataOut = new byte[rawDataArray.Length / 2];
             for(int x=0;x<dataOut.Length;x++)
             {

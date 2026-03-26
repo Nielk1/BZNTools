@@ -38,6 +38,20 @@ namespace BZNParser.Battlezone.GameObject
 
         public bool m_Use13Aim { get; set; } = false;
 
+
+
+        // legacy
+        public UInt32 energy0current { get; set; }
+        public UInt32 energy0maximum { get; set; }
+        public UInt32 energy1current { get; set; }
+        public UInt32 energy1maximum { get; set; }
+        public UInt32 energy2current { get; set; }
+        public UInt32 energy2maximum { get; set; }
+        public Vector3D[] bumpers { get; set; }
+
+
+
+
         public ClassCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassCraft? obj)
         {
@@ -49,13 +63,45 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version > 1001)
                 {
                     tok = reader.ReadToken(); // energy0current
+                    if (tok == null || !tok.Validate("energy0current", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse energy0current/LONG");
+                    tok.ApplyUInt32(obj, x => x.energy0current);
+
                     tok = reader.ReadToken(); // energy0maximum
+                    if (tok == null || !tok.Validate("energy0maximum", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse energy0maximum/LONG");
+                    tok.ApplyUInt32(obj, x => x.energy0maximum);
+
                     tok = reader.ReadToken(); // energy1current
+                    if (tok == null || !tok.Validate("energy1current", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse energy1current/LONG");
+                    tok.ApplyUInt32(obj, x => x.energy1current);
+
                     tok = reader.ReadToken(); // energy1maximum
+                    if (tok == null || !tok.Validate("energy1maximum", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse energy1maximum/LONG");
+                    tok.ApplyUInt32(obj, x => x.energy1maximum);
+
                     tok = reader.ReadToken(); // energy2current
+                    if (tok == null || !tok.Validate("energy2current", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse energy2current/LONG");
+                    tok.ApplyUInt32(obj, x => x.energy2current);
+
                     tok = reader.ReadToken(); // energy2maximum
+                    if (tok == null || !tok.Validate("energy2maximum", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse energy2maximum/LONG");
+                    tok.ApplyUInt32(obj, x => x.energy2maximum);
 
                     tok = reader.ReadToken(); // bumpers
+                    if (tok == null || !tok.Validate("bumpers", BinaryFieldType.DATA_VEC3D) || tok.GetCount() != 6)
+                        throw new Exception("Failed to parse energy2maximum/LONG");
+
+                    if (obj != null)
+                    {
+                        obj.bumpers = new Vector3D[6];
+                        for (int i = 0; i < 6; i++)
+                            obj.bumpers[i] = tok.GetVector3D(i);
+                    }
 
                     //if(!tok.Validate(null, BinaryFieldType.DATA_VEC3D))
                     //    throw new Exception("Failed to parse ???/VEC3D");
@@ -65,9 +111,8 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken(); // bumpers or armor, 24 0x00s raw
                     tok = reader.ReadToken(); // bumpers, 6 VEC3
+                    throw new NotImplementedException();
                 }
-
-                throw new NotImplementedException();
             }
 
             //if (reader.Format == BZNFormat.BattlezoneN64 || ((reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.Battlezone2) && reader.Version > 1022))
@@ -269,9 +314,20 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone && writer.Version < 1019)
             {
+                // obsolete
                 if (writer.Version > 1001)
                 {
-                    // obsolete
+                    writer.WriteUInt32("energy0current", obj, x => x.energy0current);
+                    writer.WriteUInt32("energy0maximum", obj, x => x.energy0maximum);
+                    writer.WriteUInt32("energy1current", obj, x => x.energy1current);
+                    writer.WriteUInt32("energy1maximum", obj, x => x.energy1maximum);
+                    writer.WriteUInt32("energy2current", obj, x => x.energy2current);
+                    writer.WriteUInt32("energy2maximum", obj, x => x.energy2maximum);
+
+                    writer.WriteVector3D("bumpers", obj, x => x.bumpers);
+                }
+                else
+                {
                     throw new NotImplementedException("Dehydration of obsolete ClassCraft fields not implemented");
                 }
             }

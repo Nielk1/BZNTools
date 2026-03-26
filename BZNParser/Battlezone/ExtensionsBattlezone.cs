@@ -462,7 +462,7 @@ namespace BZNParser.Battlezone
                 {
                     //retVal.what = tok.GetUInt32HR();
                     //tok.ApplyUInt32H8(retVal, x => x.what);
-                    tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v));
+                    tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v), expectedCase: 'L');
                 }
             }
             if (reader.Format == BZNFormat.Battlezone2)

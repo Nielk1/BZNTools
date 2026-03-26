@@ -1004,6 +1004,15 @@ namespace BZNParser.Tokenizer
 
             string textValue = BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant(); // replace this with nicer logic
 
+            // handle incorrect caseing
+            (bool hasIncorrectCase, char? incorrectCase) = parent.Malformations.GetIncorrectCase(property);
+            if (hasIncorrectCase && incorrectCase != null)
+                switch(incorrectCase.Value)
+                {
+                    case 'U': textValue = textValue.ToUpperInvariant(); break;
+                    case 'L': textValue = textValue.ToLowerInvariant(); break;
+                }
+
             // handle incorrect raw value
             (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
             if (hasIncorrectRaw)

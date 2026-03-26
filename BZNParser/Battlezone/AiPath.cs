@@ -75,7 +75,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("old_ptr", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse old_ptr/VOID");
                     //if (obj != null) obj.sObject = tok.GetUInt32HR(); // confirm correctness
-                    tok.ApplyVoidBytes(obj, x => x.sObject, 0, (v) => BitConverter.ToUInt32(v));
+                    tok.ApplyVoidBytes(obj, x => x.sObject, 0, (v) => BitConverter.ToUInt32(v), expectedCase: 'L');
                 }
                 //Int32 x = tok.GetUInt32H();
             }
@@ -159,7 +159,7 @@ namespace BZNParser.Battlezone
                 else
                 {
                     // 1030 1032 1034 1035 1037 1038 1039 1040 1043 1044 1045 1049 2003 2004 2010 2011
-                    writer.WriteVoidBytesL("old_ptr", this, x => x.sObject);
+                    writer.WriteVoidBytesL("old_ptr", this, x => x.sObject); // upper case identified in some rare cases
                 }
                 //Int32 x = tok.GetUInt32H();
             }
@@ -191,7 +191,14 @@ namespace BZNParser.Battlezone
             writer.WriteInt32("pointCount", this, x => x.pointCount);
             //writer.WriteVector2Ds("points", preserveMalformations, points);
             writer.WriteVector2D("points", this, x => x.points);
-            writer.WriteVoidBytes("pathType", this, x => x.pathType);
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                writer.WriteVoidBytes("pathType", this, x => x.pathType);
+            }
+            else
+            {
+                writer.WriteVoidBytesL("pathType", this, x => x.pathType);
+            }
         }
     }
 }

@@ -825,7 +825,8 @@ public static class TokenExtensions
         T? parent,
         Expression<Func<T, TProp>>? property,
         int index = 0,
-        Func<byte[], TProp>? convert = null
+        Func<byte[], TProp>? convert = null,
+        char? expectedCase = null
     ) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
@@ -846,6 +847,66 @@ public static class TokenExtensions
         {
             setVal = (TProp)(object)valueInternal;
             did = true;
+        }
+
+        if (tok.IsBinary)
+        {
+            // no binary exclusive paths yet
+        }
+        else
+        {
+            if (propInfo != null && parent != null)
+            {
+                bool textMalformationHandled = false;
+                if (expectedCase.HasValue)
+                {
+                    string rawString = tok.GetString(index);
+
+                    string upperString = rawString.ToUpperInvariant();
+                    string lowerString = rawString.ToLowerInvariant();
+
+                    if (expectedCase == 'L')
+                    {
+                        if (rawString != lowerString)
+                        {
+                            if (rawString == upperString)
+                            {
+                                parent.Malformations.AddIncorrectCase(property, index, 'U');
+                            }
+                            else
+                            {
+                                parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+                            }
+                            textMalformationHandled = true;
+                        }
+                    }
+                    else if (expectedCase == 'U')
+                    {
+                        if (rawString != upperString)
+                        {
+                            if (rawString == lowerString)
+                            {
+                                parent.Malformations.AddIncorrectCase(property, index, 'L');
+                            }
+                            else
+                            {
+                                parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+                            }
+                            textMalformationHandled = true;
+                        }
+                    }
+                }
+
+                if (!textMalformationHandled)
+                {
+                    // assume uppercase
+                    string textValue = BitConverter.ToString(valueInternal).Replace("-", string.Empty);
+                    // basic string issue like True vs true
+                    string rawString = tok.GetString(index);
+                    if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
+                        parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+                }
+            }
         }
 
         if (propInfo != null && parent != null && did)

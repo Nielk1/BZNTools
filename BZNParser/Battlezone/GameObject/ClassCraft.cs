@@ -110,8 +110,28 @@ namespace BZNParser.Battlezone.GameObject
                 else
                 {
                     tok = reader.ReadToken(); // bumpers or armor, 24 0x00s raw
-                    tok = reader.ReadToken(); // bumpers, 6 VEC3
-                    throw new NotImplementedException();
+                    if (tok == null || !tok.Validate("armor", BinaryFieldType.DATA_VOID) || tok.GetCount() != 1)
+                        throw new Exception("Failed to parse energy2maximum/LONG");
+
+                    if (obj != null)
+                    {
+                        obj.energy0current = BitConverter.ToUInt32(tok.GetRaw(4 * 0, 4));
+                        obj.energy0maximum = BitConverter.ToUInt32(tok.GetRaw(4 * 1, 4));
+                        obj.energy1current = BitConverter.ToUInt32(tok.GetRaw(4 * 2, 4));
+                        obj.energy1maximum = BitConverter.ToUInt32(tok.GetRaw(4 * 3, 4));
+                        obj.energy2current = BitConverter.ToUInt32(tok.GetRaw(4 * 4, 4));
+                        obj.energy2maximum = BitConverter.ToUInt32(tok.GetRaw(4 * 5, 4));
+                    }
+                    
+                    tok = reader.ReadToken(); // bumpers
+                    if (tok == null || !tok.Validate("bumpers", BinaryFieldType.DATA_VEC3D) || tok.GetCount() != 6)
+                        throw new Exception("Failed to parse energy2maximum/LONG");
+                    if (obj != null)
+                    {
+                        obj.bumpers = new Vector3D[6];
+                        for (int i = 0; i < 6; i++)
+                            obj.bumpers[i] = tok.GetVector3D(i);
+                    }
                 }
             }
 
@@ -328,7 +348,17 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    throw new NotImplementedException("Dehydration of obsolete ClassCraft fields not implemented");
+                    writer.WriteVoidBytesRaw("armor",
+                                BitConverter.GetBytes(obj.energy0current)
+                        .Concat(BitConverter.GetBytes(obj.energy0maximum))
+                        .Concat(BitConverter.GetBytes(obj.energy1current))
+                        .Concat(BitConverter.GetBytes(obj.energy1maximum))
+                        .Concat(BitConverter.GetBytes(obj.energy2current))
+                        .Concat(BitConverter.GetBytes(obj.energy2maximum))
+                        .ToArray()
+                    );
+
+                    writer.WriteVector3D("bumpers", obj, x => x.bumpers);
                 }
             }
 

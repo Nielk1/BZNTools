@@ -630,8 +630,50 @@ namespace BZNParser.Tokenizer
         public (UInt32 written, TProp stored) WriteUInt32h<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
-            UInt32 value = 0;
 
+            // Handle array or nullable array case
+            if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(UInt32))
+            {
+                var arr = (UInt32[]?)(object?)valueInternal;
+                int length = arr?.Length ?? 0;
+
+                if (InBinary)
+                {
+                    InternalWriteBinaryType(BinaryFieldType.DATA_LONG);
+                    InternalWriteBinarySize(4 * length);
+                    if (arr != null)
+                    {
+                        foreach (var v in arr)
+                        {
+                            byte[] buff = BitConverter.GetBytes(v);
+                            if (IsBigEndian)
+                                Array.Reverse(buff);
+                            BaseStream.Write(buff, 0, 4);
+                        }
+                    }
+                    InternalAlignBinary();
+                    TokenIndex++;
+                    return (arr != null && arr.Length > 0 ? arr[0] : 0, valueInternal);
+                }
+
+                // Text mode
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [{length}] ="));
+                InternalWriteNewline();
+                if (arr != null)
+                {
+                    foreach (var v in arr)
+                    {
+                        string textValue = v.ToString("x");
+                        BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+                        InternalWriteNewline();
+                    }
+                }
+                TokenIndex++;
+                return (arr != null && arr.Length > 0 ? arr[0] : 0, valueInternal);
+            }
+
+            // Single value case (original logic)
+            UInt32 value = 0;
             if (convert != null)
             {
                 value = convert(valueInternal);
@@ -670,16 +712,16 @@ namespace BZNParser.Tokenizer
                 return (value, valueInternal);
             }
 
-            string textValue = value.ToString("x");
+            string singleTextValue = value.ToString("x");
 
             // handle incorrect raw value
             (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
             if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+                singleTextValue = incorrectText ?? string.Empty;
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
-            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(singleTextValue));
             InternalWriteNewline();
             TokenIndex++;
 
@@ -1677,7 +1719,7 @@ namespace BZNParser.Tokenizer
         /// <param name="parent"></param>
         /// <param name="property"></param>
         /// <param name="oneLiner"></param>
-        public void WriteID<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, bool oneLiner = false) where T : IMalformable
+        public void WriteID<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property/*, bool oneLiner = false*/) where T : IMalformable
         {
             TProp value = ExtractPropertyValue(parent, property);
             byte[] rawValue;
@@ -1738,14 +1780,18 @@ namespace BZNParser.Tokenizer
             //else
             //    textLen = Math.Min(textLen, 8);
 
-            int textLen = Array.IndexOf(rawValue, (byte)0);
-            if (textLen >= 0)
-                rawValue = rawValue.Take(textLen).ToArray();
+            if (Format != BZNFormat.Battlezone || Version != 1001)
+            {
+                int textLen = Array.IndexOf(rawValue, (byte)0);
+                if (textLen >= 0)
+                    rawValue = rawValue.Take(textLen).ToArray();
+            }
             // text mode garbage probably doesn't work right here, consider text malformation in that case
 
-            if (oneLiner)
+            //if (oneLiner)
+            if (Format == BZNFormat.Battlezone && Version == 1001)
             {
-                // maybe one-liner should be a general writer tool so it can use the malformation for no trailing space universally
+                //// maybe one-liner should be a general writer tool so it can use the malformation for no trailing space universally
                 BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
             }
             else

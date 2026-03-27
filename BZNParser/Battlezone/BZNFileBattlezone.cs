@@ -237,7 +237,7 @@ namespace BZNParser.Battlezone
         public UInt32? UserProcess_undefptr_0{ get; set; }
         public Int32? UserProcess_cycle { get; set; }
         public Int32? UserProcess_cycleMax { get; set; }
-        public UInt32? UserProcess_selectList { get; set; }
+        public UInt32[]? UserProcess_selectList { get; set; }
         public UInt32? UserProcess_undefptr_1 { get; set; }
         public UInt32? UserProcess_undefptr_2 { get; set; }
         public bool? UserProcess_exited { get; set; }
@@ -649,7 +649,14 @@ namespace BZNParser.Battlezone
                 //    sObject = reader.ReadBZ1_Ptr("sObject", reader.Version);
                 //}
                 tok = reader.ReadToken();
-                tok.ApplyUInt32H8(this, x => x.Mission_sObject);
+                if (reader.Version < 1002)
+                {
+                    tok.ApplyVoidBytesRaw(this, x => x.Mission_sObject, 0, (v) => BitConverter.ToUInt32(v));
+                }
+                else
+                {
+                    tok.ApplyUInt32H8(this, x => x.Mission_sObject);
+                }
             }
 
             if (reader.Format == BZNFormat.Battlezone)
@@ -744,7 +751,12 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("selectList", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse selectList/UNKNOWN");
-                UserProcess_selectList = tok.GetUInt32H();
+                //UserProcess_selectList = tok.GetUInt32H();
+                UserProcess_selectList = new UInt32[tok.GetCount()];
+                for (int j = 0; j < UserProcess_selectList.Length; j++)
+                {
+                    tok.ApplyUInt32h(this, x => x.UserProcess_selectList, j);
+                }
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
@@ -1122,7 +1134,7 @@ namespace BZNParser.Battlezone
                 {
                 //    //writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
                 //    writer.WriteVoidBytes("sObject", this, x => x.sObject);
-                    writer.WriteVoidBytesRaw("sObject", this, x => x.Mission_sObject);
+                    writer.WriteVoidBytesRaw("sObject", this, x => x.Mission_sObject, (v) => BitConverter.GetBytes((UInt32)v));
                 }
                 else
                 {

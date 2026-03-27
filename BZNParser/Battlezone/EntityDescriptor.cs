@@ -515,9 +515,9 @@ namespace BZNParser.Battlezone
             }
             else if (writer.Format == BZNFormat.Battlezone)
             {
-                if (writer.Version == 1001)
-                    writer.WriteID("PrjID", this, x => x.PrjID, oneLiner: true); // confirm when we can if this actually an ID
-                else
+                //if (writer.Version == 1001)
+                //    writer.WriteID("PrjID", this, x => x.PrjID, oneLiner: true); // confirm when we can if this actually an ID
+                //else
                     writer.WriteID("PrjID", this, x => x.PrjID);
             }
             else if (writer.Format == BZNFormat.Battlezone2)
@@ -698,7 +698,7 @@ namespace BZNParser.Battlezone
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version < 1002)
                 {
                     //writer.WriteBZ1_PtrDepricated("obj_addr", (UInt32)obj_addr, raw: true); // string name unconfirmed
-                    writer.WriteVoidBytesRaw("obj_addr", this, x => x.obj_addr);
+                    writer.WriteVoidBytesRaw("obj_addr", this, x => x.obj_addr, (v) => BitConverter.GetBytes(v).Take(4).ToArray()); // might need logic for BigEndian
                 }
                 else
                 {

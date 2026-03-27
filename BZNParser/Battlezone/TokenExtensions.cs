@@ -319,7 +319,13 @@ public static class TokenExtensions
 
         return (setVal, valueInternal);
     }
-    public static (TProp stored, UInt32 raw) ApplyUInt32h<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<UInt32, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, UInt32 raw) ApplyUInt32h<T, TProp>(
+        this IBZNToken tok,
+        T? parent,
+        Expression<Func<T, TProp>>? property,
+        int index = 0,
+        Func<UInt32, TProp>? convert = null
+    ) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -344,7 +350,19 @@ public static class TokenExtensions
 
         TProp setVal = default!;
         bool did = false;
-        if (convert != null)
+
+        // Array handling (including nullable arrays)
+        if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(UInt32))
+        {
+            var arr = (UInt32[]?)propInfo?.GetValue(parent);
+            if (arr != null && index >= 0 && index < arr.Length)
+            {
+                arr[index] = valueInternal;
+                setVal = (TProp)(object)arr;
+                did = true;
+            }
+        }
+        else if (convert != null)
         {
             setVal = convert(valueInternal);
             did = true;
@@ -713,6 +731,10 @@ public static class TokenExtensions
                 string utf8Str = Encoding.UTF8.GetString(rawBytes);
                 byte[] newRawBytes = BZNEncoding.win1252.GetBytes(utf8Str);
                 rawBytes = newRawBytes;
+            }
+            else
+            {
+
             }
 
             byte[] strBytes = rawBytes;

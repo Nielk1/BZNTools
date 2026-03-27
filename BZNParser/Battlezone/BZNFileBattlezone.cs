@@ -223,7 +223,7 @@ namespace BZNParser.Battlezone
 
         /// Mission DLL or internal class
         public SizedString Mission { get; set; }
-        public UInt64 sObject { get; set; }
+        public UInt64 Mission_sObject { get; set; }
 
         // BZ1 lua mission state block
         public bool? bz1_luamission_started { get; set; }
@@ -234,6 +234,7 @@ namespace BZNParser.Battlezone
 
 
         public UInt32? UserProcess_sObject { get; set; }
+        public UInt32? UserProcess_undefptr_0{ get; set; }
         public Int32? UserProcess_cycle { get; set; }
         public Int32? UserProcess_cycleMax { get; set; }
         public UInt32? UserProcess_selectList { get; set; }
@@ -621,11 +622,14 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                string mission = string.Format("BZn64Mission_{0,4:X4}", tok.GetUInt16());
-                Console.WriteLine($"Mission: {mission}");
-                this.Mission = new SizedString() { Value = mission };
+                //string mission = string.Format("BZn64Mission_{0,4:X4}", tok.GetUInt16());
+                //this.Mission = new SizedString() { Value = mission };
+                (SizedString mission, _) = tok.ApplyUInt16(this, x => x.Mission, 0, (v) => new SizedString() { Value = string.Format("BZn64Mission_{0,4:X4}", v) });
+                Console.WriteLine($"Mission: {mission.Value}");
 
-                sObject = reader.ReadBZ1_PtrDepricated("sObject");
+                tok = reader.ReadToken();
+                //sObject = reader.ReadBZ1_PtrDepricated("sObject");
+                tok.ApplyUInt32H8(this, x => x.Mission_sObject);
             }
             if (reader.Format == BZNFormat.Battlezone)
             {
@@ -636,14 +640,16 @@ namespace BZNParser.Battlezone
                 Console.WriteLine($"Mission: {this.Mission}");
 
                 // read the old sObject ptr, not sure what can be done with it
-                if (reader.Version < 1002)
-                {
-                    sObject = reader.ReadBZ1_PtrDepricated("sObject");
-                }
-                else
-                {
-                    sObject = reader.ReadBZ1_Ptr("sObject", reader.Version);
-                }
+                //if (reader.Version < 1002)
+                //{
+                //    sObject = reader.ReadBZ1_PtrDepricated("sObject");
+                //}
+                //else
+                //{
+                //    sObject = reader.ReadBZ1_Ptr("sObject", reader.Version);
+                //}
+                tok = reader.ReadToken();
+                tok.ApplyUInt32H8(this, x => x.Mission_sObject);
             }
 
             if (reader.Format == BZNFormat.Battlezone)
@@ -701,16 +707,16 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse name/CHAR");
-                //tok.GetBytes(); // "AiMission"
+                //tok.GetBytes(); // "UserProcess"
 
                 // read the old sObject ptr, not sure what can be done with it
                 if (reader.Version < 1002)
                 {
-                    sObject = reader.ReadBZ1_PtrDepricated("sObject");
+                    UserProcess_sObject = reader.ReadBZ1_PtrDepricated("sObject");
                 }
                 else
                 {
-                    sObject = reader.ReadBZ1_Ptr("sObject", reader.Version);
+                    UserProcess_sObject = (UInt32)reader.ReadBZ1_Ptr("sObject", reader.Version);
                 }
 
                 if (!reader.InBinary)
@@ -723,7 +729,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse undefptr/PTR");
-                UserProcess_sObject = tok.GetUInt32H();
+                UserProcess_undefptr_0 = tok.GetUInt32H();
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cycle", BinaryFieldType.DATA_UNKNOWN))
@@ -1096,13 +1102,16 @@ namespace BZNParser.Battlezone
             }
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                Match m = Regex.Match(Mission.Value, "BZn64Mission_(?<id>[0-9A-F]{4})");
-                if (m.Success)
-                    writer.WriteUnsignedValues(null, UInt16.Parse(m.Groups["id"].Value));
-                else
+                writer.WriteUInt16("name", this, x => x.Mission, (v) =>
+                {
+                    Match m = Regex.Match(v.Value, "BZn64Mission_(?<id>[0-9A-F]{4})");
+                    if (m.Success)
+                        return UInt16.Parse(m.Groups["id"].Value);
                     throw new InvalidCastException("Mission name was not in expected format");
+                });
 
-                writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
+                //writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
+                writer.WriteVoidBytes("sObject", this, x => x.Mission_sObject);
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
@@ -1111,11 +1120,15 @@ namespace BZNParser.Battlezone
                 // read the old sObject ptr, not sure what can be done with it
                 if (writer.Version < 1002)
                 {
-                    writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
+                //    //writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
+                //    writer.WriteVoidBytes("sObject", this, x => x.sObject);
+                    writer.WriteVoidBytesRaw("sObject", this, x => x.Mission_sObject);
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("sObject", sObject);
+                //    //writer.WriteBZ1_Ptr("sObject", sObject);
+                //    writer.WritePtr("sObject", this, x => x.sObject);
+                    writer.WritePtr("sObject", this, x => x.Mission_sObject);
                 }
             }
 
@@ -1140,32 +1153,37 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
             {
+                // 1001A (AiMission)
+                // 1011A (AiMission)
+                // 1012A (AiMission)
                 writer.WriteSignedValues("size", AiMissionSize ?? 1);
             }
 
             if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1011 || writer.Version == 1012))
             {
                 // this might also be due to the above count being 1 instead of 0, unknown, for now we're using the version
-                
-                writer.WriteChars("name", "AiMission", null);
 
-                // read the old sObject ptr, not sure what can be done with it
+                // 1001A (AiMission)
+                // 1011A (AiMission)
+                // 1012A (AiMission)
+                writer.WriteChars("name", "UserProcess", null);
                 if (writer.Version < 1002)
                 {
-                    writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
+                    writer.WriteBZ1_PtrDepricated("sObject", UserProcess_sObject.Value);
                 }
                 else
                 {
-                    writer.WriteBZ1_Ptr("sObject", sObject);
+                    writer.WriteBZ1_Ptr("sObject", UserProcess_sObject.Value);
                 }
 
                 writer.WriteValidation("UserProcess");
-                writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_sObject.Value);
+                writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_0.Value);
                 //writer.WriteSignedValues("cycle", UserProcess_cycle.Value);
                 writer.WriteInt32("cycle", this, x => x.UserProcess_cycle);
                 //writer.WriteSignedValues("cycleMax", UserProcess_cycleMax.Value);
                 writer.WriteInt32("cycleMax", this, x => x.UserProcess_cycleMax);
-                writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
+                //writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
+                writer.WriteUInt32h("selectList", this, x => x.UserProcess_selectList);
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_1.Value);
                 writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_2.Value);
                 writer.WriteBoolean("exited", this, x => x.UserProcess_exited);

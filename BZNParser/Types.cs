@@ -308,7 +308,7 @@ namespace BZNParser
         /// <param name="property"></param>
         /// <param name="index"></param>
         /// <exception cref="Exception"></exception>
-        public static (string stored, string raw) ReadSizedString<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, SizedString>>? property, int index = 0) where T : IMalformable
+        public static (string stored, string raw) ReadSizedString<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, SizedString?>>? property, int index = 0) where T : IMalformable
         {
             PropertyInfo? propInfo = null;
             if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)

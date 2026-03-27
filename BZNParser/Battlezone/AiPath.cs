@@ -88,10 +88,11 @@ namespace BZNParser.Battlezone
                 tok.ApplyUInt32H8(obj, x => x.sObject);
             }
 
-            string? label = null;
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
+                if (tok == null)
+                    throw new Exception("Failed to parse label");
                 //label = string.Format("bzn64path_{0,4:X4}", tok.GetUInt16());
                 //if (obj != null) obj.label = new SizedString() { Value = label };
                 tok.ApplyUInt16(obj, x => x.label, 0, (v) => new SizedString() { Value = string.Format("bzn64path_{0,4:X4}", v) });
@@ -145,6 +146,7 @@ namespace BZNParser.Battlezone
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 //writer.WriteSizedString_BZ2_1145("name", 40, "AiPath", Malformations);
+                // TODO move this to a differnt malformation to get rid of the property, or just don't have malformations at all on it
                 writer.WriteSizedString("name", this, x => x.AiPathDummy, (val) => val ?? new SizedString() { Value = "AiPath" });
             }
 
@@ -172,15 +174,13 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                // extract number from label and write as UInt16
-                if (label.Value.StartsWith("bzn64path_") && UInt16.TryParse(label.Value.Substring(10), System.Globalization.NumberStyles.HexNumber, null, out UInt16 labelNum))
+                writer.WriteUInt16("label", this, x => x.label, (v) =>
                 {
-                    writer.WriteUnsignedValues(null, labelNum);
-                }
-                else
-                {
+                    // extract number from label and write as UInt16
+                    if (label.Value.StartsWith("bzn64path_") && UInt16.TryParse(label.Value.Substring(10), System.Globalization.NumberStyles.HexNumber, null, out UInt16 labelNum))
+                        return labelNum;
                     throw new Exception("Failed to parse label for N64 path");
-                }
+                });
             }
             else
             {

@@ -458,8 +458,16 @@ namespace BZNParser.Battlezone.GameObject
                 //else
                 {
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("groupNumber", BinaryFieldType.DATA_CHAR))
-                        throw new Exception("Failed to parse groupNumber/?");
+                    if (reader.Version <= 1128)
+                    {
+                        if (tok == null || !tok.Validate("groupNumber", BinaryFieldType.DATA_LONG))
+                            throw new Exception("Failed to parse groupNumber/?");
+                    }
+                    else
+                    {
+                        if (tok == null || !tok.Validate("groupNumber", BinaryFieldType.DATA_CHAR))
+                            throw new Exception("Failed to parse groupNumber/?");
+                    }
                     //if (obj != null) obj.groupNumber = tok.GetInt32();
                     tok.ApplyInt8(obj, x => x.groupNumber);
                 }
@@ -811,7 +819,8 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse independence/LONG");
-                    if (obj != null) obj.independence = tok.GetUInt32();
+                    //if (obj != null) obj.independence = tok.GetUInt32();
+                    tok.ApplyUInt32(obj, x => x.independence);
                 }
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -822,7 +831,8 @@ namespace BZNParser.Battlezone.GameObject
                     if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse independence");
                     //independence = BitConverter.ToUInt32(tok.GetRaw(0));
                     //independence = tok.GetUInt8();
-                    if (obj != null) obj.independence = tok.GetUInt32(); // this is a bit odd, the game only uses 8 bits it appears but it uses a 32bit here
+                    //if (obj != null) obj.independence = tok.GetUInt32(); // this is a bit odd, the game only uses 8 bits it appears but it uses a 32bit here
+                    tok.ApplyUInt32(obj, x => x.independence);
                 }
                 else if (parent.SaveType == SaveType.BZN)
                 {
@@ -830,13 +840,15 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse independence");
-                        if (obj != null) obj.independence = tok.GetUInt8();
+                        //if (obj != null) obj.independence = tok.GetUInt8();
+                        tok.ApplyUInt8(obj, x => x.independence);
                     }
                     else
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse independence");
-                        if (obj != null) obj.independence = tok.GetRaw(0, 1)[0]; // game uses 1 byte by force here
+                        //if (obj != null) obj.independence = tok.GetRaw(0, 1)[0]; // game uses 1 byte by force here
+                        tok.ApplyVoidBytesRaw(obj, x => x.independence, 0, (v) => v[0]);
                     }
                 }
             }
@@ -1142,6 +1154,11 @@ namespace BZNParser.Battlezone.GameObject
                 //    }
                 //}
                 //else
+                if (writer.Version <= 1128)
+                {
+                    writer.WriteInt32("groupNumber", obj, x => x.groupNumber);
+                }
+                else
                 {
                     writer.WriteInt8("groupNumber", obj, x => x.groupNumber);
                 }
@@ -1370,24 +1387,28 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1016)
                 {
-                    writer.WriteUnsignedValues("independence", obj.independence);
+                    //writer.WriteUnsignedValues("independence", obj.independence);
+                    writer.WriteUInt32("independence", obj, x => x.independence);
                 }
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1145)
                 {
-                    writer.WriteUnsignedValues("independence", obj.independence);
+                    //writer.WriteUnsignedValues("independence", obj.independence);
+                    writer.WriteUInt32("independence", obj, x => x.independence);
                 }
                 else if (parent.SaveType == SaveType.BZN)
                 {
                     if (writer.Version > 1183)
                     {
-                        writer.WriteUnsignedValues("independence", (byte)obj.independence);
+                        //writer.WriteUnsignedValues("independence", (byte)obj.independence);
+                        writer.WriteUInt8("independence", obj, x => x.independence);
                     }
                     else
                     {
-                        writer.WriteUnsignedRawValues("independence", (byte)obj.independence);
+                        //writer.WriteUnsignedRawValues("independence", (byte)obj.independence);
+                        writer.WriteVoidBytesRaw("independence", obj, x => x.independence, (v) => new byte[] { (byte)v });
                     }
                 }
             }

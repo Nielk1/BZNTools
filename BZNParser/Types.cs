@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
+using System.Security.Cryptography;
 using System.Text;
 using static BZNParser.Tokenizer.BZNStreamReader;
 
@@ -306,24 +307,43 @@ namespace BZNParser
         /// <param name="name"></param>
         /// <param name="parent"></param>
         /// <param name="property"></param>
-        /// <param name="index"></param>
+        /// <param name="destinationIndex">We already read index 0 of the Token, but this is what index we're writing to</param>
         /// <exception cref="Exception"></exception>
-        public static (string stored, string raw) ReadSizedString<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, SizedString?>>? property, int index = 0) where T : IMalformable
+        public static (string stored, string raw) ReadSizedString<T, TProp>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, TProp?>>? property, int destinationIndex = 0) where T : IMalformable
         {
             PropertyInfo? propInfo = null;
             if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
                 propInfo = propInfo_;
 
-            SizedString? value = null;
-            if (parent != null)
-                value = (SizedString?)(propInfo?.GetValue(parent));
-            if (value == null && propInfo != null)
-                value = new SizedString();
-            if (propInfo != null)
+            //SizedString? value = null;
+            //if (parent != null)
+            //    value = (SizedString?)(propInfo?.GetValue(parent));
+            //if (value == null && propInfo != null)
+            //    value = new SizedString();
+            //if (propInfo != null)
+            //{
+            //    value = new SizedString();
+            //    if (parent != null)
+            //        propInfo.SetValue(parent, value);
+            //}
+
+            SizedString? value = new SizedString();
+            TProp setVal = default!;
+            bool did = false;
+            if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
             {
-                value = new SizedString();
-                if (parent != null)
-                    propInfo.SetValue(parent, value);
+                setVal = (TProp)(object)value;
+                did = true;
+            }
+            else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(SizedString))
+            {
+                SizedString[]? arr = (SizedString[]?)propInfo?.GetValue(parent);
+                if (arr != null && destinationIndex >= 0 && destinationIndex < arr.Length)
+                {
+                    arr[destinationIndex] = value;
+                    setVal = (TProp)(object)arr;
+                    did = true;
+                }
             }
 
             IBZNToken? tok;
@@ -343,18 +363,34 @@ namespace BZNParser
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                             throw new Exception($"Failed to parse {name}/CHAR");
-                        return tok.ApplyChars(value, x => x.Value);
+                        (string stored_, string raw_) = tok.ApplyChars(value, x => x.Value);
+
+                        // this works when the property is a SizedString, but not a SizedString[] where we want to apply it instead to SizedString[destinationIndex]
+                        if (propInfo != null && parent != null && did)
+                            propInfo.SetValue(parent, setVal);
+
+                        return (stored_, raw_);
                     }
+
+                    // this works when the property is a SizedString, but not a SizedString[] where we want to apply it instead to SizedString[destinationIndex]
+                    if (propInfo != null && parent != null && did)
+                        propInfo.SetValue(parent, setVal);
+
                     return (null, null);
                 }
             }
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                 throw new Exception($"Failed to parse {name}/CHAR");
-            return tok.ApplyChars(value, x => x.Value);
+            (string stored, string raw) = tok.ApplyChars(value, x => x.Value);
+
+            if (propInfo != null && parent != null && did)
+                propInfo.SetValue(parent, setVal);
+
+            return (stored, raw);
         }
 
-        public static (string stored, string raw) ReadGameObjectClass_BZ2<T>(this BZNStreamReader reader, SaveType saveType, string name, T? parent, Expression<Func<T, SizedString>>? property, int index = 0) where T : IMalformable
+        public static (string stored, string raw) ReadGameObjectClass_BZ2<T, TProp>(this BZNStreamReader reader, SaveType saveType, string name, T? parent, Expression<Func<T, TProp>>? property, int index = 0) where T : IMalformable
         {
             if (reader.Version < 1145)
             {
@@ -374,23 +410,39 @@ namespace BZNParser
             }
         }
 
-        public static void WriteSizedString<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property, Func<SizedString, SizedString>? convert = null)
+        public static void WriteSizedString<T, TProp>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, SizedString>? convert = null)
         {
-            SizedString wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
+            TProp wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
+            SizedString value;
 
             if (convert != null)
-                wrappedValue = convert(wrappedValue);
+            {
+                value = convert(wrappedValue);
+            }
+            //else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(SizedString))
+            //{
+            //    values = (SizedString[])(object)propValue;
+            //}
+            else if (typeof(TProp) == typeof(SizedString))
+            {
+                value = (SizedString)(object)wrappedValue;
+            }
+            else
+            {
+                throw new NotImplementedException("Property type not handled");
+            }
+
             if (writer.InBinary)
             {
                 if (writer.Format == BZNFormat.Battlezone2 && writer.Version > 1128)
                 {
-                    (byte size, _) = writer.WriteUInt8(null, wrappedValue, x => x.Size);
+                    (byte size, _) = writer.WriteUInt8(null, value, x => x.Size);
                     if (size > 0)
-                        writer.WriteChars(name, wrappedValue, x => x.Value);
+                        writer.WriteChars(name, value, x => x.Value);
                     return;
                 }
             }
-            writer.WriteChars(name, wrappedValue, x => x.Value);
+            writer.WriteChars(name, value, x => x.Value);
         }
 
         /// <summary>

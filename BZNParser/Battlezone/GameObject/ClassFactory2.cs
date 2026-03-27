@@ -20,7 +20,7 @@ namespace BZNParser.Battlezone.GameObject
         public float buildTime { get; set; }
         public bool buildActive { get; set; }
         public int buildItemCount { get; set; } // oddball
-        public string[] buildItems { get; set; }
+        public SizedString[] buildItems { get; set; }
         public Int32 navHandle { get; set; }
 
         public ClassFactory2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
@@ -49,15 +49,18 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
             (int buildCount, _) = tok.ApplyInt32(obj, x => x.buildItemCount);
-            if (obj != null) obj.buildItems = new string[buildCount];
+            if (obj != null) obj.buildItems = new SizedString[buildCount];
 
             for (int i = 0; i < buildCount; i++)
             {
                 //v5 = std::deque < GameObjectClass const *>::operator[] (v4);
                 //ILoadSaveVisitor::out(a2, *v5, "buildItem");
                 //++v4;
-                string item = reader.ReadGameObjectClass_BZ2(parent, "buildItem", obj?.Malformations);
-                if (obj != null) obj.buildItems[i] = item;
+
+                //string item = reader.ReadGameObjectClass_BZ2(parent, "buildItem", obj?.Malformations);
+                //if (obj != null) obj.buildItems[i] = item;
+                //reader.ReadSizedString("buildItem", obj, x => x.buildItems, i);
+                reader.ReadGameObjectClass_BZ2(parent.SaveType,"buildItem", obj, x => x.buildItems, i);
             }
 
             //...
@@ -96,7 +99,8 @@ namespace BZNParser.Battlezone.GameObject
             writer.WriteInt32("buildCount", obj, x => x.buildItemCount);
             for (int i = 0; i < obj.buildItems.Length; i++)
             {
-                writer.WriteGameObjectClass_BZ2(parent, "buildItem", obj.buildItems[i], obj.Malformations);
+                //writer.WriteGameObjectClass_BZ2(parent, "buildItem", obj.buildItems[i], obj.Malformations);
+                writer.WriteSizedString("buildItem", obj, x => x.buildItems, (v) => v[i]);
             }
 
             if (parent.SaveType == 0)

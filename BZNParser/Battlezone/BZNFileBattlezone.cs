@@ -717,14 +717,18 @@ namespace BZNParser.Battlezone
                 //tok.GetBytes(); // "UserProcess"
 
                 // read the old sObject ptr, not sure what can be done with it
-                if (reader.Version < 1002)
-                {
-                    UserProcess_sObject = reader.ReadBZ1_PtrDepricated("sObject");
-                }
-                else
-                {
-                    UserProcess_sObject = (UInt32)reader.ReadBZ1_Ptr("sObject", reader.Version);
-                }
+                //if (reader.Version < 1002)
+                //{
+                //    UserProcess_sObject = reader.ReadBZ1_PtrDepricated("sObject");
+                //}
+                //else
+                //{
+                //    UserProcess_sObject = (UInt32)reader.ReadBZ1_Ptr("sObject", reader.Version);
+                //}
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate("sObject", BinaryFieldType.DATA_PTR))
+                    throw new Exception("Failed to parse sObject/PTR");
+                tok.ApplyUInt32H8(this, x => x.UserProcess_sObject);
 
                 if (!reader.InBinary)
                 {
@@ -736,7 +740,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse undefptr/PTR");
-                UserProcess_undefptr_0 = tok.GetUInt32H();
+                tok.ApplyUInt32H8(this, x => x.UserProcess_undefptr_0);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cycle", BinaryFieldType.DATA_UNKNOWN))
@@ -761,12 +765,12 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse undefptr/PTR");
-                UserProcess_undefptr_1 = tok.GetUInt32H();
+                tok.ApplyUInt32H8(this, x => x.UserProcess_undefptr_1);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                     throw new Exception("Failed to parse undefptr/PTR");
-                UserProcess_undefptr_2 = tok.GetUInt32H();
+                tok.ApplyUInt32H8(this, x => x.UserProcess_undefptr_2);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("exited", BinaryFieldType.DATA_UNKNOWN))
@@ -1179,25 +1183,26 @@ namespace BZNParser.Battlezone
                 // 1011A (AiMission)
                 // 1012A (AiMission)
                 writer.WriteChars("name", "UserProcess", null);
-                if (writer.Version < 1002)
-                {
-                    writer.WriteBZ1_PtrDepricated("sObject", UserProcess_sObject.Value);
-                }
-                else
-                {
-                    writer.WriteBZ1_Ptr("sObject", UserProcess_sObject.Value);
-                }
+                //if (writer.Version < 1002)
+                //{
+                //    writer.WriteBZ1_PtrDepricated("sObject", UserProcess_sObject.Value);
+                //}
+                //else
+                //{
+                //    writer.WriteBZ1_Ptr("sObject", UserProcess_sObject.Value);
+                //}
+                writer.WritePtr("sObject", this, x => x.UserProcess_sObject);
 
                 writer.WriteValidation("UserProcess");
-                writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_0.Value);
+                writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_0);
                 //writer.WriteSignedValues("cycle", UserProcess_cycle.Value);
                 writer.WriteInt32("cycle", this, x => x.UserProcess_cycle);
                 //writer.WriteSignedValues("cycleMax", UserProcess_cycleMax.Value);
                 writer.WriteInt32("cycleMax", this, x => x.UserProcess_cycleMax);
                 //writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
                 writer.WriteUInt32h("selectList", this, x => x.UserProcess_selectList);
-                writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_1.Value);
-                writer.WriteBZ1_PtrDepricated("undefptr", UserProcess_undefptr_2.Value);
+                writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_1);
+                writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_2);
                 writer.WriteBoolean("exited", this, x => x.UserProcess_exited);
             }
 

@@ -27,7 +27,6 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("soldierCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse soldierCount/LONG");
-            //if (obj != null) obj.soldierCount = tok.GetInt32();
             tok.ApplyInt32(obj, x => x.soldierCount);
 
             tok = reader.ReadToken();

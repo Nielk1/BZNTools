@@ -108,14 +108,6 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //if (writer.Format == BZNFormat.Battlezone && writer.Version == 1045)
-                //{
-                //    writer.WritePtr32("undefptr", obj.cargo); // dropoff
-                //}
-                //else
-                //{
-                //    writer.WriteBZ1_Ptr("undefptr", obj.cargo);
-                //}
                 writer.WritePtr("undefptr", obj, x => x.cargo);
             }
             else if (writer.Format == BZNFormat.Battlezone2)

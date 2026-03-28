@@ -3181,7 +3181,7 @@ namespace BZNParser.Tokenizer
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
-                byte[] stringBytes = malformations != null ? BZNEncoding.win1252.GetBytes(malformations.CheckBinaryMessString(name, value)) : BZNEncoding.win1252.GetBytes(value);
+                byte[] stringBytes = BZNEncoding.win1252.GetBytes(value);
                 InternalWriteBinarySize(stringBytes.Length);
                 BaseStream.Write(stringBytes);
                 InternalAlignBinary();

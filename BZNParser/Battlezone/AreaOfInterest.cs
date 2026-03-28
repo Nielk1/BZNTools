@@ -48,16 +48,6 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.IsValidationOnly() || !tok.Validate("AOI", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse [AOI]");
             }
-            //if (reader.Format == BZNFormat.Battlezone2)
-            //{
-            //    tok = reader.ReadToken();
-            //    if (!tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
-            //    string name = tok.GetString();
-            //    if (name != "AOI")
-            //    {
-            //        throw new Exception("Failed to parse AOI"); // untested/unconfirmed assumption
-            //    }
-            //}
 
             if (reader.Format == BZNFormat.Battlezone)
             {
@@ -105,17 +95,6 @@ namespace BZNParser.Battlezone
         public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
         {
             writer.WriteValidation("AOI");
-
-            //if (reader.Format == BZNFormat.Battlezone2)
-            //{
-            //    tok = reader.ReadToken();
-            //    if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse name/CHAR");
-            //    string name = tok.GetString();
-            //    if (name != "AOI")
-            //    {
-            //        throw new Exception("Failed to parse AOI"); // untested/unconfirmed assumption
-            //    }
-            //}
 
             if (writer.Format == BZNFormat.Battlezone)
             {

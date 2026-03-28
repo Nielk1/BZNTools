@@ -35,45 +35,41 @@ namespace BZNParser.Battlezone.GameObject
 
             if (parent.SaveType == SaveType.LOCKSTEP || parent.SaveType == SaveType.JOIN)
             {
+                // this code path could serve to be better integrated into the below code
+
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse omegaTurret/FLOAT");
-                //if (obj != null) obj.omegaTurret = tok.GetSingle(); // omegaTurret
                 tok.ApplySingle(obj, x => x.omegaTurret);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse timeDeploy/FLOAT");
-                //if (obj != null) obj.timeDeploy = tok.GetSingle(); // timeDeploy
                 tok.ApplySingle(obj, x => x.timeDeploy);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse timeUndeploy/FLOAT");
-                //if (obj != null) obj.timeUndeploy = tok.GetSingle(); // timeUndeploy
                 tok.ApplySingle(obj, x => x.timeUndeploy);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("change_state", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse change_state/LONG");
-                //if (obj != null) obj.change_state = tok.GetUInt32(); // change_state
                 tok.ApplyUInt32(obj, x => x.change_state);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse delayTimer/FLOAT");
-                //if (obj != null) obj.delayTimer = tok.GetSingle(); // delayTimer
                 tok.ApplySingle(obj, x => x.delayTimer);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse turretAligned/BOOL");
-                tok.ApplyBoolean(obj, x => x.turretAligned); // turretAligned
+                tok.ApplyBoolean(obj, x => x.turretAligned);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse prevYaw/FLOAT");
-                //if (obj != null) obj.prevYaw = tok.GetSingle(); // prevYaw
                 tok.ApplySingle(obj, x => x.prevYaw);
 
                 throw new NotImplementedException("Turret Control loading loop needed here");
@@ -85,63 +81,72 @@ namespace BZNParser.Battlezone.GameObject
                 reader.Bookmark.Mark();
                 // Use13Aim might be true if we're >= 1109, so be prepared to walk back and try again
                 // if it is Use13Aim, we expect a bool first, if it's not we expect a float
-
-                tok = reader.ReadToken();
-                if (tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
+                try
                 {
-                    reader.Bookmark.RevertToBookmark();
-
-                    if (reader.Version < 1109)
+                    tok = reader.ReadToken();
+                    if (tok != null && tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                     {
-                        // we read a turretAligned but we're too old a version for that to be a thing
-                        throw new Exception("Use13Aim turret save data found in BZN Version < 1109, impossible, parse error expected");
+                        // we see the a data field that only occurs when Use13Aim is true, so let's assume that's the case, set it true, and roll back the reader
+
+                        if (reader.Version < 1109)
+                        {
+                            // we read a turretAligned but we're too old a version for that to be a thing
+                            throw new Exception("Use13Aim turret save data found in BZN Version < 1109, impossible, parse error expected");
+                        }
+
+                        m_Use13Aim = true;
                     }
-
-                    //turretAligned = tok.GetBoolean();
-                    m_Use13Aim = true;
                 }
-                else
+                finally
                 {
-                    // walk back and try again
                     reader.Bookmark.RevertToBookmark();
+                }
 
+                if (obj != null) obj.m_Use13Aim = m_Use13Aim;
+
+                if (!m_Use13Aim)
+                {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse omegaTurret/FLOAT");
-                    //if (obj != null) obj.omegaTurret = tok.GetSingle(); // omegaTurret
                     tok.ApplySingle(obj, x => x.omegaTurret);
 
                     // obsolete
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("alphaTurret", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse alphaTurret/FLOAT");
-                    //if (obj != null) obj.alphaTurret = tok.GetSingle(); // alphaTurret
                     tok.ApplySingle(obj, x => x.alphaTurret);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse timeDeploy/FLOAT");
-                    //if (obj != null) obj.timeDeploy = tok.GetSingle(); // timeDeploy
                     tok.ApplySingle(obj, x => x.timeDeploy);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse timeUndeploy/FLOAT");
-                    //if (obj != null) obj.timeUndeploy = tok.GetSingle(); // timeUndeploy
                     tok.ApplySingle(obj, x => x.timeUndeploy);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse state/VOID");
-                    //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
                     tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse delayTimer/FLOAT");
-                    //if (obj != null) obj.delayTimer = tok.GetSingle(); // delayTimer
                     tok.ApplySingle(obj, x => x.delayTimer);
+                }
 
+                if (m_Use13Aim)
+                {
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
+                        throw new Exception("Failed to parse turretAligned/BOOL");
+                    tok.ApplyBoolean(obj, x => x.turretAligned);
+                }
+                else
+                {
                     if (reader.Version == 1100)
                     {
                         // obsolete
@@ -162,41 +167,30 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse turretAligned/BOOL");
-                        tok.ApplyBoolean(obj, x => x.turretAligned); // turretAligned
-                    }
-
-                    if (parent.SaveType != SaveType.BZN && reader.Version >= 1140)
-                    {
-                        if (!m_Use13Aim)
-                        {
-                            tok = reader.ReadToken();
-                            if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
-                                throw new Exception("Failed to parse prevYaw/FLOAT");
-                            tok.ApplySingle(obj, x => x.prevYaw);
-
-                            tok = reader.ReadToken();
-                            if (tok == null || !tok.Validate("change_state", BinaryFieldType.DATA_LONG))
-                                throw new Exception("Failed to parse change_state/LONG");
-                            tok.ApplyUInt32(obj, x => x.change_state);
-                        }
-                    }
-
-                    if (reader.Version < 1109)
-                    {
-                        if (obj != null) obj.m_Use13Aim = m_Use13Aim;
-                        ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
-                        return;
+                        tok.ApplyBoolean(obj, x => x.turretAligned);
                     }
                 }
 
-                if (obj != null) obj.m_Use13Aim = m_Use13Aim;
-
-                if (m_Use13Aim)
+                if (!m_Use13Aim)
                 {
-                    tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("turretAligned", BinaryFieldType.DATA_BOOL))
-                        throw new Exception("Failed to parse turretAligned/BOOL");
-                    tok.ApplyBoolean(obj, x => x.turretAligned); // turretAligned
+                    if (parent.SaveType != SaveType.BZN && reader.Version >= 1140)
+                    {
+                        tok = reader.ReadToken();
+                        if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
+                            throw new Exception("Failed to parse prevYaw/FLOAT");
+                        tok.ApplySingle(obj, x => x.prevYaw);
+
+                        tok = reader.ReadToken();
+                        if (tok == null || !tok.Validate("change_state", BinaryFieldType.DATA_LONG))
+                            throw new Exception("Failed to parse change_state/LONG");
+                        tok.ApplyUInt32(obj, x => x.change_state);
+                    }
+                }
+
+                if (reader.Version < 1109)
+                {
+                    ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+                    return;
                 }
 
                 if (parent.SaveType != SaveType.BZN)
@@ -207,8 +201,6 @@ namespace BZNParser.Battlezone.GameObject
                     }
                 }
             }
-
-            // parent.SaveType != SaveType.BZN
 
             ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
         }
@@ -242,7 +234,8 @@ namespace BZNParser.Battlezone.GameObject
                         throw new Exception("Use13Aim turret save data found in BZN Version < 1109, impossible, parse error expected");
                     }
                 }
-                else
+
+                if (!obj.m_Use13Aim)
                 {
                     writer.WriteSingle("omegaTurret", obj, x => x.omegaTurret);
                     writer.WriteSingle("alphaTurret", obj, x => x.alphaTurret); // obsolete
@@ -250,15 +243,22 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteSingle("timeUndeploy", obj, x => x.timeUndeploy);
                     writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
                     writer.WriteSingle("delayTimer", obj, x => x.delayTimer);
+                }
 
+                if (obj.m_Use13Aim)
+                {
+                    writer.WriteBoolean("turretAligned", obj, x => x.turretAligned);
+                }
+                else
+                {
                     if (writer.Version == 1100)
                     {
-//                        var mal = obj.Malformations.GetMalformations(Malformation.MISINTERPRET, "wantTurret");
-//                        if (mal.Length > 0)
-//                        {
-//                            writer.WriteBoolean("wantTurret", obj, x => x.turretAligned);
-//                        }
-//                        else
+                        //var mal = obj.Malformations.GetMalformations(Malformation.MISINTERPRET, "wantTurret");
+                        //if (mal.Length > 0)
+                        //{
+                        //    writer.WriteBoolean("wantTurret", obj, x => x.turretAligned);
+                        //}
+                        //else
                         {
                             writer.WriteBoolean("wantTurret", obj, x => x.wantTurret);
                             // TODO restore "Misinterpretation" to Malformation engine
@@ -268,7 +268,10 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         writer.WriteBoolean("turretAligned", obj, x => x.turretAligned);
                     }
+                }
 
+                if (obj.m_Use13Aim)
+                {
                     if (parent.SaveType != SaveType.BZN && writer.Version >= 1140)
                     {
                         if (!obj.m_Use13Aim)
@@ -277,17 +280,12 @@ namespace BZNParser.Battlezone.GameObject
                             writer.WriteUInt32("change_state", obj, x => x.change_state);
                         }
                     }
-
-                    if (writer.Version < 1109)
-                    {
-                        ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
-                        return;
-                    }
                 }
 
-                if (obj.m_Use13Aim)
+                if (writer.Version < 1109)
                 {
-                    writer.WriteBoolean("turretAligned", obj, x => x.turretAligned);
+                    ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                    return;
                 }
 
                 if (parent.SaveType != SaveType.BZN)

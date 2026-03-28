@@ -14,9 +14,12 @@ namespace BZNParser.Tokenizer
     public class StreamDefect
     {
         public UInt32? TypeGarbage { get; set; }
+        public string? EndPadGarbage { get; set; }
         public bool IsEmpty()
         {
             if (TypeGarbage.HasValue)
+                return false;
+            if (EndPadGarbage != null)
                 return false;
             return true;
         }
@@ -41,6 +44,21 @@ namespace BZNParser.Tokenizer
                 if (Defect == null)
                     Defect = new StreamDefect();
                 Defect.TypeGarbage = value;
+                if (Defect.IsEmpty())
+                    Defect = null;
+            }
+        }
+        public string? Defect_EndPadGarbage
+        {
+            get
+            {
+                return Defect?.EndPadGarbage;
+            }
+            set
+            {
+                if (Defect == null)
+                    Defect = new StreamDefect();
+                Defect.EndPadGarbage = value;
                 if (Defect.IsEmpty())
                     Defect = null;
             }
@@ -621,6 +639,15 @@ namespace BZNParser.Tokenizer
                     IBZNToken tok = ReadStringValueToken(filestream, rawLine);
                     ad.Length = filestream.Position - ad.Offset;
                     ad.IsBinary = false;
+                    if (tok is BZNTokenString strTok)
+                    {
+                        string val = strTok.values[0];
+                        string valT = val.TrimEnd(new char[] { '\r', '\n' });
+                        if (val != valT) {
+                            strTok.values[0] = valT;
+                            ad.Defect_EndPadGarbage = val.Substring(valT.Length);
+                        }
+                    }
                     if (TokenIndex == Atlas.Count)
                         Atlas.Add(ad);
                     TokenIndex++;
@@ -948,6 +975,17 @@ namespace BZNParser.Tokenizer
                     {
                         CountLF++;
                         CountCRLF++;
+                    }
+                    else if (nextBytes == 0x0D)
+                    {
+                        if (CountCRLF == CountLF && CountCR == CountLF + 1)
+                        {
+                            // double CR, likely a CR CR LF
+                            CountCR--;
+                            buffer += BZNEncoding.win1252.GetChars(new byte[] { character })[0];
+                            fileStream.Seek(-1, SeekOrigin.Current);
+                            continue;
+                        }
                     }
 
                     //if (nextBytes != 0x0A)

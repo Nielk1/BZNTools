@@ -10,7 +10,7 @@ namespace BZNParser.Tokenizer
     {
         public string Name { get => name; }
 
-        private string[] values;
+        public string[] values { get; }
         private string name;
 
         /// <summary>

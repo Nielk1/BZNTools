@@ -1658,6 +1658,19 @@ namespace BZNParser.Tokenizer
             if (QuoteStrings)
                 BaseStream.Write(BZNEncoding.win1252.GetBytes("\""));
             BaseStream.Write(rawValue);
+
+            if (StreamDefects != null)
+            {
+                if (StreamDefects.ContainsKey(TokenIndex))
+                {
+                    StreamDefect defect = StreamDefects[TokenIndex];
+                    if (defect.EndPadGarbage != null)
+                    {
+                        BaseStream.Write(BZNEncoding.win1252.GetBytes(defect.EndPadGarbage));
+                    }
+                }
+            }
+
             if (QuoteStrings)
                 BaseStream.Write(BZNEncoding.win1252.GetBytes("\""));
             InternalWriteNewline();
@@ -1702,6 +1715,19 @@ namespace BZNParser.Tokenizer
             if (QuoteStrings)
                 BaseStream.Write(BZNEncoding.win1252.GetBytes("\""));
             BaseStream.Write(rawValue);
+
+            if (StreamDefects != null)
+            {
+                if (StreamDefects.ContainsKey(TokenIndex))
+                {
+                    StreamDefect defect = StreamDefects[TokenIndex];
+                    if (defect.EndPadGarbage != null)
+                    {
+                        BaseStream.Write(BZNEncoding.win1252.GetBytes(defect.EndPadGarbage));
+                    }
+                }
+            }
+
             if (QuoteStrings)
                 BaseStream.Write(BZNEncoding.win1252.GetBytes("\""));
             InternalWriteNewline();

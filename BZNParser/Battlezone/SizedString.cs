@@ -1,9 +1,8 @@
-﻿using BZNParser.Battlezone;
-using BZNParser.Tokenizer;
+﻿using BZNParser.Tokenizer;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace BZNParser;
+namespace BZNParser.Battlezone;
 
 /// <summary>
 /// Holds the size for a string if it's abberant, else determines it from the string value
@@ -26,7 +25,7 @@ public class SizedString : IMalformable
     }
     public SizedString(string value, uint? length = null)
     {
-        this._malformationManager = new IMalformable.MalformationManager(this);
+        _malformationManager = new IMalformable.MalformationManager(this);
         
         this.value = value;
 
@@ -37,17 +36,17 @@ public class SizedString : IMalformable
             this.length = length;
     }
 
-    public UInt32 Length { get { return length ?? (UInt32)(value?.Length ?? 0); } set { length = value; } }
+    public uint Length { get { return length ?? (uint)(value?.Length ?? 0); } set { length = value; } }
     public string Value {
         get { return value; }
         set {
             this.value = value;
             if (!blockAutoFixMalformations)
-                this.length = null;
+                length = null;
         }
     }
 
-    private UInt32? length;
+    private uint? length;
     private string value;
     private bool blockAutoFixMalformations = false;
 
@@ -257,7 +256,7 @@ static class SizedStringExtension
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("size", BinaryFieldType.DATA_LONG) || tok.GetCount() > 1)
                 throw new Exception($"Failed to parse size/LONG");
-            (_, UInt32 size) = tok.ApplyUInt32(value, x => x.Length);
+            (_, uint size) = tok.ApplyUInt32(value, x => x.Length);
 
             if (size > 0) // descision based on raw value, not cleanedsssss
             {
@@ -278,7 +277,7 @@ static class SizedStringExtension
     {
         SizedString wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
 
-        (UInt32 size, _) = writer.WriteUInt32("size", wrappedValue, x => x.Length);
+        (uint size, _) = writer.WriteUInt32("size", wrappedValue, x => x.Length);
         if (size > 0)
             writer.WriteChars(name, wrappedValue, x => x.Value);
     }

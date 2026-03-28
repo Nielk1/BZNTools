@@ -397,8 +397,9 @@ namespace BZNParser.Tokenizer
         public Dictionary<int, StreamDefect>? StreamDefects { get; set; }
         public int TokenIndex { get; private set; }
         public string NewLine { get; set; }
+        public bool PreserveMalformations { get; set; }
 
-        public BZNStreamWriter(Stream stream, BZNFormat format, int version, Dictionary<int, StreamDefect>? preserveDefects = null)
+        public BZNStreamWriter(Stream stream, BZNFormat format, int version, bool preserveMalformations = false, Dictionary<int, StreamDefect>? preserveDefects = null)
         {
             BaseStream = stream;
             Format = format;
@@ -406,6 +407,7 @@ namespace BZNParser.Tokenizer
             FloatFormat = FloatTextFormat.G;
             if (preserveDefects != null && preserveDefects.Count > 0)
                 StreamDefects = preserveDefects;
+            PreserveMalformations = preserveMalformations;
             TokenIndex = 0;
             PointerSize = 4;
 
@@ -612,10 +614,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString();
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -714,10 +719,13 @@ namespace BZNParser.Tokenizer
 
             string singleTextValue = value.ToString("x");
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                singleTextValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    singleTextValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -825,10 +833,12 @@ namespace BZNParser.Tokenizer
 
             //string textValue = BitConverter.ToString(value).Replace("-", string.Empty).ToUpperInvariant(); // replace this with nicer logic
 
+            // if (PreserveMalformations) {
             //// handle incorrect raw value
             //(bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
             //if (hasIncorrectRaw)
             //    textValue = incorrectText ?? string.Empty;
+            // }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
             //BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
@@ -935,10 +945,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = BitConverter.ToString(value).Replace("-", string.Empty).ToUpperInvariant(); // replace this with nicer logic
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
@@ -1047,18 +1060,21 @@ namespace BZNParser.Tokenizer
             string textValue = BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant(); // replace this with nicer logic
 
             // handle incorrect caseing
-            (bool hasIncorrectCase, char? incorrectCase) = parent.Malformations.GetIncorrectCase(property);
-            if (hasIncorrectCase && incorrectCase != null)
-                switch(incorrectCase.Value)
-                {
-                    case 'U': textValue = textValue.ToUpperInvariant(); break;
-                    case 'L': textValue = textValue.ToLowerInvariant(); break;
-                }
+            if (PreserveMalformations)
+            {
+                (bool hasIncorrectCase, char? incorrectCase) = parent.Malformations.GetIncorrectCase(property);
+                if (hasIncorrectCase && incorrectCase != null)
+                    switch (incorrectCase.Value)
+                    {
+                        case 'U': textValue = textValue.ToUpperInvariant(); break;
+                        case 'L': textValue = textValue.ToLowerInvariant(); break;
+                    }
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
@@ -1117,10 +1133,13 @@ namespace BZNParser.Tokenizer
             if (value > 0xFFFFFFFF)
                 textValue = value.ToString("X16");
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
@@ -1185,10 +1204,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString();
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1245,10 +1267,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString("x");
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1314,10 +1339,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString();
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1369,10 +1397,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString();
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1427,10 +1458,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString();
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1493,10 +1527,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString();
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1549,10 +1586,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString("x");
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1605,10 +1645,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString();
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1636,10 +1679,13 @@ namespace BZNParser.Tokenizer
             string value = wrappedValue.Value ?? string.Empty; // we don't care about the size as we're a normal char print
             byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
-            if (hasIncorrectRaw)
-                rawValue = incorrectRaw ?? [];
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
+                if (hasIncorrectRaw)
+                    rawValue = incorrectRaw ?? [];
+            }
 
             if (InBinary)
             {
@@ -1652,7 +1698,7 @@ namespace BZNParser.Tokenizer
             }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
-            if (!parent.Malformations.IsRightTrimmed(property))
+            if (!PreserveMalformations || !parent.Malformations.IsRightTrimmed(property))
                 BaseStream.Write(BZNEncoding.win1252.GetBytes(" "));
             //InternalWriteNewline();
             if (QuoteStrings)
@@ -1693,10 +1739,13 @@ namespace BZNParser.Tokenizer
             string value = ExtractPropertyValue(parent, property);
             byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
-            if (hasIncorrectRaw)
-                rawValue = incorrectRaw ?? [];
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
+                if (hasIncorrectRaw)
+                    rawValue = incorrectRaw ?? [];
+            }
 
             if (InBinary)
             {
@@ -1709,7 +1758,7 @@ namespace BZNParser.Tokenizer
             }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
-            if (!parent.Malformations.IsRightTrimmed(property))
+            if (!PreserveMalformations || !parent.Malformations.IsRightTrimmed(property))
                 BaseStream.Write(BZNEncoding.win1252.GetBytes(" "));
             //InternalWriteNewline();
             if (QuoteStrings)
@@ -1774,10 +1823,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value ? "true" : "false";
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
             InternalWriteNewline();
@@ -1834,10 +1886,13 @@ namespace BZNParser.Tokenizer
                 throw new NotImplementedException("Unimplemented ID type");
             }
 
-            // handle incorrect raw value
-            (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
-            if (hasIncorrectRaw)
-                rawValue = incorrectRaw ?? [];
+            if (PreserveMalformations)
+            {
+                // handle incorrect raw value
+                (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
+                if (hasIncorrectRaw)
+                    rawValue = incorrectRaw ?? [];
+            }
 
             if (InBinary)
             {
@@ -1891,9 +1946,12 @@ namespace BZNParser.Tokenizer
 
         private string InternalFixName<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
-            (bool hasIncorrectName, string? incorrectName) = parent.Malformations.GetIncorrectName(property);
-            if (hasIncorrectName)
-                name = incorrectName;
+            if (PreserveMalformations)
+            {
+                (bool hasIncorrectName, string? incorrectName) = parent.Malformations.GetIncorrectName(property);
+                if (hasIncorrectName)
+                    name = incorrectName;
+            }
             return name;
         }
         private void InternalWriteVector2DValue(Vector2D value)
@@ -1956,10 +2014,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToString(); // figure out if doubles have a format
 
-            // handle incorrect text value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect text value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
         }
@@ -2002,10 +2063,13 @@ namespace BZNParser.Tokenizer
 
             string textValue = value.ToBZNString(FloatFormat);
 
-            // handle incorrect text value
-            (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-            if (hasIncorrectRaw)
-                textValue = incorrectText ?? string.Empty;
+            if (PreserveMalformations)
+            {
+                // handle incorrect text value
+                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectRaw)
+                    textValue = incorrectText ?? string.Empty;
+            }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
         }
@@ -2253,11 +2317,19 @@ namespace BZNParser.Tokenizer
                         InternalWriteFloatValue(value, x => x.frontz);
 
                         // TODO zero this if we aren't preserving malformations, consider adding it to malformations though it would need a new type, like "excess bytes"
+                        if (PreserveMalformations)
                         {
                             byte[] bytes = BitConverter.GetBytes(value.junk);
                             if (IsBigEndian)
                                 Array.Reverse(bytes);
                             BaseStream.Write(bytes);
+                        }
+                        else
+                        {
+                            BaseStream.WriteByte(0x00);
+                            BaseStream.WriteByte(0x00);
+                            BaseStream.WriteByte(0x00);
+                            BaseStream.WriteByte(0x00);
                         }
 
                         InternalWriteDoubleValue(value, x => x.positx);
@@ -2356,94 +2428,6 @@ namespace BZNParser.Tokenizer
 
 
 
-        public void WriteUnknown(string name, string value)
-        {
-            if (InBinary)
-                throw new Exception("Unknown type data cannot be written in binary mode.");
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} = "));
-            InternalWriteStringValue(value);
-            InternalWriteNewline();
-            TokenIndex++;
-        }
-
-        public void WriteRaw(string name, byte[] values)
-        {
-            if (InBinary)
-            {
-                throw new NotImplementedException("Raw Write only for ASCII");
-            }
-
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [1] ="));
-            InternalWriteNewline();
-            BaseStream.Write(values);
-            InternalWriteNewline();
-            TokenIndex++;
-        }
-
-        [Obsolete]
-        public void WriteBooleans(string name, IMalformable.MalformationManager? malformations, params bool[] values)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_BOOL);
-                InternalWriteBinarySize(values.Length);
-
-                foreach (bool value in values)
-                    BaseStream.WriteByte((byte)(value ? 1 : 0));
-
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [{values.Length}] ="));
-            InternalWriteNewline();
-            for (int i = 0; i < values.Length; i++) {
-                if (malformations != null)
-                {
-//                    var mal = malformations.GetMalformations(Malformation.INCORRECT_TEXT, name);
-//                    if (mal.Any())
-//                    {
-//                        // TODO index handling
-//                        BaseStream.Write(BZNEncoding.win1252.GetBytes((string)mal.First().Fields[0]));
-//                        InternalWriteNewline();
-//                        continue;
-//                    }
-                }
-
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{(values[i] ? "true" : "false")}"));
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
-
-        [Obsolete]
-        public void WriteUnsignedValues(string name, params UInt64[] values)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
-                InternalWriteBinarySize(values.Length);
-                foreach (UInt64 value in values)
-                {
-                    byte[] bytes = BitConverter.GetBytes(value);
-                    if (IsBigEndian)
-                        Array.Reverse(bytes);
-                    BaseStream.Write(bytes);
-                }
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [{values.Length}] ="));
-            InternalWriteNewline();
-            for (int i = 0; i < values.Length; i++)
-            {
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(values[i].ToString()));
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
 
         [Obsolete]
         public void WriteUnsignedValues(string name, params UInt16[] values)
@@ -2473,33 +2457,6 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
-        [Obsolete]
-        public void WriteUnsignedHexLValues(string name, params UInt16[] values)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
-                InternalWriteBinarySize(sizeof(UInt16) * values.Length);
-                foreach (UInt16 value in values)
-                {
-                    byte[] bytes = BitConverter.GetBytes(value);
-                    if (IsBigEndian)
-                        Array.Reverse(bytes);
-                    BaseStream.Write(bytes);
-                }
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [{values.Length}] ="));
-            InternalWriteNewline();
-            for (int i = 0; i < values.Length; i++)
-            {
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(values[i].ToString("x")));
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
 
         [Obsolete]
         public void WriteUnsignedHexLValues(string name, params UInt32[] values)
@@ -2560,101 +2517,6 @@ namespace BZNParser.Tokenizer
         }
 
         [Obsolete]
-        public void WriteShortFlag(string name, UInt16 value)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
-                InternalWriteBinarySize(sizeof(UInt16));
-                {
-                    {
-                        byte[] bytes = BitConverter.GetBytes(value);
-                        if (IsBigEndian)
-                            Array.Reverse(bytes);
-                        BaseStream.Write(bytes);
-                    }
-                }
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} ="));
-            InternalWriteNewline();
-            {
-                {
-                    InternalWriteNewline();
-                    BaseStream.Write(BZNEncoding.win1252.GetBytes(value.ToString("x")));
-                }
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
-
-        [Obsolete]
-        public void WriteLongFlags(string name, params UInt32[] values)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_LONG);
-                InternalWriteBinarySize(sizeof(UInt32) * values.Length);
-                {
-                    foreach (UInt32 value in values)
-                    {
-                        byte[] bytes = BitConverter.GetBytes(value);
-                        if (IsBigEndian)
-                            Array.Reverse(bytes);
-                        BaseStream.Write(bytes);
-                    }
-                }
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [{values.Length}] ="));
-            {
-                foreach (UInt32 value in values)
-                {
-                    InternalWriteNewline();
-                    BaseStream.Write(BZNEncoding.win1252.GetBytes(value.ToString("x")));
-                }
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
-
-        [Obsolete]
-        public void WriteShortFlags(string name, params UInt16[] values)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
-                InternalWriteBinarySize(sizeof(UInt16) * values.Length);
-                {
-                    foreach (UInt16 value in values)
-                    {
-                        byte[] bytes = BitConverter.GetBytes(value);
-                        if (IsBigEndian)
-                            Array.Reverse(bytes);
-                        BaseStream.Write(bytes);
-                    }
-                }
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [{values.Length}] ="));
-            {
-                foreach (UInt16 value in values)
-                {
-                    InternalWriteNewline();
-                    BaseStream.Write(BZNEncoding.win1252.GetBytes(value.ToString("x")));
-                }
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
-
-        [Obsolete]
         public void WriteUnsignedValues(string name, params UInt32[] values)
         {
             if (InBinary)
@@ -2681,31 +2543,6 @@ namespace BZNParser.Tokenizer
             }
             TokenIndex++;
         }
-
-        [Obsolete]
-        private void InternalWriteFloatValue(string name, float value, FloatTextFormat floatFormat, IMalformable.MalformationManager malformations)
-        {
-            if (InBinary)
-            {
-                byte[] bytes = BitConverter.GetBytes(value);
-                if (IsBigEndian)
-                    Array.Reverse(bytes);
-                BaseStream.Write(bytes);
-                return;
-            }
-
-            //if (preserveMalformations)
-            {
-//                var mal = malformations.GetMalformations(Malformation.INCORRECT_TEXT, name);
-//                if (mal.Any())
-//                {
-//                    BaseStream.Write(BZNEncoding.win1252.GetBytes((string)mal.First().Fields[0]));
-//                    return;
-//                }
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes(value.ToBZNString(FloatFormat)));
-        }
-
 
         [Obsolete]
         public void WriteSignedValues(string name, params int[] values)
@@ -2785,35 +2622,6 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
-        [Obsolete]
-        public void WritePtr64(string name, UInt64 value)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
-                InternalWriteBinarySize(sizeof(UInt64));
-                byte[] bytes = BitConverter.GetBytes(value);
-                if (IsBigEndian)
-                    Array.Reverse(bytes);
-                BaseStream.Write(bytes);
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} = "));
-            //InternalWriteStringDirectValue(value.ToString("X16"));
-            if (value > 0x100000000)
-            {
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(value.ToString("X16")));
-            }
-            else
-            {
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(((UInt32)value).ToString("X8")));
-            }
-            InternalWriteNewline();
-            TokenIndex++;
-        }
-
         // this might be bogus, will know later
         [Obsolete]
         public void WritePtrs(string name, params uint[] values)
@@ -2852,14 +2660,6 @@ namespace BZNParser.Tokenizer
             WriteVoidBytesL(name, bytes);
         }
         [Obsolete]
-        public void WriteVoidBytes(string name, UInt32 value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            if (IsBigEndian)
-                Array.Reverse(bytes);
-            WriteVoidBytes(name, bytes);
-        }
-        [Obsolete]
         public void WriteVoidBytesL(string name, byte[] value)
         {
             if (InBinary)
@@ -2874,24 +2674,6 @@ namespace BZNParser.Tokenizer
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} = "));
             //InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant());
             BaseStream.Write(BZNEncoding.win1252.GetBytes(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant()));
-            InternalWriteNewline();
-            TokenIndex++;
-        }
-        [Obsolete]
-        public void WriteVoidBytes(string name, byte[] value)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_VOID);
-                InternalWriteBinarySize(value.Length);
-                BaseStream.Write(value);
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} = "));
-            //InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty));
-            BaseStream.Write(BZNEncoding.win1252.GetBytes(BitConverter.ToString(value).Replace("-", string.Empty)));
             InternalWriteNewline();
             TokenIndex++;
         }

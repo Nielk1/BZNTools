@@ -1,5 +1,4 @@
-﻿using BZNParser;
-using BZNParser.Battlezone.GameObject;
+﻿using BZNParser.Battlezone.GameObject;
 using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;

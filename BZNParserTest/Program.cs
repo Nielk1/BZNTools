@@ -21,6 +21,7 @@ namespace BZNParserTest
             Dictionary<BznType, List<(string, bool)>> Files = new Dictionary<BznType, List<(string, bool)>>();
 
             object successTxtLock = new object();
+            object errorTxtLock = new object();
 
             /*
             HashSet<string> KnownFiles = Directory.EnumerateFiles(@"..\..\..\..\test_files", "*.bzn", SearchOption.AllDirectories).Select(dr => Path.GetFileNameWithoutExtension(dr)).ToHashSet<string>();
@@ -160,11 +161,14 @@ namespace BZNParserTest
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.ForegroundColor = ConsoleColor.Red;
-                                            Console.WriteLine($"Error: {ex.Message}");
-                                            Console.ResetColor();
-                                            //Console.ReadKey(true);
-                                            File.AppendAllText("failed.txt", $"{filename}\t{ex.Message}\r\n");
+                                            lock (errorTxtLock)
+                                            {
+                                                Console.ForegroundColor = ConsoleColor.Red;
+                                                Console.WriteLine($"Error: {ex.Message}");
+                                                Console.ResetColor();
+                                                //Console.ReadKey(true);
+                                                File.AppendAllText("failed.txt", $"{filename}\t{ex.Message}\r\n");
+                                            }
                                         }
                                         finally
                                         {

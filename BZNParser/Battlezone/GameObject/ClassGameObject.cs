@@ -848,6 +848,7 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse independence");
                         //if (obj != null) obj.independence = tok.GetRaw(0, 1)[0]; // game uses 1 byte by force here
+                        //tok.ApplyUInt8(obj, x => x.independence);
                         tok.ApplyVoidBytesRaw(obj, x => x.independence, 0, (v) => v[0]);
                     }
                 }
@@ -1408,7 +1409,8 @@ namespace BZNParser.Battlezone.GameObject
                     else
                     {
                         //writer.WriteUnsignedRawValues("independence", (byte)obj.independence);
-                        writer.WriteVoidBytesRaw("independence", obj, x => x.independence, (v) => new byte[] { (byte)v });
+                        //writer.WriteUInt8("independence", obj, x => x.independence);
+                        writer.WriteUInt8Raw("independence", obj, x => x.independence);
                     }
                 }
             }

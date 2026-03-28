@@ -46,27 +46,14 @@ namespace BZNParser.Battlezone.GameObject
             if (tok == null || !tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildTime/FLOAT");
             tok.ApplySingle(obj, x => x.buildTime);
 
-            //tok = reader.ReadToken();
-            //if (tok == null || !tok.Validate("buildMatrix", BinaryFieldType.DATA_MAT3D)) throw new Exception("Failed to parse buildMatrix/MAT3D"); // type unconfirmed
-            //if (obj != null)
-            //{
-            //    obj.dropMat = tok.GetMatrix();
-            //    tok.CheckMalformationsMatrix(obj.dropMat.Malformations, reader.FloatFormat);
-            //}
             reader.ReadMatrix("buildMatrix", obj, x => x.dropMat);
 
-            //tok = reader.ReadToken();
-            //if (tok == null || !tok.Validate("buildClass", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse buildClass/ID");
-            //dropClass = tok.GetString();
             if (reader.Version == 1149 || reader.Version == 1151)
-            //if (reader.Version < 1155) // Doesn't seem to be true here
             {
-                //if (obj != null) obj.dropClass = reader.ReadGameObjectClass_BZ2(parent, "config", obj?.Malformations);
                 reader.ReadSizedString("config", obj, x => x.dropClass);
             }
             else
             {
-                //if (obj != null) obj.dropClass = reader.ReadGameObjectClass_BZ2(parent, "buildClass", obj?.Malformations);
                 reader.ReadSizedString("buildClass", obj, x => x.dropClass);
             }
 
@@ -123,12 +110,10 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Version == 1149 || writer.Version == 1151)
             {
-                //writer.WriteGameObjectClass_BZ2(parent, "config", obj.dropClass, obj.Malformations);
                 writer.WriteSizedString("config", obj, x => x.dropClass);
             }
             else
             {
-                //writer.WriteGameObjectClass_BZ2(parent, "buildClass", obj.dropClass ?? string.Empty, obj.Malformations);
                 writer.WriteSizedString("buildClass", obj, x => x.dropClass);
             }
 

@@ -33,13 +33,6 @@ namespace BZNParser.Battlezone.GameObject
 
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 1030)
             {
-                //tok = reader.ReadToken();
-                //if (tok == null || !tok.Validate("dropMat", BinaryFieldType.DATA_MAT3DOLD)) throw new Exception("Failed to parse dropMat/MAT3DOLD");
-                //if (obj != null)
-                //{
-                //    obj.dropMat = tok.GetMatrixOld();
-                //    MalformationExtensions.CheckMalformationsMatrix(tok, obj.dropMat.Malformations, reader.FloatFormat);
-                //}
                 reader.ReadMatrixOld("dropMat", obj, x => x.dropMat);
 
                 if (reader.Format == BZNFormat.BattlezoneN64)
@@ -59,7 +52,6 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2001)
                 {
                     tok = reader.ReadToken();
-                    //if (tok == null || !tok.Validate("lastRecycled", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse lastRecycled/FLOAT");
                     if (tok == null || !tok.Validate("lastRecycled", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse lastRecycled/LONG");
                     if (obj != null) obj.lastRecycled = tok.GetUInt32();
                 }

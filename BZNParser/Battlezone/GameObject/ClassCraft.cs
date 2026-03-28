@@ -102,10 +102,6 @@ namespace BZNParser.Battlezone.GameObject
                         for (int i = 0; i < 6; i++)
                             obj.bumpers[i] = tok.GetVector3D(i);
                     }
-
-                    //if(!tok.Validate(null, BinaryFieldType.DATA_VEC3D))
-                    //    throw new Exception("Failed to parse ???/VEC3D");
-                    // there are 6 vectors here, but we don't know what they are for and are probably able to be forgotten
                 }
                 else
                 {
@@ -135,8 +131,6 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            //if (reader.Format == BZNFormat.BattlezoneN64 || ((reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.Battlezone2) && reader.Version > 1022))
-            //if (reader.Format == BZNFormat.BattlezoneN64 || ((reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.Battlezone2) && reader.Version >= 1037))
             if (reader.Format == BZNFormat.BattlezoneN64
             || (reader.Format == BZNFormat.Battlezone && reader.Version > 1027)
             || (reader.Format == BZNFormat.Battlezone2))// && reader.Version >= 1034))
@@ -147,7 +141,6 @@ namespace BZNParser.Battlezone.GameObject
                 if (tok.GetCount() != 1)
                     throw new Exception("Failed to parse abandoned/LONG (wrong entry count)"); // vastly improves type auto-detect
 
-                //if (obj != null) obj.abandoned = tok.GetInt32();
                 tok.ApplyInt32(obj, x => x.abandoned);
             }
             /*if (reader.Format == BZNFormat.Battlezone && reader.Version <= 1022 && reader.Version != 1001)
@@ -215,26 +208,22 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null | !tok.Validate("cloakTransitionTime", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse cloakTransitionTime/FLOAT");
-                    //if (obj != null) obj.cloakTransitionTime = (uint)tok.GetSingle();
                     tok.ApplySingle(obj, x => x.cloakTransitionTime);
                 }
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cloakState", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse cloakState/VOID");
-                //if (obj != null) obj.cloakState = tok.GetUInt32HR();
                 tok.ApplyVoidBytes(obj, x => x.cloakState, 0, (v) => BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cloakTransBeginTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransBeginTime/FLOAT");
-                //if (obj != null) obj.cloakTransBeginTime = tok.GetSingle();
                 tok.ApplySingle(obj, x => x.cloakTransBeginTime);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cloakTransEndTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransEndTime/FLOAT");
-                //if (obj != null) obj.cloakTransEndTime = tok.GetSingle();
                 tok.ApplySingle(obj, x => x.cloakTransEndTime);
             }
 
@@ -386,53 +375,25 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1143)
                 {
-                    //writer.WriteFloats("curAmmo", preserveMalformations ? obj.Malformations : null, obj.curAmmo.Get<Single>());
                     writer.WriteSingle("curAmmo", obj, x => x.curAmmo);
-                    //writer.WriteFloats("maxAmmo", preserveMalformations ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
                     writer.WriteSingle("maxAmmo", obj, x => x.maxAmmo);
-                    //writer.WriteFloats("addAmmo", preserveMalformations ? obj.Malformations : null, obj.addAmmo.Get<Single>());
                     writer.WriteSingle("addAmmo", obj, x => x.addAmmo);
 
-                    //if (writer.InBinary)
-                    //{
-                    //    if (obj.curPilot != null)
-                    //    {
-                    //        writer.WriteUnsignedValues(null, (byte)(obj.curPilot.Value.Length));
-                    //
-                    //        if (obj.curPilot.Value.Length > 0)
-                    //        {
-                    //            writer.WriteChars("curPilot", obj, x => x.curPilot);
-                    //        }
-                    //    }
-                    //    else
-                    //    {
-                    //        writer.WriteUnsignedValues(null, (byte)0);
-                    //    }
-                    //}
-                    //else
+                    if (writer.Version == 1145 || writer.Version == 1147 || writer.Version == 1148 || writer.Version == 1149 || writer.Version == 1151 || writer.Version == 1154)
                     {
-                        if (writer.Version == 1145 || writer.Version == 1147 || writer.Version == 1148 || writer.Version == 1149 || writer.Version == 1151 || writer.Version == 1154)
-                        {
-                            //writer.WriteChars("config", obj.curPilot, obj.Malformations);
-                            //writer.WriteGameObjectClass_BZ2(parent, "config", obj.curPilot, obj.Malformations);
-                            writer.WriteSizedString("config", obj, x => x.curPilot);
-                        }
-                        else
-                        {
-                            //writer.WriteChars("curPilot", obj.curPilot, obj.Malformations);
-                            //writer.WriteGameObjectClass_BZ2(parent, "curPilot", obj.curPilot, obj.Malformations);
-                            writer.WriteSizedString("curPilot", obj, x => x.curPilot);
-                        }
+                        writer.WriteSizedString("config", obj, x => x.curPilot);
+                    }
+                    else
+                    {
+                        writer.WriteSizedString("curPilot", obj, x => x.curPilot);
                     }
 
                     if (writer.Version == 1195)
                     {
-                        //writer.WriteFloats("m_ejectRatio", preserveMalformations ? obj.Malformations : null, obj.m_ejectRatio);
                         writer.WriteSingle("m_ejectRatio", obj, x => x.m_ejectRatio);
                     }
                     else if (writer.Version >= 1196)
                     {
-                        //writer.WriteFloats("ejectRatio", preserveMalformations ? obj.Malformations : null, obj.m_ejectRatio);
                         writer.WriteSingle("ejectRatio", obj, x => x.m_ejectRatio);
                     }
                 }

@@ -410,6 +410,7 @@ namespace BZNParser
             }
         }
 
+        // TODO fix index handling
         public static void WriteSizedString<T, TProp>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, SizedString>? convert = null)
         {
             TProp wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);

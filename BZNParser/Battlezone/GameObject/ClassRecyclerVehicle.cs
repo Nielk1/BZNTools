@@ -19,7 +19,7 @@ namespace BZNParser.Battlezone.GameObject
         public float nextRepair { get; set; }
         public float buildDoneTime { get; set; }
         public bool buildActive { get; set; }
-        public string[] buildItems { get; set; }
+        public SizedString[] buildItems { get; set; }
 
         public ClassRecyclerVehicle(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
@@ -45,15 +45,18 @@ namespace BZNParser.Battlezone.GameObject
                 if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
                 int buildCount = tok.GetInt32();
 
-                if (obj != null) obj.buildItems = new string[buildCount];
+                if (obj != null) obj.buildItems = new SizedString[buildCount];
 
                 for (int i = 0; i < buildCount; i++)
                 {
                     //v5 = std::deque < GameObjectClass const *>::operator[] (v4);
                     //ILoadSaveVisitor::out(a2, *v5, "buildItem");
                     //++v4;
-                    string item = reader.ReadGameObjectClass_BZ2(parent, "buildItem", obj?.Malformations); // TODO another problem for malformations without idx
-                    if (obj != null) obj.buildItems[i] = item;
+
+                    //string item = reader.ReadGameObjectClass_BZ2(parent, "buildItem", obj?.Malformations); // TODO another problem for malformations without idx
+                    //if (obj != null) obj.buildItems[i] = item;
+                 
+                    reader.ReadGameObjectClass_BZ2(parent.SaveType, "buildItem", obj, x => x.buildItems, i);
                 }
             }
 
@@ -75,7 +78,8 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteSignedValues("buildCount", obj.buildItems.Length);
                 for (int i = 0; i < obj.buildItems.Length; i++)
                 {
-                    writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem", obj.Malformations);
+                    //writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem", obj.Malformations);
+                    writer.WriteSizedString("buildItem", obj, x => x.buildItems, (v) => v[i]);
                 }
             }
             ClassDeployBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);

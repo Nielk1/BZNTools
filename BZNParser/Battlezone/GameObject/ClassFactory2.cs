@@ -60,7 +60,7 @@ namespace BZNParser.Battlezone.GameObject
                 //string item = reader.ReadGameObjectClass_BZ2(parent, "buildItem", obj?.Malformations);
                 //if (obj != null) obj.buildItems[i] = item;
                 //reader.ReadSizedString("buildItem", obj, x => x.buildItems, i);
-                reader.ReadGameObjectClass_BZ2(parent.SaveType,"buildItem", obj, x => x.buildItems, i);
+                reader.ReadGameObjectClass_BZ2(parent.SaveType, "buildItem", obj, x => x.buildItems, i);
             }
 
             //...

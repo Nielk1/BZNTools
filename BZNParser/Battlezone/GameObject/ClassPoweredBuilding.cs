@@ -60,7 +60,7 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Version >= 1193)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse scriptPowerOverride/LONG");
                 //if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
                 tok.ApplyInt32(obj, x => x.scriptPowerOverride);

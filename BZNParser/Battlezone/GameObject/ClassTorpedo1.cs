@@ -66,12 +66,12 @@ namespace BZNParser.Battlezone.GameObject
             ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassTorpedo1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassTorpedo1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Version < 1031)
             {
@@ -88,10 +88,10 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone && writer.Version < 1031)
             {
-                ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                ClassGameObject.Dehydrate(obj, parent, writer, binary, save);
                 return;
             }
-            ClassPowerUp.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassPowerUp.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

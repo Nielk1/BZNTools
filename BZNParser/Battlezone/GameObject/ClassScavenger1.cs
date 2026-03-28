@@ -41,12 +41,12 @@ namespace BZNParser.Battlezone.GameObject
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassScavenger1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassScavenger1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Format == BZNFormat.Battlezone)
             {
@@ -57,7 +57,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteUInt32("scrapHeld", obj, x => x.scrapHeld);
                 }
             }
-            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

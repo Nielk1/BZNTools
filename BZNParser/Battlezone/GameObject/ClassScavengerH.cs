@@ -99,12 +99,12 @@ namespace BZNParser.Battlezone.GameObject
             ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassScavengerH obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassScavengerH obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (parent.SaveType != SaveType.BZN)
             {
@@ -127,7 +127,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 if (writer.Version >= 1109)
                 {
-                    //writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.buildMatrix); // type unconfirmed
+                    //writer.WriteMat3Ds("buildMatrix", obj.buildMatrix); // type unconfirmed
                     writer.WriteMatrix("buildMatrix", obj, x => x.buildMatrix);
                 }
                 if (writer.Version >= 1148)
@@ -141,7 +141,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassDeployable.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

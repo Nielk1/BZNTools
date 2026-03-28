@@ -28,19 +28,19 @@ namespace BZNParser.Battlezone.GameObject
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassAssaultHover obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassAssaultHover obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (parent.SaveType != SaveType.BZN)
             {
                 // turret control
             }
 
-            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

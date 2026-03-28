@@ -85,12 +85,12 @@ namespace BZNParser.Battlezone.GameObject
             }
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassArtillery obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassArtillery obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Version < 1110)
             {
@@ -106,7 +106,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteSingle("prevYaw", obj, x => x.prevYaw);
                 }
 
-                ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save);
             }
             else
             {
@@ -115,7 +115,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteSingle("prevYaw", obj, x => x.prevYaw);
                 }
 
-                ClassTurretTank2.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                ClassTurretTank2.Dehydrate(obj, parent, writer, binary, save);
             }
         }
     }

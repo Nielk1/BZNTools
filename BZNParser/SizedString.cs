@@ -15,29 +15,54 @@ public class SizedString : IMalformable
     public IMalformable.MalformationManager Malformations => _malformationManager;
     public void ClearMalformations()
     {
-        size = null;
+        length = null;
         Malformations.Clear();
     }
     #endregion Malformable
 
-    public SizedString() : this(string.Empty, null) { }
-    public SizedString(string value, uint? size = null)
+    public SizedString() : this(string.Empty, null) {
+        // we are created empty so prevent automatic clearing of the length when the value is set
+        blockAutoFixMalformations = true;
+    }
+    public SizedString(string value, uint? length = null)
     {
         this._malformationManager = new IMalformable.MalformationManager(this);
+        
         this.value = value;
-        if (value.Length != size)
-            this.size = size;
+
+        // don't bother setting the size if it's already correct,
+        // we can only do this because we're setting both at once,
+        // else we'd have to leave the size alone due to OoO issues
+        if (value.Length != length)
+            this.length = length;
     }
 
-    public UInt32 Size { get { return size ?? (UInt32)(value?.Length ?? 0); } set { size = value; } }
-    public string Value { get { return value; } set { this.value = value; size = null; } }
+    public UInt32 Length { get { return length ?? (UInt32)(value?.Length ?? 0); } set { length = value; } }
+    public string Value {
+        get { return value; }
+        set {
+            this.value = value;
+            if (!blockAutoFixMalformations)
+                this.length = null;
+        }
+    }
 
-    private UInt32? size;
+    private UInt32? length;
     private string value;
+    private bool blockAutoFixMalformations = false;
 
     public override string ToString()
     {
         return Value;
+    }
+
+    /// <summary>
+    /// Allow automatic malformation and data corrections when data altered.
+    /// This is blocked when constructed with no paramaters.
+    /// </summary>
+    public void Finalized()
+    {
+        blockAutoFixMalformations = false;
     }
 }
 
@@ -90,48 +115,55 @@ static class SizedStringExtension
             }
         }
 
-        IBZNToken? tok;
-        if (reader.InBinary)
+        try
         {
-            // this only happens on BZ2/BZCC BZNs over version 1128s
-            if (reader.Format == BZNFormat.Battlezone2 && reader.Version > 1128)
+            IBZNToken? tok;
+            if (reader.InBinary)
             {
-                // TODO this might be a compressed number so do figure that out
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR) || tok.GetCount() > 1)
-                    throw new Exception($"Failed to parse {name}/CHAR");
-                (_, byte size) = tok.ApplyUInt8(value, x => x.Size);
-
-                if (size > 0) // descision based on raw value, not cleaned
+                // this only happens on BZ2/BZCC BZNs over version 1128s
+                if (reader.Format == BZNFormat.Battlezone2 && reader.Version > 1128)
                 {
+                    // TODO this might be a compressed number so do figure that out
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR) || tok.GetCount() > 1)
                         throw new Exception($"Failed to parse {name}/CHAR");
-                    (string stored_, string raw_) = tok.ApplyChars(value, x => x.Value);
+                    (_, byte size) = tok.ApplyUInt8(value, x => x.Length);
+
+                    if (size > 0) // descision based on raw value, not cleaned
+                    {
+                        tok = reader.ReadToken();
+                        if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
+                            throw new Exception($"Failed to parse {name}/CHAR");
+                        (string stored_, string raw_) = tok.ApplyChars(value, x => x.Value);
+
+                        // this works when the property is a SizedString, but not a SizedString[] where we want to apply it instead to SizedString[destinationIndex]
+                        if (propInfo != null && parent != null && did)
+                            propInfo.SetValue(parent, setVal);
+
+                        return (stored_, raw_);
+                    }
 
                     // this works when the property is a SizedString, but not a SizedString[] where we want to apply it instead to SizedString[destinationIndex]
                     if (propInfo != null && parent != null && did)
                         propInfo.SetValue(parent, setVal);
 
-                    return (stored_, raw_);
+                    return (null, null);
                 }
-
-                // this works when the property is a SizedString, but not a SizedString[] where we want to apply it instead to SizedString[destinationIndex]
-                if (propInfo != null && parent != null && did)
-                    propInfo.SetValue(parent, setVal);
-
-                return (null, null);
             }
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
+                throw new Exception($"Failed to parse {name}/CHAR");
+            (string stored, string raw) = tok.ApplyChars(value, x => x.Value);
+
+            if (propInfo != null && parent != null && did)
+                propInfo.SetValue(parent, setVal);
+
+            return (stored, raw);
         }
-        tok = reader.ReadToken();
-        if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
-            throw new Exception($"Failed to parse {name}/CHAR");
-        (string stored, string raw) = tok.ApplyChars(value, x => x.Value);
-
-        if (propInfo != null && parent != null && did)
-            propInfo.SetValue(parent, setVal);
-
-        return (stored, raw);
+        finally
+        {
+            value?.Finalized();
+        }
     }
 
     public static (string stored, string raw) ReadGameObjectClass_BZ2<T, TProp>(this BZNStreamReader reader, SaveType saveType, string name, T? parent, Expression<Func<T, TProp>>? property, int index = 0) where T : IMalformable
@@ -181,7 +213,7 @@ static class SizedStringExtension
         {
             if (writer.Format == BZNFormat.Battlezone2 && writer.Version > 1128)
             {
-                (byte size, _) = writer.WriteUInt8(null, value, x => x.Size);
+                (byte size, _) = writer.WriteUInt8(null, value, x => x.Length);
                 if (size > 0)
                     writer.WriteChars(name, value, x => x.Value);
                 return;
@@ -218,27 +250,35 @@ static class SizedStringExtension
                 propInfo.SetValue(parent, value);
         }
 
-        IBZNToken? tok;
-        // TODO this might be a compressed number so do figure that out
-        tok = reader.ReadToken();
-        if (tok == null || !tok.Validate("size", BinaryFieldType.DATA_LONG) || tok.GetCount() > 1)
-            throw new Exception($"Failed to parse size/LONG");
-        (_, UInt32 size) = tok.ApplyUInt32(value, x => x.Size);
-
-        if (size > 0) // descision based on raw value, not cleanedsssss
+        try
         {
+            IBZNToken? tok;
+            // TODO this might be a compressed number so do figure that out
             tok = reader.ReadToken();
-            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
-                throw new Exception($"Failed to parse {name}/CHAR");
-            return tok.ApplyChars(value, x => x.Value);
+            if (tok == null || !tok.Validate("size", BinaryFieldType.DATA_LONG) || tok.GetCount() > 1)
+                throw new Exception($"Failed to parse size/LONG");
+            (_, UInt32 size) = tok.ApplyUInt32(value, x => x.Length);
+
+            if (size > 0) // descision based on raw value, not cleanedsssss
+            {
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
+                    throw new Exception($"Failed to parse {name}/CHAR");
+                return tok.ApplyChars(value, x => x.Value);
+            }
+            return (null, null);
         }
-        return (null, null);
+        finally
+        {
+            // unlock the SizedString so editing its value wipes the length override
+            value?.Finalized();
+        }
     }
     public static void WriteSizedStringType2<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property)
     {
         SizedString wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
 
-        (UInt32 size, _) = writer.WriteUInt32("size", wrappedValue, x => x.Size);
+        (UInt32 size, _) = writer.WriteUInt32("size", wrappedValue, x => x.Length);
         if (size > 0)
             writer.WriteChars(name, wrappedValue, x => x.Value);
     }

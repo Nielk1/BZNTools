@@ -74,12 +74,12 @@ namespace BZNParser.Battlezone.GameObject
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassExtractor obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassExtractor obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             writer.WriteSingle("scrapTimer", obj, x => x.scrapTimer);
             if (writer.Version < 1147)
@@ -106,7 +106,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 writer.WriteBoolean("animStart", obj, x => x.animStart);
             }
-            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

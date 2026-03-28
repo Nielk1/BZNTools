@@ -24,14 +24,14 @@ namespace BZNParser.Battlezone.GameObject
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassSprayBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassSprayBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

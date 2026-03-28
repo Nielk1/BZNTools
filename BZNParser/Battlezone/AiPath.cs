@@ -142,7 +142,7 @@ namespace BZNParser.Battlezone
             return true;
         }
 
-        public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Format == BZNFormat.Battlezone)
             {
@@ -195,7 +195,7 @@ namespace BZNParser.Battlezone
 
             //writer.WriteSignedValues("pointCount", points.Length);
             writer.WriteInt32("pointCount", this, x => x.pointCount);
-            //writer.WriteVector2Ds("points", preserveMalformations, points);
+            //writer.WriteVector2Ds("points", points);
             writer.WriteVector2D("points", this, x => x.points);
             if (writer.Format == BZNFormat.Battlezone2)
             {

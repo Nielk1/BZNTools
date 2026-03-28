@@ -959,20 +959,30 @@ namespace BZNParser.Battlezone
             // BZ1 version 2016 binary extra DATA_VEC2D at the end, not sure if this is universal
         }
 
-        public void Write(BZNStreamWriter writer, bool binary = true, bool save = false, bool preserveMalformations = false)
+        /// <summary>
+        /// It is strongly suggested that you call <see cref="ClearMalformations"/> before writing if you have made
+        /// any changes to the data or if you want to be sure you aren't accidentally preserving malformations that
+        /// no longer apply, otherwise any malformations that are present will be preserved and may cause the output
+        /// file to be malformed in the same way, even if the underlying data is now correct. This is because
+        /// malformations are tracked separately from the data and are applied during writing based on what
+        /// malformations are present, not based on the actual data values. Some malformations may be automatically
+        /// cleared when modifying values but at this time that is not reliable.
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="binary"></param>
+        /// <param name="save"></param>
+        /// <exception cref="InvalidCastException"></exception>
+        public void Write(BZNStreamWriter writer, bool binary = true, bool save = false)
         {
-            if (preserveMalformations)
-            {
-                // keep non-standard float format if present
-                FloatTextFormat? floatTextFormat = Malformations.GetFloatTextFormat();
-                if (floatTextFormat != null)
-                    writer.FloatFormat = floatTextFormat.Value;
+            // keep non-standard float format if present
+            FloatTextFormat? floatTextFormat = Malformations.GetFloatTextFormat();
+            if (floatTextFormat != null)
+                writer.FloatFormat = floatTextFormat.Value;
 
-                // change to non-standard line-endings if present
-                string? newLine = Malformations.GetLineEnding();
-                if (newLine != null)
-                    writer.NewLine = newLine;
-            }
+            // change to non-standard line-endings if present
+            string? newLine = Malformations.GetLineEnding();
+            if (newLine != null)
+                writer.NewLine = newLine;
 
             if (writer.Format != BZNFormat.BattlezoneN64)
             {
@@ -1037,18 +1047,6 @@ namespace BZNParser.Battlezone
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
                 bool AlreadyWroteMissionSave = false;
-                if (preserveMalformations)
-                {
-//                    if (writer.Format == BZNFormat.Battlezone)
-//                    {
-//                        var mals = Malformations.GetMalformations(Malformation.INCORRECT_RAW, "missionSave");
-//                        if (mals.Length > 0)
-//                        {
-//                            // we aren't writing this field because the original lacked it
-//                            AlreadyWroteMissionSave = true;
-//                        }
-//                    }
-                }
 
                 if (!AlreadyWroteMissionSave)
                 {
@@ -1056,7 +1054,6 @@ namespace BZNParser.Battlezone
                     {
 
                     }
-                    //if ((1017 <= reader.Version && reader.Version <= 1037) || reader.Version == 1043 || reader.Version == 1045 || reader.Version == 2003 || reader.Version == 2016)
                     else
                     {
                         writer.WriteBoolean("missionSave", this, x => x.SaveType, (saveType) => saveType switch { SaveType.BZN => true, SaveType.SAVE => false, _ => throw new InvalidCastException("TODO message") });
@@ -1104,7 +1101,7 @@ namespace BZNParser.Battlezone
             foreach (var entity in Entities)
             {
                 Console.WriteLine($"Writing entity [{idx}]");
-                entity.Write(this, writer, binary, save, preserveMalformations);
+                entity.Write(this, writer, binary, save);
                 idx++;
             }
 
@@ -1224,19 +1221,19 @@ namespace BZNParser.Battlezone
             writer.WriteSignedValues("size", AOIs.Length);
             for (int aioCounter = 0; aioCounter < AOIs.Length; aioCounter++)
             {
-                AOIs[aioCounter].Write(this, writer, binary, save, preserveMalformations);
+                AOIs[aioCounter].Write(this, writer, binary, save);
             }
 
             writer.WriteValidation("AiPaths");
             writer.WriteSignedValues("count", AiPaths.Length);
             for (int i = 0; i < AiPaths.Length; i++)
             {
-                AiPaths[i].Write(this, writer, binary, save, preserveMalformations);
+                AiPaths[i].Write(this, writer, binary, save);
             }
 
             // maybe we should just null check this instead?
-            if (preserveMalformations && Malformations.HasExtraField<BZNFileBattlezone, Vector2D>(x => ExtraVec2D))
-                //writer.WriteVector2Ds(null, preserveMalformations, ExtraVec2D);
+            if (Malformations.HasExtraField<BZNFileBattlezone, Vector2D>(x => ExtraVec2D))
+                //writer.WriteVector2Ds(null, ExtraVec2D);
                 writer.WriteVector2D(null, this, x => x.ExtraVec2D);
         }
     }

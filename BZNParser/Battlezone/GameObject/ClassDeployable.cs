@@ -57,12 +57,12 @@ namespace BZNParser.Battlezone.GameObject
             ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassDeployable obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassDeployable obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             // this class doesn't exist in BZ1
             //if (writer.Format == BZNFormat.Battlezone2)
@@ -80,7 +80,7 @@ namespace BZNParser.Battlezone.GameObject
                     (a2->vftable->in_bool)(a2, this + 2345, 1, "lockModeDeployed");*/
                 }
             }
-            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

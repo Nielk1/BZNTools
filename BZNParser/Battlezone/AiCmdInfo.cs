@@ -76,7 +76,7 @@ namespace BZNParser.Battlezone
             return retVal;
         }
 
-        public static void WriteAiCmdInfo(this BZNStreamWriter writer, AiCmdInfo value, bool preserveMalformations)
+        public static void WriteAiCmdInfo(this BZNStreamWriter writer, AiCmdInfo value)
         {
             writer.WriteInt32("priority", value, x => x.priority);
 

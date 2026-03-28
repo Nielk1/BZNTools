@@ -43,7 +43,7 @@ namespace BZNParser.Battlezone.GameObject
             Malformations.Clear();
         }
 
-        public virtual void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public virtual void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
 
         }

@@ -137,12 +137,12 @@ namespace BZNParser.Battlezone.GameObject
             ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -186,7 +186,7 @@ namespace BZNParser.Battlezone.GameObject
                     return;
                 }
 
-                ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                ClassGameObject.Dehydrate(obj, parent, writer, binary, save);
                 return;
             }
 
@@ -196,7 +196,7 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteBoolean("tempBuilding", obj, x => x.tempBuilding);
             }
 
-            ClassGameObject.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassGameObject.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

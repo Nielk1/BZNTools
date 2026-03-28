@@ -492,7 +492,7 @@ namespace BZNParser.Battlezone
             }
         }
 
-        public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             writer.WriteValidation("GameObject");
 
@@ -587,7 +587,7 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteVector3Ds("pos", preserveMalformations, pos);
+                //writer.WriteVector3Ds("pos", pos);
                 writer.WriteVector3D("pos", this, x => x.pos);
             }
 
@@ -735,11 +735,11 @@ namespace BZNParser.Battlezone
             {
                 // TODO if they all serialize the same, spit out that data, else throw an error
                 // for now we just cheat and use the first one
-                (gameObject as MultiClass).Candidates.OrderBy(dr => dr.Expected ? 0 : 1).First().Object.Write(parent, writer, binary, save, preserveMalformations);
+                (gameObject as MultiClass).Candidates.OrderBy(dr => dr.Expected ? 0 : 1).First().Object.Write(parent, writer, binary, save);
             }
             else
             {
-                gameObject.Write(parent, writer, binary, save, preserveMalformations);
+                gameObject.Write(parent, writer, binary, save);
             }
         }
     }

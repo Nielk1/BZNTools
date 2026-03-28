@@ -34,17 +34,17 @@ namespace BZNParser.Battlezone.GameObject
             ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassRecycler1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassRecycler1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             //writer.WriteBZ1_Ptr("undefptr", obj.undefptr); // dropObj
             writer.WritePtr("undefptr", obj, x => x.undefptr);
 
-            ClassProducer.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassProducer.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

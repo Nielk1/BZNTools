@@ -78,17 +78,17 @@ namespace BZNParser.Battlezone.GameObject
             ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassWalker2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassWalker2 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Version == 1041) // version is special case for bz2001.bzn
             {
                 writer.WriteVoidBytesL("Walker_IK", obj, x => x.Walker_IK);
-                ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+                ClassCraft.Dehydrate(obj, parent, writer, binary, save);
                 return;
             }
             if (writer.Version < 1067)
@@ -103,7 +103,7 @@ namespace BZNParser.Battlezone.GameObject
 
             // parent.SaveType != SaveType.BZN stuff
 
-            ClassCraft.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassCraft.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

@@ -748,9 +748,9 @@ namespace BZNParser
         }
 
         [Obsolete]
-        public static string CorrectName(this IMalformable.MalformationManager malformations, bool preserveMalformations, string name)
+        public static string CorrectName(this IMalformable.MalformationManager malformations, string name)
         {
-            if (preserveMalformations)
+            //if (preserveMalformations)
             {
 //                var malIncorrectName = malformations.GetMalformations(Malformation.INCORRECT_NAME, name);
 //                if (malIncorrectName.Any())

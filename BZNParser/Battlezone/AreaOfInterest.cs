@@ -97,7 +97,7 @@ namespace BZNParser.Battlezone
             return true;
         }
 
-        public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             writer.WriteValidation("AOI");
 

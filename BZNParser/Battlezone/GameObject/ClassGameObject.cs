@@ -928,23 +928,23 @@ namespace BZNParser.Battlezone.GameObject
             // section for SaveType != 0
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassGameObject obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassGameObject obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            //writer.WriteFloats("illumination", preserveMalformations ? obj.Malformations : null, obj.illumination);
+            //writer.WriteFloats("illumination" ? obj.Malformations : null, obj.illumination);
             writer.WriteSingle("illumination", obj, x => x.illumination);
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteVector3Ds("pos", preserveMalformations, obj.pos);
+                //writer.WriteVector3Ds("pos", obj.pos);
                 writer.WriteVector3D("pos", obj, x => x.pos2);
             }
 
-            //writer.WriteEulerBZ(parent.SaveType, preserveMalformations, obj.euler);
+            //writer.WriteEulerBZ(parent.SaveType, obj.euler);
             writer.WriteEuler("euler", obj, x => x.euler);
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
@@ -1208,7 +1208,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteFloats("healthRatio", preserveMalformations ? obj.Malformations : null, obj.healthRatio);
+                //writer.WriteFloats("healthRatio" ? obj.Malformations : null, obj.healthRatio);
                 writer.WriteSingle("healthRatio", obj, x => x.healthRatio);
                 //writer.WriteSignedValues("curHealth", obj.curHealth.Get<Int32>());
                 writer.WriteInt32("curHealth", obj, x => x.curHealth);
@@ -1219,7 +1219,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1143)
                 {
-                    //writer.WriteFloats("healthRatio", preserveMalformations ? obj.Malformations : null, obj.healthRatio);
+                    //writer.WriteFloats("healthRatio" ? obj.Malformations : null, obj.healthRatio);
                     writer.WriteSingle("healthRatio", obj, x => x.healthRatio);
                 }
 
@@ -1231,14 +1231,14 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    //writer.WriteFloats("curHealth", preserveMalformations ? obj.Malformations : null, obj.curHealth.Get<Single>());
+                    //writer.WriteFloats("curHealth" ? obj.Malformations : null, obj.curHealth.Get<Single>());
                     writer.WriteSingle("curHealth", obj, x => x.curHealth);
-                    //writer.WriteFloats("maxHealth", preserveMalformations ? obj.Malformations : null, obj.maxHealth.Get<Single>());
+                    //writer.WriteFloats("maxHealth" ? obj.Malformations : null, obj.maxHealth.Get<Single>());
                     writer.WriteSingle("maxHealth", obj, x => x.maxHealth);
 
                     if (writer.Version != 1041 && writer.Version != 1047)
                     {
-                        //writer.WriteFloats("addHealth", preserveMalformations ? obj.Malformations : null, obj.addHealth);
+                        //writer.WriteFloats("addHealth" ? obj.Malformations : null, obj.addHealth);
                         writer.WriteSingle("addHealth", obj, x => x.addHealth);
                     }
                 }
@@ -1256,7 +1256,7 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteFloats("ammoRatio", preserveMalformations ? obj.Malformations : null, obj.ammoRatio);
+                //writer.WriteFloats("ammoRatio" ? obj.Malformations : null, obj.ammoRatio);
                 writer.WriteSingle("ammoRatio", obj, x => x.ammoRatio);
                 //writer.WriteSignedValues("curAmmo", obj.curAmmo.Get<Int32>());
                 writer.WriteInt32("curAmmo", obj, x => x.curAmmo);
@@ -1267,15 +1267,15 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1143)
                 {
-                    //writer.WriteFloats("ammoRatio", preserveMalformations ? obj.Malformations : null, obj.ammoRatio);
+                    //writer.WriteFloats("ammoRatio" ? obj.Malformations : null, obj.ammoRatio);
                     writer.WriteSingle("ammoRatio", obj, x => x.ammoRatio);
 
                     if (writer.Version >= 1070)
                     {
                         // these probably should be floats not longs
-                        //writer.WriteFloats("curAmmo", preserveMalformations ? obj.Malformations : null, obj.curAmmo.Get<Single>());
+                        //writer.WriteFloats("curAmmo" ? obj.Malformations : null, obj.curAmmo.Get<Single>());
                         writer.WriteSingle("curAmmo", obj, x => x.curAmmo);
-                        //writer.WriteFloats("maxAmmo", preserveMalformations ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
+                        //writer.WriteFloats("maxAmmo" ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
                         writer.WriteSingle("maxAmmo", obj, x => x.maxAmmo);
                     }
                     else
@@ -1289,7 +1289,7 @@ namespace BZNParser.Battlezone.GameObject
                     if (writer.Version >= 1070)
                     {
                         // probably should be a float
-                        //writer.WriteFloats("addAmmo", preserveMalformations ? obj.Malformations : null, obj.addAmmo.Get<Single>());
+                        //writer.WriteFloats("addAmmo" ? obj.Malformations : null, obj.addAmmo.Get<Single>());
                         writer.WriteSingle("addAmmo", obj, x => x.addAmmo);
                     }
                     else if (writer.Version != 1041 && writer.Version != 1047) // avoid bz2001.bzn != 1041
@@ -1311,7 +1311,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (parent.SaveType == 0)
                 {
-                    writer.WriteAiCmdInfo(obj.nextCmd, preserveMalformations);
+                    writer.WriteAiCmdInfo(obj.nextCmd);
                     writer.WriteBoolean("aiProcess", obj, x => x.aiProcess);
                 }
                 else
@@ -1326,11 +1326,11 @@ namespace BZNParser.Battlezone.GameObject
                     // start read of AiCmdInfo
                     if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
                     {
-                        writer.WriteAiCmdInfo(obj.curCmd, preserveMalformations);
+                        writer.WriteAiCmdInfo(obj.curCmd);
                     }
 
                     {
-                        writer.WriteAiCmdInfo(obj.nextCmd, preserveMalformations);
+                        writer.WriteAiCmdInfo(obj.nextCmd);
                     }
                     // end read of AiCmdInfo
 
@@ -1444,7 +1444,7 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1030)
                 {
-                    //writer.WriteBooleans("hasPilot", preserveMalformations ? obj.Malformations : null, obj.curPilot.Length > s0);
+                    //writer.WriteBooleans("hasPilot" ? obj.Malformations : null, obj.curPilot.Length > s0);
                     writer.WriteBoolean("hasPilot", obj, x => x.curPilot, (curPilot => !string.IsNullOrEmpty(curPilot.Value)));
                 }
                 else

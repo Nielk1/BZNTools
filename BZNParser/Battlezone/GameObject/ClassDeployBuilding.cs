@@ -54,22 +54,22 @@ namespace BZNParser.Battlezone.GameObject
             ClassTrackedDeployable.Hydrate(parent, reader, obj as ClassTrackedDeployable);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassDeployBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassDeployBuilding obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version != 1047)
                 {
-                    //writer.WriteMat3Ds("buildMatrix", preserveMalformations, obj.dropMat);
+                    //writer.WriteMat3Ds("buildMatrix", obj.dropMat);
                     writer.WriteMatrix("buildMatrix", obj, x => x.dropMat);
                 }
             }
-            ClassTrackedDeployable.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassTrackedDeployable.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

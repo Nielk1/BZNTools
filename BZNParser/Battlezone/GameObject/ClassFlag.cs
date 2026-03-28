@@ -41,19 +41,19 @@ namespace BZNParser.Battlezone.GameObject
             ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassFlag obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassFlag obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 writer.WriteMatrix("startMat", obj, x => x.startMat);
                 writer.WriteUInt32("holder", obj, x => x.holder);
             }
-            ClassPowerUp.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassPowerUp.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

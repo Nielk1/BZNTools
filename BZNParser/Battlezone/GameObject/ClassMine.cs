@@ -27,43 +27,45 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (reader.Version >= 1038 && parent.SaveType != SaveType.BZN)
                 {
-                    IBZNToken tok = reader.ReadToken();
-                    if (!tok.Validate("lifeTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse lifeTimer/FLOAT");
-                    if (obj != null) obj.lifeTimer = tok.GetSingle();
+                    IBZNToken? tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate("lifeTimer", BinaryFieldType.DATA_FLOAT))
+                        throw new Exception("Failed to parse lifeTimer/FLOAT");
+                    tok.ApplySingle(obj, x => x.lifeTimer);
                 }
             }
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                IBZNToken tok = reader.ReadToken();
-                if (!tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
-                if (obj != null) obj.lifeTimer = tok.GetSingle(); // might be lifeTimer
+                IBZNToken? tok = reader.ReadToken();
+                if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
+                    throw new Exception("Failed to parse undeffloat/FLOAT");
+                tok.ApplySingle(obj, x => x.lifeTimer);
             }
 
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
-        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            Dehydrate(this, parent, writer, binary, save, preserveMalformations);
+            Dehydrate(this, parent, writer, binary, save);
         }
 
-        public static void Dehydrate(ClassMine obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save, bool preserveMalformations)
+        public static void Dehydrate(ClassMine obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
             if (writer.Format == BZNFormat.Battlezone)
             {
                 if (writer.Version >= 1038 && parent.SaveType != SaveType.BZN)
                 {
-                    writer.WriteFloats("lifeTimer", preserveMalformations ? obj.Malformations : null, obj.lifeTimer);
+                    writer.WriteSingle("lifeTimer", obj, x => x.lifeTimer);
                 }
             }
 
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteFloats("undeffloat", preserveMalformations ? obj.Malformations : null, obj.lifeTimer);
+                writer.WriteSingle("undeffloat", obj, x => x.lifeTimer);
             }
 
-            ClassBuilding.Dehydrate(obj, parent, writer, binary, save, preserveMalformations);
+            ClassBuilding.Dehydrate(obj, parent, writer, binary, save);
         }
     }
 }

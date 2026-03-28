@@ -2,6 +2,7 @@
 using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -27,6 +28,10 @@ namespace BZNParser.Battlezone
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
+        }
+        public void ClearMalformations()
+        {
+            Malformations.Clear();
         }
 
         public static bool Create(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, out AreaOfInterest? obj, bool create = true)

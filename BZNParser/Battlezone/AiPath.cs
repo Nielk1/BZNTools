@@ -28,6 +28,12 @@ namespace BZNParser.Battlezone
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
+        public void ClearMalformations()
+        {
+            AiPathDummy?.ClearMalformations();
+            label?.ClearMalformations();
+            Malformations.Clear();
+        }
 
         public static bool Create(BZNFileBattlezone parent, BZNStreamReader reader, int countPaths, int countLeft, out AiPath? obj, bool create = true)
         {
@@ -95,7 +101,7 @@ namespace BZNParser.Battlezone
                     throw new Exception("Failed to parse label");
                 //label = string.Format("bzn64path_{0,4:X4}", tok.GetUInt16());
                 //if (obj != null) obj.label = new SizedString() { Value = label };
-                tok.ApplyUInt16(obj, x => x.label, 0, (v) => new SizedString() { Value = string.Format("bzn64path_{0,4:X4}", v) });
+                tok.ApplyUInt16(obj, x => x.label, 0, (v) => new SizedString(string.Format("bzn64path_{0,4:X4}", v)));
             }
             else
             {
@@ -147,7 +153,7 @@ namespace BZNParser.Battlezone
             {
                 //writer.WriteSizedString_BZ2_1145("name", 40, "AiPath", Malformations);
                 // TODO move this to a differnt malformation to get rid of the property, or just don't have malformations at all on it
-                writer.WriteSizedString("name", this, x => x.AiPathDummy, (val) => val ?? new SizedString() { Value = "AiPath" });
+                writer.WriteSizedString("name", this, x => x.AiPathDummy, (val) => val ?? new SizedString("AiPath"));
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)

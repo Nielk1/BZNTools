@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.ExceptionServices;
 using System.Text;
@@ -543,6 +544,19 @@ namespace BZNParser.Battlezone
                 }
             }
         }
+        public void ClearMalformations()
+        {
+            msn_filename.ClearMalformations();
+            foreach(var entity in Entities)
+                entity.ClearMalformations();
+            Mission.ClearMalformations();
+            foreach(var aoi in AOIs)
+                aoi.ClearMalformations();
+            foreach(var aipath in AiPaths)
+                aipath.ClearMalformations();
+            ExtraVec2D?.ClearMalformations();
+            Malformations.Clear();
+        }
 
         private void Hydrate(BZNStreamReader reader)
         {
@@ -624,7 +638,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 //string mission = string.Format("BZn64Mission_{0,4:X4}", tok.GetUInt16());
                 //this.Mission = new SizedString() { Value = mission };
-                (SizedString mission, _) = tok.ApplyUInt16(this, x => x.Mission, 0, (v) => new SizedString() { Value = string.Format("BZn64Mission_{0,4:X4}", v) });
+                (SizedString mission, _) = tok.ApplyUInt16(this, x => x.Mission, 0, (v) => new SizedString(string.Format("BZn64Mission_{0,4:X4}", v)));
                 Console.WriteLine($"Mission: {mission.Value}");
 
                 tok = reader.ReadToken();

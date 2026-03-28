@@ -260,8 +260,6 @@ public interface IMalformable
             Fields = fields;
         }
     }
-
-    public MalformationManager Malformations { get; }
     public class MalformationManager
     {
         private readonly IMalformable _parent;
@@ -360,5 +358,15 @@ public interface IMalformable
                 malformations.Pop();
             }
         }
+
+        public void Clear()
+        {
+            while (malformations.Count > 0)
+                malformations.Pop();
+            malformations.Push((new List<MalformationData>(), new Dictionary<(PropertyInfo, int?), List<MalformationData>>()));
+        }
     }
+ 
+    public MalformationManager Malformations { get; }
+    public void ClearMalformations();
 }

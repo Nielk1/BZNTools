@@ -859,7 +859,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null)
                     throw new Exception("Failed to parse hasPilot/BOOL");
-                tok.ApplyUInt16(obj, x => x.curPilot, 0, (v) => new SizedString() { Value = parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v) });
+                tok.ApplyUInt16(obj, x => x.curPilot, 0, (v) => new SizedString(parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v)));
             }
             if (reader.Format == BZNFormat.Battlezone && reader.Version > 1016)
             {
@@ -868,7 +868,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("hasPilot", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse hasPilot/BOOL");
                     // test this works
-                    tok.ApplyBoolean<ClassGameObject, SizedString>(obj, x => x.curPilot, 0, (hasPilot) => new SizedString() { Value = hasPilot ? obj.isUser ? obj.PrjID.Value[0] + "suser" : obj.PrjID.Value[0] + "spilo" : string.Empty });
+                    tok.ApplyBoolean<ClassGameObject, SizedString>(obj, x => x.curPilot, 0, (hasPilot) => new SizedString(hasPilot ? obj.isUser ? obj.PrjID.Value[0] + "suser" : obj.PrjID.Value[0] + "spilo" : string.Empty));
                 }
                 else
                 {

@@ -802,7 +802,7 @@ public static class TokenExtensions
             }
             else if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
             {
-                finalValue = (TProp)(object)new SizedString { Value = valueString };
+                finalValue = (TProp)(object)new SizedString(valueString);
                 finalValueReady = true;
             }
             else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
@@ -885,7 +885,7 @@ public static class TokenExtensions
             }
             else if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
             {
-                finalValue = (TProp)(object)new SizedString() { Value = valueProcessed };
+                finalValue = (TProp)(object)new SizedString(valueProcessed);
                 finalValueReady = true;
             }
         }

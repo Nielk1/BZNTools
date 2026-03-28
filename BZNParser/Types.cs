@@ -3,10 +3,12 @@ using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
@@ -123,26 +125,6 @@ namespace BZNParser
         {
             this.internalType2 = value;
             this.fromType2 = true;
-        }
-    }
-
-    public class SizedString : IMalformable
-    {
-        private readonly IMalformable.MalformationManager _malformationManager;
-        public IMalformable.MalformationManager Malformations => _malformationManager;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public SizedString()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        {
-            this._malformationManager = new IMalformable.MalformationManager(this);
-        }
-
-        public UInt32? Size { get; set; }
-        public string Value { get; set; }
-
-        public override string ToString()
-        {
-            return Value;
         }
     }
     static class OtherTypeExtenions // clean this up later
@@ -297,208 +279,6 @@ namespace BZNParser
             return value;
         }
     }
-    static class SizedStringExtension
-    {
-        /// <summary>
-        /// Read a normal chars string unless BZ2 and version > 1128
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="reader"></param>
-        /// <param name="name"></param>
-        /// <param name="parent"></param>
-        /// <param name="property"></param>
-        /// <param name="destinationIndex">We already read index 0 of the Token, but this is what index we're writing to</param>
-        /// <exception cref="Exception"></exception>
-        public static (string stored, string raw) ReadSizedString<T, TProp>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, TProp?>>? property, int destinationIndex = 0) where T : IMalformable
-        {
-            PropertyInfo? propInfo = null;
-            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
-                propInfo = propInfo_;
-
-            //SizedString? value = null;
-            //if (parent != null)
-            //    value = (SizedString?)(propInfo?.GetValue(parent));
-            //if (value == null && propInfo != null)
-            //    value = new SizedString();
-            //if (propInfo != null)
-            //{
-            //    value = new SizedString();
-            //    if (parent != null)
-            //        propInfo.SetValue(parent, value);
-            //}
-
-            SizedString? value = new SizedString();
-            TProp setVal = default!;
-            bool did = false;
-            if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
-            {
-                setVal = (TProp)(object)value;
-                did = true;
-            }
-            else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(SizedString))
-            {
-                SizedString[]? arr = (SizedString[]?)propInfo?.GetValue(parent);
-                if (arr != null && destinationIndex >= 0 && destinationIndex < arr.Length)
-                {
-                    arr[destinationIndex] = value;
-                    setVal = (TProp)(object)arr;
-                    did = true;
-                }
-            }
-
-            IBZNToken? tok;
-            if (reader.InBinary)
-            {
-                // this only happens on BZ2/BZCC BZNs over version 1128s
-                if (reader.Format == BZNFormat.Battlezone2 && reader.Version > 1128)
-                {
-                    // TODO this might be a compressed number so do figure that out
-                    tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_CHAR) || tok.GetCount() > 1)
-                        throw new Exception($"Failed to parse {name}/CHAR");
-                    (_, byte size) = tok.ApplyUInt8(value, x => x.Size);
-
-                    if (size > 0) // descision based on raw value, not cleaned
-                    {
-                        tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
-                            throw new Exception($"Failed to parse {name}/CHAR");
-                        (string stored_, string raw_) = tok.ApplyChars(value, x => x.Value);
-
-                        // this works when the property is a SizedString, but not a SizedString[] where we want to apply it instead to SizedString[destinationIndex]
-                        if (propInfo != null && parent != null && did)
-                            propInfo.SetValue(parent, setVal);
-
-                        return (stored_, raw_);
-                    }
-
-                    // this works when the property is a SizedString, but not a SizedString[] where we want to apply it instead to SizedString[destinationIndex]
-                    if (propInfo != null && parent != null && did)
-                        propInfo.SetValue(parent, setVal);
-
-                    return (null, null);
-                }
-            }
-            tok = reader.ReadToken();
-            if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
-                throw new Exception($"Failed to parse {name}/CHAR");
-            (string stored, string raw) = tok.ApplyChars(value, x => x.Value);
-
-            if (propInfo != null && parent != null && did)
-                propInfo.SetValue(parent, setVal);
-
-            return (stored, raw);
-        }
-
-        public static (string stored, string raw) ReadGameObjectClass_BZ2<T, TProp>(this BZNStreamReader reader, SaveType saveType, string name, T? parent, Expression<Func<T, TProp>>? property, int index = 0) where T : IMalformable
-        {
-            if (reader.Version < 1145)
-            {
-                //return reader.ReadSizedString_BZ2_1145(name, 16, malformations);
-                return reader.ReadSizedString(name, parent, property, index);
-            }
-            else
-            {
-                if (saveType == SaveType.LOCKSTEP)
-                {
-                    throw new NotImplementedException();
-                }
-                else
-                {
-                    return reader.ReadSizedString(name, parent, property, index);
-                }
-            }
-        }
-
-        // TODO fix index handling
-        public static void WriteSizedString<T, TProp>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, SizedString>? convert = null)
-        {
-            TProp wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
-            SizedString value;
-
-            if (convert != null)
-            {
-                value = convert(wrappedValue);
-            }
-            //else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(SizedString))
-            //{
-            //    values = (SizedString[])(object)propValue;
-            //}
-            else if (typeof(TProp) == typeof(SizedString))
-            {
-                value = (SizedString)(object)wrappedValue;
-            }
-            else
-            {
-                throw new NotImplementedException("Property type not handled");
-            }
-
-            if (writer.InBinary)
-            {
-                if (writer.Format == BZNFormat.Battlezone2 && writer.Version > 1128)
-                {
-                    (byte size, _) = writer.WriteUInt8(null, value, x => x.Size);
-                    if (size > 0)
-                        writer.WriteChars(name, value, x => x.Value);
-                    return;
-                }
-            }
-            writer.WriteChars(name, value, x => x.Value);
-        }
-
-        /// <summary>
-        /// Sized path name string
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="reader"></param>
-        /// <param name="name"></param>
-        /// <param name="parent"></param>
-        /// <param name="property"></param>
-        /// <param name="index"></param>
-        /// <exception cref="Exception"></exception>
-        public static (string stored, string raw) ReadSizedStringType2<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, SizedString>>? property, int index = 0) where T : IMalformable
-        {
-            PropertyInfo? propInfo = null;
-            if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
-                propInfo = propInfo_;
-
-            SizedString? value = null;
-            if (parent != null)
-                value = (SizedString?)(propInfo?.GetValue(parent));
-            if (value == null && propInfo != null)
-                value = new SizedString();
-            if (propInfo != null)
-            {
-                value = new SizedString();
-                if (parent != null)
-                    propInfo.SetValue(parent, value);
-            }
-
-            IBZNToken? tok;
-            // TODO this might be a compressed number so do figure that out
-            tok = reader.ReadToken();
-            if (tok == null || !tok.Validate("size", BinaryFieldType.DATA_LONG) || tok.GetCount() > 1)
-                throw new Exception($"Failed to parse size/LONG");
-            (_, UInt32 size) = tok.ApplyUInt32(value, x => x.Size);
-
-            if (size > 0) // descision based on raw value, not cleanedsssss
-            {
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
-                    throw new Exception($"Failed to parse {name}/CHAR");
-                return tok.ApplyChars(value, x => x.Value);
-            }
-            return (null, null);
-        }
-        public static void WriteSizedStringType2<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property)
-        {
-            SizedString wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
-
-            (UInt32 size, _) = writer.WriteUInt32("size", wrappedValue, x => x.Size);
-            if (size > 0)
-                writer.WriteChars(name, wrappedValue, x => x.Value);
-        }
-    }
 
     public class Vector3D : IMalformable
     {
@@ -509,6 +289,10 @@ namespace BZNParser
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
+        }
+        public void ClearMalformations()
+        {
+            Malformations.Clear();
         }
 
 
@@ -569,6 +353,10 @@ namespace BZNParser
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
+        public void ClearMalformations()
+        {
+            Malformations.Clear();
+        }
 
 
 
@@ -611,11 +399,20 @@ namespace BZNParser
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
+        public void ClearMalformations()
+        {
+            v.ClearMalformations();
+            omega.ClearMalformations();
+            Accel.ClearMalformations();
+            Alpha.ClearMalformations();
+            Pos.ClearMalformations();
+            Malformations.Clear();
+        }
 
         public const float EPSILON = 1.0e-4f;
         public const float HUGE_NUMBER = 1.0e30f;
 
-        public Quaternion Att { get; set; }
+        //public Quaternion Att { get; set; }
 
         public Vector3D v { get; set; }
         public Vector3D omega { get; set; }
@@ -684,6 +481,10 @@ namespace BZNParser
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
+        }
+        public void ClearMalformations()
+        {
+            Malformations.Clear();
         }
 
 

@@ -150,5 +150,10 @@ namespace BZNParser.Battlezone
         {
             _malformationManager = new IMalformable.MalformationManager(this);
         }
+
+        public void ClearMalformations()
+        {
+            Malformations.Clear();
+        }
     }
 }

@@ -38,6 +38,15 @@ namespace BZNParser.Battlezone
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
+        public void ClearMalformations()
+        {
+            PrjID.ClearMalformations();
+            pos.ClearMalformations();
+            label.ClearMalformations();
+            transform.ClearMalformations();
+            gameObject?.ClearMalformations();
+            Malformations.Clear();
+        }
 
         public static bool Create(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, out EntityDescriptor? obj, bool create = true, BattlezoneBZNHints? Hints = null)
         {
@@ -66,7 +75,7 @@ namespace BZNParser.Battlezone
                 //UInt16 ItemID = tok.GetUInt16();
                 //string PrjID = parent.Hints?.EnumerationPrjID?[ItemID] ?? string.Format("bzn64prjid_{0,4:X4}", ItemID);
                 //if (obj != null) obj.PrjID = new SizedString() { Value = PrjID };
-                tok.ApplyUInt16(obj, x => x.PrjID, 0, (v) => new SizedString() { Value = parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v) });
+                tok.ApplyUInt16(obj, x => x.PrjID, 0, (v) => new SizedString(parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v)));
             }
             else if (reader.Format == BZNFormat.Battlezone)
             {
@@ -208,7 +217,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_SHORT))
                     throw new Exception("Failed to parse label/CHAR");
-                if (obj != null) obj.label = new SizedString() { Value = string.Format("bzn64label_{0,4:X4}", tok.GetUInt16()) };
+                if (obj != null) obj.label = new SizedString(string.Format("bzn64label_{0,4:X4}", tok.GetUInt16()));
             }
             else if (reader.Format == BZNFormat.Battlezone)
             {

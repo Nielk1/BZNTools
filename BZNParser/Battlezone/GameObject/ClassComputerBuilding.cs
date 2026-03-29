@@ -24,17 +24,17 @@ namespace BZNParser.Battlezone.GameObject
         {
             ClassDummy.Hydrate(parent, reader, obj as ClassDummy);
 
-            IBZNToken tok;
+            IBZNToken? tok;
 
             if (reader.Version >= 1102)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("Nozzle1", BinaryFieldType.DATA_VOID))
+                if (tok == null || !tok.Validate("Nozzle1", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse Nozzle1/VOID");
                 if (obj != null) obj.Nozzle1_Handle = tok.GetUInt32HR();
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("Nozzle2", BinaryFieldType.DATA_VOID))
+                if (tok == null ||!tok.Validate("Nozzle2", BinaryFieldType.DATA_VOID))
                     throw new Exception("Failed to parse Nozzle2/VOID");
                 if (obj != null) obj.Nozzle2_Handle = tok.GetUInt32HR();
             }
@@ -43,8 +43,9 @@ namespace BZNParser.Battlezone.GameObject
                 // realy hackery here, but hopefully no BZNs exist with this
                 if (obj != null)
                 {
-                    obj.Malformations.AddNotImplemented("Nozzle1_Handle");
-                    obj.Malformations.AddNotImplemented("Nozzle2_Handle");
+                    throw new NotImplementedException("Nozzle not implemented for version < 1102");
+                    //obj.Malformations.AddNotImplemented("Nozzle1_Handle");
+                    //obj.Malformations.AddNotImplemented("Nozzle2_Handle");
                 }
             }
         }
@@ -60,8 +61,8 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Version >= 1102)
             {
-                writer.WriteVoidBytesL("Nozzle1", obj.Nozzle1_Handle);
-                writer.WriteVoidBytesL("Nozzle2", obj.Nozzle2_Handle);
+                writer.WriteVoidBytesL("Nozzle1", obj, x => x.Nozzle1_Handle);
+                writer.WriteVoidBytesL("Nozzle2", obj, x => x.Nozzle2_Handle);
             }
         }
     }

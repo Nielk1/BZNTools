@@ -110,7 +110,7 @@ namespace BZNParser.Battlezone.GameObject
 
             if (obj.ExternalSoldierCount > 0)
             {
-                writer.WritePtrs("SoldierHandles", obj.ExternalSoldiers);
+                writer.WritePtrs("SoldierHandles", obj, x => x.ExternalSoldiers);
             }
 
             if (parent.SaveType != SaveType.BZN)

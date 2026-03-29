@@ -12,19 +12,20 @@ namespace BZNParser.Tokenizer;
 public enum Malformation
 {
     UNKNOWN = 0,
-    INCOMPAT,        //X ?????????                           // Not loadable by game
-    EXTRA_FIELD,     //X "EXTRA_FIELD:CTX", <fields>         // Extra data
-    MISINTERPRET,    //X <fieldName>,       <interpretedAs>  // Misinterpreted by game but thus is loadable
-    OVERCOUNT,       //X <fieldName>                         // Too many objects of this type, maximum may have changed
-    NOT_IMPLEMENTED, //X <fieldName>                         // Field not implemented, but it probably won't break the BZN read
-    INCORRECT_RAW,   // <byte[] originalRaw> // value parsed improperly or otherwise differently than expected, preserved original raw bytes, ASCII and Binary modes (in text mode the bytes are dumped directly into the file, not converted)
-    INCORRECT_TEXT,  // <string originalString> // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
-    INCORRECT_CASE,  // <char 'U' or 'L'> // casing present instead of expected
-    LINE_ENDING,     //X "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
-    STRING_PAD,      //X <fieldName>,       <length>         // String is padded by nuls to reach this length
-    INCORRECT_NAME,  //X <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
-    FLOAT_FORMAT,    //X "ALL:FLOAT_TEXT",  <formatApplied>  // Float is in an unexpected text format
-    RIGHT_TRIM,      //X <fieldName>                         // Field is a 1-liner with an empty field that got Right-Trimmed
+    INCOMPAT,         //X ?????????                           // Not loadable by game
+    EXTRA_FIELD,      //X "EXTRA_FIELD:CTX", <fields>         // Extra data
+    MISINTERPRET,     //X <fieldName>,       <interpretedAs>  // Misinterpreted by game but thus is loadable
+    OVERCOUNT,        //X <fieldName>                         // Too many objects of this type, maximum may have changed
+    NOT_IMPLEMENTED,  //X <fieldName>                         // Field not implemented, but it probably won't break the BZN read
+    INCORRECT_RAW,    // <byte[] originalRaw> // value parsed improperly or otherwise differently than expected, preserved original raw bytes, ASCII and Binary modes (in text mode the bytes are dumped directly into the file, not converted)
+    INCORRECT_TEXT,   // <string originalString> // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
+    INCORRECT_CASE,   // <char 'U' or 'L'> // casing present instead of expected
+    INCORRECT_LENGTH, // <int> // incorrect length in file
+    LINE_ENDING,      //X "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
+    STRING_PAD,       //X <fieldName>,       <length>         // String is padded by nuls to reach this length
+    INCORRECT_NAME,   //X <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
+    FLOAT_FORMAT,     //X "ALL:FLOAT_TEXT",  <formatApplied>  // Float is in an unexpected text format
+    RIGHT_TRIM,       //X <fieldName>                         // Field is a 1-liner with an empty field that got Right-Trimmed
 }
 
 public static class MalformationExtensions
@@ -107,6 +108,29 @@ public static class MalformationExtensions
     [Obsolete]
     public static void AddStringPad(this MalformationManager manager, string filedName, int length) =>
         manager.Add(Malformation.STRING_PAD, filedName, length);
+
+
+
+
+
+
+
+
+    // This value is text incorrect, which means this value is the text representation not matching what it should be
+    public static (bool, int?) GetIncorrectLength<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, 0, Malformation.INCORRECT_LENGTH);
+            if (mals.Length > 0)
+                return (true, (int)mals[0].Fields[0]);
+            return (false, null);
+        }
+        throw new ArgumentException("Expression is not a property", nameof(property));
+    }
+
+    public static void SetIncorrectLength<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int originalLength) where T : IMalformable =>
+        manager.Add(property, 0, Malformation.INCORRECT_LENGTH, originalLength);
 
 
 

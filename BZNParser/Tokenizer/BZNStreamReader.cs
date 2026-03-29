@@ -353,22 +353,22 @@ namespace BZNParser.Tokenizer
                     //if (Version > 1022)
                     {
                         tmpPosition = stream.Position;
-                        IBZNToken BinaryToken = ReadToken();
-                        if (BinaryToken.Validate("binarySave"))
+                        IBZNToken? BinaryToken = ReadToken();
+                        if (BinaryToken != null && BinaryToken.Validate("binarySave"))
                         {
                             if (BinaryToken.GetBoolean())
                                 binaryDataStartOffset = stream.Position;
 
                             long tmpPosition2 = stream.Position;
 
-                            IBZNToken tok = ReadToken();
-                            if (tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
+                            IBZNToken? tok = ReadToken();
+                            if (tok != null && tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
                             {
                                 tok = ReadToken();
-                                if (tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
+                                if (tok != null && tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                                 {
                                     tok = ReadToken();
-                                    if (tok.Validate("missionSave", BinaryFieldType.DATA_BOOL))
+                                    if (tok != null && tok.Validate("missionSave", BinaryFieldType.DATA_BOOL))
                                     {
                                         //SaveType = tok.GetBoolean() ? 0 : 1; // TODO we had an impossible BZN so let's ignore this for the moment
                                         if (!InBinary || tok.GetUInt8() <= 1)
@@ -385,7 +385,7 @@ namespace BZNParser.Tokenizer
                             //stream.Position = tmpPosition2;
                             Bookmark.Set(tmpPosition2);
                         }
-                        else if (BinaryToken.Validate("BinaryMode"))
+                        else if (BinaryToken != null && BinaryToken.Validate("BinaryMode"))
                         {
                             if (BinaryToken.GetBoolean())
                                 binaryDataStartOffset = stream.Position;
@@ -394,11 +394,11 @@ namespace BZNParser.Tokenizer
                             SizeSize = 4;
                             Format = BZNFormat.StarTrekArmada2;
                         }
-                        else if (BinaryToken.Validate("seq_count", BinaryFieldType.DATA_LONG))
+                        else if (BinaryToken != null && BinaryToken.Validate("seq_count", BinaryFieldType.DATA_LONG))
                         {
-                            IBZNToken tok;
+                            IBZNToken? tok;
                             tok = ReadToken();
-                            if (tok.Validate("missionSave", BinaryFieldType.DATA_BOOL))
+                            if (tok != null && tok.Validate("missionSave", BinaryFieldType.DATA_BOOL))
                             {
                                 //SaveType = tok.GetBoolean() ? 0 : 1; // TODO we had an impossible BZN so let's ignore this for the moment
                                 if (!InBinary || tok.GetUInt8() <= 1)
@@ -409,7 +409,7 @@ namespace BZNParser.Tokenizer
                                     Format = BZNFormat.Battlezone;
                                 }
                             }
-                            else if (tok.Validate("size"))
+                            else if (tok != null && tok.Validate("size"))
                             {
                                 tok = ReadToken();
                                 if (tok.IsValidationOnly() && tok.Validate("GameObject"))
@@ -421,16 +421,16 @@ namespace BZNParser.Tokenizer
                                     Format = BZNFormat.Battlezone;
                                 }
                             }
-                            else if (tok.Validate("TerrainName"))
+                            else if (tok != null && tok.Validate("TerrainName"))
                             {
                                 tok = ReadToken();
-                                if (tok.Validate("start_time"))
+                                if (tok != null && tok.Validate("start_time"))
                                 {
                                     tok = ReadToken();
-                                    if (tok.Validate("size"))
+                                    if (tok != null && tok.Validate("size"))
                                     {
                                         tok = ReadToken();
-                                        if (tok.IsValidationOnly() && tok.Validate("GameObject"))
+                                        if (tok != null && tok.IsValidationOnly() && tok.Validate("GameObject"))
                                         {
                                             // SaveType here is obviously 0
                                             TypeSize = 2;
@@ -454,14 +454,14 @@ namespace BZNParser.Tokenizer
                 // we might be the "bz2001.bzn" file from BZ2 that is not in the BZ1 patch continuum but we register as a BZ1 type BZN
                 if (Format == BZNFormat.Battlezone && !HasBinary)
                 {
-                    IBZNToken tok = ReadToken();
-                    if (tok.Validate("msn_filename"))
+                    IBZNToken? tok = ReadToken();
+                    if (tok != null && tok.Validate("msn_filename"))
                     {
                         tok = ReadToken();
-                        if (tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
+                        if (tok != null && tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                         {
                             tok = ReadToken();
-                            if (tok.Validate("saveType", BinaryFieldType.DATA_LONG))
+                            if (tok != null && tok.Validate("saveType", BinaryFieldType.DATA_LONG))
                             {
                                 //SaveType = tok.GetInt32();
                                 TypeSize = 1;
@@ -521,7 +521,7 @@ namespace BZNParser.Tokenizer
                             { FloatTextFormat._9e3, 0 }
                         };
 
-                        IBZNToken tok;
+                        IBZNToken? tok;
                         while ((tok = ReadToken()) != null)
                         {
                             ProcessTokenForFloats(tok, FloatCounts);
@@ -542,8 +542,11 @@ namespace BZNParser.Tokenizer
             }
         }
 
-        private void ProcessTokenForFloats(IBZNToken token, Dictionary<FloatTextFormat, uint> floatCounts)
+        private void ProcessTokenForFloats(IBZNToken? token, Dictionary<FloatTextFormat, uint> floatCounts)
         {
+            if (token == null)
+                return;
+
             // TODO for now always assume 32bit, it will chew some garbage but it will do for now
             for (int i = 0; i < token.GetCount(); i++)
             {
@@ -561,7 +564,7 @@ namespace BZNParser.Tokenizer
                 {
                     for (int j = 0; j < token.GetSubCount(i); j++)
                     {
-                        IBZNToken subTok = token.GetSubToken(i, j);
+                        IBZNToken? subTok = token.GetSubToken(i, j);
                         ProcessTokenForFloats(subTok, floatCounts);
                     }
                 }

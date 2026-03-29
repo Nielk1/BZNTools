@@ -78,7 +78,7 @@ namespace BZNParser.Battlezone.GameObject
                             reader.Bookmark.Mark();
                             try
                             {
-                                reader.ReadMatrix("saveMatrix", obj, x => x.saveMatrix);
+                                reader.ReadMatrix("saveMatrix", obj, x => x.saveMatrix!);
                             }
                             catch
                             {
@@ -165,7 +165,7 @@ namespace BZNParser.Battlezone.GameObject
                         {
                             if (obj.saveMatrix != null)
                             {
-                                writer.WriteMatrix("saveMatrix", obj, x => x.saveMatrix);
+                                writer.WriteMatrix("saveMatrix", obj, x => x.saveMatrix!);
                             }
                             else
                             {

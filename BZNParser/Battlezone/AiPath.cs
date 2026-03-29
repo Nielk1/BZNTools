@@ -94,6 +94,7 @@ namespace BZNParser.Battlezone
                 tok.ApplyUInt32H8(obj, x => x.sObject);
             }
 
+            string? label = null;
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
@@ -101,13 +102,14 @@ namespace BZNParser.Battlezone
                     throw new Exception("Failed to parse label");
                 //label = string.Format("bzn64path_{0,4:X4}", tok.GetUInt16());
                 //if (obj != null) obj.label = new SizedString() { Value = label };
-                tok.ApplyUInt16(obj, x => x.label, 0, (v) => new SizedString(string.Format("bzn64path_{0,4:X4}", v)));
+                (SizedString labelX, _) = tok.ApplyUInt16(obj, x => x.label, 0, (v) => new SizedString(string.Format("bzn64path_{0,4:X4}", v)));
+                label = labelX.Value;
             }
             else
             {
-                reader.ReadSizedStringType2("label", obj, x => x.label);
+                (label, _) = reader.ReadSizedStringType2("label", obj, x => x.label);
             }
-            //Console.WriteLine($"AiPath[{i.ToString().PadLeft(countPaths.ToString().Length)}]: {(label ?? string.Empty)}");
+            Console.WriteLine($"AiPath[{(countPaths - countLeft).ToString().PadLeft(countPaths.ToString().Length)}]: {(label ?? string.Empty)}");
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("pointCount", BinaryFieldType.DATA_LONG))

@@ -13,7 +13,7 @@ namespace BZNParser.Battlezone.GameObject
     public class Entity : IMalformable
     {
         protected EntityDescriptor preamble;
-        protected string classLabel;
+        protected string? classLabel;
 
         public SizedString PrjID => preamble.PrjID;
         public UInt32 seqNo { get {return preamble.seqNo; } set { preamble.seqNo = value; } }
@@ -28,8 +28,8 @@ namespace BZNParser.Battlezone.GameObject
 
         private readonly IMalformable.MalformationManager _malformationManager;
         public IMalformable.MalformationManager Malformations => _malformationManager;
-        public virtual string ClassLabel { get { return classLabel; } }
-        public Entity(EntityDescriptor preamble, string classLabel)
+        public virtual string? ClassLabel { get { return classLabel; } }
+        public Entity(EntityDescriptor preamble, string? classLabel)
         {
             this.preamble = preamble;
 

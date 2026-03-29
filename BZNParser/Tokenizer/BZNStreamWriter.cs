@@ -481,6 +481,58 @@ namespace BZNParser.Tokenizer
             throw new ArgumentException("Expression is not a property", nameof(property));
         }
 
+        public (Int32 written, Int32 stored) WriteLength<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Int32>? convert = null) where T : IMalformable
+        {
+            if (!InBinary && name == null)
+                throw new InvalidOperationException("Cannot write a text token with a null name");
+
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            Int32 value = 0;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (typeof(TProp).IsArray && valueInternal is Array array)
+            {
+                value = array.Length;
+            }
+            else if (valueInternal is System.Collections.IEnumerable enumerable)
+            {
+                value = enumerable.Cast<object>().Count();
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with Length writing and no conversion provided");
+            }
+
+            int valueOriginal = value;
+
+            if (PreserveMalformations)
+            {
+                (bool hasIncorrectLength, int? incorrectLength) = parent.Malformations.GetIncorrectLength(property);
+                if (hasIncorrectLength && incorrectLength.HasValue)
+                    value = incorrectLength.Value;
+            }
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_LONG);
+                InternalWriteBinarySize(4);
+                InternalWriteFloatValue(parent, property);
+                InternalAlignBinary();
+                TokenIndex++;
+                return (value, valueOriginal);
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name!, parent, property)} [1] ="));
+            InternalWriteNewline();
+            InternalWriteFloatValue(parent, property);
+            InternalWriteNewline();
+            TokenIndex++;
+            return (value, valueOriginal);
+        }
+
         /// <summary>
         /// Write a Single to the BZN
         /// </summary>
@@ -491,8 +543,11 @@ namespace BZNParser.Tokenizer
         /// <param name="name"></param>
         /// <param name="parent"></param>
         /// <param name="property"></param>
-        public (Single written, TProp stored) WriteSingle<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Single>? convert = null) where T : IMalformable
+        public (Single written, TProp stored) WriteSingle<T, TProp>(string? name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Single>? convert = null) where T : IMalformable
         {
+            if (!InBinary && name == null)
+                throw new InvalidOperationException("Cannot write a text token with a null name");
+
             TProp valueInternal = ExtractPropertyValue(parent, property);
             Single value = 0;
 
@@ -537,7 +592,7 @@ namespace BZNParser.Tokenizer
                 return (value, valueInternal);
             }
 
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name!, parent, property)} [1] ="));
             InternalWriteNewline();
             InternalWriteFloatValue(parent, property);
             InternalWriteNewline();
@@ -585,9 +640,15 @@ namespace BZNParser.Tokenizer
                 var genericArgs = typeof(TProp).GetGenericArguments();
                 if (genericArgs[0] == typeof(Int32) || genericArgs[1] == typeof(Int32))
                 {
-                    // Use dynamic to call Get<Single>() on the DualModeValue instance
-                    dynamic dual = valueInternal;
-                    value = dual.Get<Int32>();
+                    if (valueInternal == null)
+                    {
+                        value = default;
+                    }
+                    else
+                    {
+                        dynamic dual = valueInternal;
+                        value = dual.Get<Int32>();
+                    }
                 }
                 else
                 {
@@ -1086,44 +1147,45 @@ namespace BZNParser.Tokenizer
 
 
         // Except for BZ98R this is a 32bit pointer, but for the common API we need to output a 64bit value.
+        // always single-line
         public (UInt64 written, TProp stored) WritePtr<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
             UInt64 value = 0;
-
-            if (convert != null)
-            {
-                value = convert(valueInternal);
-            }
-            else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
-            {
-                value = (UInt64)(UInt8)(object)valueInternal!;
-            }
-            else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
-            {
-                value = (UInt64)(UInt16)(object)valueInternal!;
-            }
-            else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
-            {
-                value = (UInt64)(UInt32)(object)valueInternal!;
-            }
-            else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
-            {
-                value = (UInt64)(UInt64)(object)valueInternal!;
-            }
-            else
-            {
-                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
-            }
+            
+                if (convert != null)
+                {
+                    value = convert(valueInternal);
+                }
+                else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+                {
+                    value = (UInt64)(UInt8)(object)valueInternal!;
+                }
+                else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+                {
+                    value = (UInt64)(UInt16)(object)valueInternal!;
+                }
+                else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+                {
+                    value = (UInt64)(UInt32)(object)valueInternal!;
+                }
+                else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+                {
+                    value = (UInt64)(UInt64)(object)valueInternal!;
+                }
+                else
+                {
+                    throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+                }
 
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
                 InternalWriteBinarySize(PointerSize);
                 byte[] buff = BitConverter.GetBytes(value).Take(PointerSize).ToArray(); // truncate to correct size
-                if (IsBigEndian)
-                    Array.Reverse(buff);
-                BaseStream.Write(buff, 0, PointerSize);
+                    if (IsBigEndian)
+                        Array.Reverse(buff);
+                    BaseStream.Write(buff, 0, PointerSize);
                 InternalAlignBinary();
                 TokenIndex++;
                 return (value, valueInternal);
@@ -1147,6 +1209,119 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
 
             return (value, valueInternal);
+        }
+
+        // always multi-line
+        public (UInt64 written, TProp stored) WritePtrs<T, TProp>(string? name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
+        {
+            if (!InBinary && name == null)
+                throw new InvalidOperationException("Cannot write a text token with a null name");
+
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            UInt64[] values;
+            if (typeof(TProp).IsArray && typeof(TProp).GetElementType() != null)
+            {
+                var arr = (Array)(object)valueInternal;
+                int arrLen = arr.Length;
+                values = new UInt64[arrLen];
+                for (int i = 0; i < arrLen; i++)
+                {
+                    object? element = arr.GetValue(i);
+                    if (convert != null)
+                    {
+                        values[i] = convert((TProp)element!);
+                    }
+                    else if (element is UInt8 u8)
+                    {
+                        values[i] = u8;
+                    }
+                    else if (element is UInt16 u16)
+                    {
+                        values[i] = u16;
+                    }
+                    else if (element is UInt32 u32)
+                    {
+                        values[i] = u32;
+                    }
+                    else if (element is UInt64 u64)
+                    {
+                        values[i] = u64;
+                    }
+                    else
+                    {
+                        throw new Exception("Property type is not compatible with pointer array writing and no conversion provided");
+                    }
+                }
+            }
+            else
+            {
+                UInt64 value = 0;
+                if (convert != null)
+                {
+                    value = convert(valueInternal);
+                }
+                else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+                {
+                    value = (UInt64)(UInt8)(object)valueInternal!;
+                }
+                else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+                {
+                    value = (UInt64)(UInt16)(object)valueInternal!;
+                }
+                else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+                {
+                    value = (UInt64)(UInt32)(object)valueInternal!;
+                }
+                else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+                {
+                    value = (UInt64)(UInt64)(object)valueInternal!;
+                }
+                else
+                {
+                    throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+                }
+                values = new[] { value };
+            }
+
+            int length = values.Length;
+
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
+                InternalWriteBinarySize(PointerSize * length);
+                foreach (var value in values)
+                {
+                    byte[] buff = BitConverter.GetBytes(value).Take(PointerSize).ToArray();
+                    if (IsBigEndian)
+                        Array.Reverse(buff);
+                    BaseStream.Write(buff, 0, PointerSize);
+                }
+                InternalAlignBinary();
+                TokenIndex++;
+                return (values.Length > 0 ? values[0] : 0, valueInternal);
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
+            for (int i = 0; i < length; i++)
+            {
+                string textValue = values[i].ToString("X8");
+                if (values[i] > 0xFFFFFFFF)
+                    textValue = values[i].ToString("X16");
+
+                if (PreserveMalformations)
+                {
+                    // handle incorrect raw value
+                    (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property, i);
+                    if (hasIncorrectRaw)
+                        textValue = incorrectText ?? string.Empty;
+                }
+                BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+                InternalWriteNewline();
+            }
+            TokenIndex++;
+
+            return (values.Length > 0 ? values[0] : 0, valueInternal);
         }
 
         /// <summary>
@@ -1485,8 +1660,11 @@ namespace BZNParser.Tokenizer
         /// <param name="name"></param>
         /// <param name="parent"></param>
         /// <param name="property"></param>
-        public (UInt8 written, TProp stored) WriteUInt8<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt8>? convert = null) where T : IMalformable
+        public (UInt8 written, TProp stored) WriteUInt8<T, TProp>(string? name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt8>? convert = null) where T : IMalformable
         {
+            if (!InBinary && name == null)
+                throw new InvalidOperationException("Cannot write a text token with a null name");
+
             TProp valueInternal = ExtractPropertyValue(parent, property);
             UInt8 value = 0;
 
@@ -1535,7 +1713,7 @@ namespace BZNParser.Tokenizer
                     textValue = incorrectText ?? string.Empty;
             }
 
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [1] ="));
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name!, parent, property)} [1] ="));
             InternalWriteNewline();
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
             InternalWriteNewline();
@@ -1673,11 +1851,16 @@ namespace BZNParser.Tokenizer
         /// <param name="parent"></param>
         /// <param name="property"></param>
         /// <param name="oneLiner"></param>
-        public void WriteChars<T>(string name, T parent, Expression<Func<T, SizedString>> property) where T : IMalformable
+        public void WriteChars<T>(string name, T parent, Expression<Func<T, SizedString>> property, Func<SizedString, byte[]>? convert = null) where T : IMalformable
         {
             SizedString wrappedValue = ExtractPropertyValue(parent, property);
             string value = wrappedValue.Value ?? string.Empty; // we don't care about the size as we're a normal char print
             byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
+
+            if (convert != null)
+            {
+                rawValue = convert(wrappedValue);
+            }
 
             if (PreserveMalformations)
             {
@@ -1734,10 +1917,15 @@ namespace BZNParser.Tokenizer
         /// <param name="parent"></param>
         /// <param name="property"></param>
         /// <param name="oneLiner"></param>
-        public void WriteChars<T>(string name, T parent, Expression<Func<T, string>> property) where T : IMalformable
+        public void WriteChars<T>(string name, T parent, Expression<Func<T, string>> property, Func<string, byte[]>? convert = null) where T : IMalformable
         {
             string value = ExtractPropertyValue(parent, property);
             byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
+
+            if (convert != null)
+            {
+                rawValue = convert(value);
+            }
 
             if (PreserveMalformations)
             {
@@ -2035,14 +2223,29 @@ namespace BZNParser.Tokenizer
             else if (typeof(TProp).IsGenericType && typeof(TProp).GetGenericTypeDefinition() == typeof(DualModeValue<,>))
             {
                 var genericArgs = typeof(TProp).GetGenericArguments();
-                dynamic dual = value_;
                 if (genericArgs[0] == typeof(float) || genericArgs[1] == typeof(float))
                 {
-                    value = dual.Get<float>();
+                    if (value_ == null)
+                    {
+                        value = default;
+                    }
+                    else
+                    {
+                        dynamic dual = value_;
+                        value = dual.Get<float>();
+                    }
                 }
                 else if (genericArgs[0] == typeof(double) || genericArgs[1] == typeof(double))
                 {
-                    value = (float)dual.Get<double>();
+                    if (value_ == null)
+                    {
+                        value = default;
+                    }
+                    else
+                    {
+                        dynamic dual = value_;
+                        value = (float)dual.Get<double>();
+                    }
                 }
                 else
                 {
@@ -2073,8 +2276,11 @@ namespace BZNParser.Tokenizer
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
         }
-        public (Vector2D written, TProp stored) WriteVector2D<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
+        public (Vector2D written, TProp stored) WriteVector2D<T, TProp>(string? name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
+            if (!InBinary && name == null)
+                throw new InvalidOperationException("Cannot write a text token with a null name");
+
             TProp propValue = ExtractPropertyValue(parent, property);
             Vector2D[] vectors;
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(Vector2D))
@@ -2099,7 +2305,7 @@ namespace BZNParser.Tokenizer
             }
             else
             {
-                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} [{length}] ="));
+                BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name!, parent, property)} [{length}] ="));
                 InternalWriteNewline();
                 foreach (var vec in vectors)
                 {
@@ -2600,57 +2806,6 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
-        [Obsolete]
-        public void WritePtr32(string name, UInt32 value)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
-                InternalWriteBinarySize(sizeof(UInt32));
-                byte[] bytes = BitConverter.GetBytes(value);
-                if (IsBigEndian)
-                    Array.Reverse(bytes);
-                BaseStream.Write(bytes);
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} = "));
-            //InternalWriteStringDirectValue(value.ToString("X8"));
-            BaseStream.Write(BZNEncoding.win1252.GetBytes(value.ToString("X8")));
-            InternalWriteNewline();
-            TokenIndex++;
-        }
-
-        // this might be bogus, will know later
-        [Obsolete]
-        public void WritePtrs(string name, params uint[] values)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_PTR);
-                InternalWriteBinarySize(4 * values.Length);
-                for (int i = 0; i < values.Length; i++)
-                {
-                    byte[] bytes = BitConverter.GetBytes(values[i]);
-                    if (IsBigEndian)
-                        Array.Reverse(bytes);
-                    BaseStream.Write(bytes);
-                }
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [{values.Length}] = "));
-            InternalWriteNewline();
-            foreach (uint value in values)
-            {
-                //InternalWriteStringValue(value.ToString("X8"));
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(value.ToString("X8")));
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
         [Obsolete]
         public void WriteVoidBytesL(string name, UInt32 value)
         {

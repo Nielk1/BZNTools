@@ -509,7 +509,7 @@ namespace BZNParser
 
     static class MatrixExtension
     {
-        public static Matrix ReadMatrix<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Matrix>>? property, int index = 0) where T : IMalformable
+        public static Matrix ReadMatrix<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Matrix>> property, int index = 0) where T : IMalformable
         {
             PropertyInfo? propInfo = null;
             if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)

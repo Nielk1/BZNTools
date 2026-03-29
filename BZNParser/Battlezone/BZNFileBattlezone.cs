@@ -234,6 +234,7 @@ namespace BZNParser.Battlezone
 
 
 
+        public string? UserProcess_name { get; set; }
         public UInt32? UserProcess_sObject { get; set; }
         public UInt32? UserProcess_undefptr_0{ get; set; }
         public Int32? UserProcess_cycle { get; set; }
@@ -314,9 +315,9 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 tok.ApplyInt32(this, x => x.Version);
                 Console.WriteLine($"Version: {Version}"); // don't bother validating first field maybe?
-                if (!tok.IsBinary)
+                if (!tok.IsBinary && tok is BZNTokenString strTok)
                 {
-                    string fieldName = (tok as BZNTokenString).Name;
+                    string fieldName = strTok.Name;
                     if (fieldName != "version")
                         Malformations.AddIncorrectName<BZNFileBattlezone, Int32>(x => x.Version, fieldName);
                 }
@@ -524,10 +525,10 @@ namespace BZNParser.Battlezone
                 {
                     Malformations.SetLineEnding("\r");
                 }
-                else
-                {
-                    Malformations.SetLineEnding(null);
-                }
+                //else
+                //{
+                //    Malformations.SetLineEnding(null);
+                //}
             }
 
             if (reader.Format == BZNFormat.Battlezone2 && !reader.HasBinary)
@@ -729,6 +730,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse name/CHAR");
                 //tok.GetBytes(); // "UserProcess"
+                tok.ApplyChars(this, x => x.UserProcess_name);
 
                 // read the old sObject ptr, not sure what can be done with it
                 //if (reader.Version < 1002)
@@ -830,16 +832,46 @@ namespace BZNParser.Battlezone
                 throw new Exception("Failed to parse count/LONG");
             Int32 CountPaths = tok.GetInt32();
 
-            AiPath[] AiPaths = new AiPath[CountPaths];
-            for (int pathCounter = 0; pathCounter < CountPaths; pathCounter++)
+            //AiPath[] AiPaths = new AiPath[CountPaths];
+            List<AiPath> AiPaths = new List<AiPath>();
+            int pathCounter;
+            for (pathCounter = 0; pathCounter < CountPaths; pathCounter++)
             {
                 AiPath? tmpAiPath;
                 if (AiPath.Create(this, reader, CountPaths, CountPaths - pathCounter, out tmpAiPath, true) && tmpAiPath != null)
                 {
-                    AiPaths[pathCounter] = tmpAiPath;
+                    //AiPaths[pathCounter] = tmpAiPath;
+                    AiPaths.Add(tmpAiPath);
                 }
             }
-            this.AiPaths = AiPaths;
+
+            // attempt to deal with extra AiPaths
+            int excessAiPaths = 0;
+            for (; ;)
+            {
+                reader.Bookmark.Mark();
+                try
+                {
+                    AiPath? tmpAiPath;
+                    if (AiPath.Create(this, reader, CountPaths, CountPaths - pathCounter, out tmpAiPath, true) && tmpAiPath != null)
+                    {
+                        //AiPaths[pathCounter] = tmpAiPath;
+                        AiPaths.Add(tmpAiPath);
+                        pathCounter++;
+                        excessAiPaths++;
+                    }
+                }
+                catch
+                {
+                    reader.Bookmark.RevertToBookmark();
+                    break;
+                }
+                reader.Bookmark.Commit();
+            }
+            if (excessAiPaths > 0)
+                Malformations.SetIncorrectLength<BZNFileBattlezone, AiPath[]>(x => x.AiPaths, CountPaths);
+
+            this.AiPaths = AiPaths.ToArray();
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -988,8 +1020,10 @@ namespace BZNParser.Battlezone
             {
                 if (Version != writer.Version)
                 {
-                    // writer version is different, so we ignore malformations
-                    writer.WriteSignedValues("version", writer.Version);
+                    // writer version is different, so we ignore malformations and just bypass the property entirely
+                    bool m = writer.PreserveMalformations;
+                    writer.WriteInt32("version", this, x => x.Version, (v) => writer.Version);
+                    writer.PreserveMalformations = m;
                 }
                 else
                 {
@@ -1040,8 +1074,8 @@ namespace BZNParser.Battlezone
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                // this these save types don't match the game aborts the load
-                writer.WriteUInt32("saveType", this, x => x.SaveType2, (saveType) => (UInt32)saveType);
+                // if these save types don't match the game aborts the load
+                writer.WriteUInt32("saveType", this, x => x.SaveType2, (saveType) => (UInt32)(saveType ?? this.SaveType));
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
@@ -1095,7 +1129,7 @@ namespace BZNParser.Battlezone
             }
 
             //DeHydrate(writer);
-            writer.WriteSignedValues("size", Entities.Length);
+            writer.WriteLength("size", this, x => x.Entities);
 
             int idx = 0;
             foreach (var entity in Entities)
@@ -1111,7 +1145,7 @@ namespace BZNParser.Battlezone
                 if (writer.Version > 1165)
                 {
                     // 1187, 1188, 1192
-                    writer.WriteVoidBytesL("groupTargets", groupTargets);
+                    writer.WriteVoidBytesL("groupTargets", this, x => x.groupTargets);
                 }
                 if (writer.Version == 1100 || writer.Version == 1041 || writer.Version == 1047 || writer.Version == 1070) // not sure what versions this happens
                 {
@@ -1183,7 +1217,7 @@ namespace BZNParser.Battlezone
                 // 1001A (AiMission)
                 // 1011A (AiMission)
                 // 1012A (AiMission)
-                writer.WriteSignedValues("size", AiMissionSize ?? 1);
+                writer.WriteInt32("size", this, x => x.AiMissionSize, (v) => v ?? 1);
             }
 
             if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1011 || writer.Version == 1012))
@@ -1193,7 +1227,7 @@ namespace BZNParser.Battlezone
                 // 1001A (AiMission)
                 // 1011A (AiMission)
                 // 1012A (AiMission)
-                writer.WriteChars("name", "UserProcess", null);
+                writer.WriteChars("name", this, x => x.UserProcess_name, (v) => v != null ? BZNEncoding.win1252.GetBytes(v) : BZNEncoding.win1252.GetBytes("UserProcess"));
                 //if (writer.Version < 1002)
                 //{
                 //    writer.WriteBZ1_PtrDepricated("sObject", UserProcess_sObject.Value);
@@ -1218,23 +1252,26 @@ namespace BZNParser.Battlezone
             }
 
             writer.WriteValidation("AOIs");
-            writer.WriteSignedValues("size", AOIs.Length);
+            writer.WriteLength("size", this, x => x.AOIs);
             for (int aioCounter = 0; aioCounter < AOIs.Length; aioCounter++)
             {
                 AOIs[aioCounter].Write(this, writer, binary, save);
             }
 
             writer.WriteValidation("AiPaths");
-            writer.WriteSignedValues("count", AiPaths.Length);
+            writer.WriteLength("count", this, x => x.AiPaths);
             for (int i = 0; i < AiPaths.Length; i++)
             {
                 AiPaths[i].Write(this, writer, binary, save);
             }
 
-            // maybe we should just null check this instead?
-            if (Malformations.HasExtraField<BZNFileBattlezone, Vector2D>(x => ExtraVec2D))
-                //writer.WriteVector2Ds(null, ExtraVec2D);
-                writer.WriteVector2D(null, this, x => x.ExtraVec2D);
+            if (writer.PreserveMalformations)
+            {
+                // maybe we should just null check this instead?
+                if (Malformations.HasExtraField<BZNFileBattlezone, Vector2D>(x => x.ExtraVec2D!))
+                    //writer.WriteVector2Ds(null, ExtraVec2D);
+                    writer.WriteVector2D(null, this, x => x.ExtraVec2D);
+            }
         }
     }
 }

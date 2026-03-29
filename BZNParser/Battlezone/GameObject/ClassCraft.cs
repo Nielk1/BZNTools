@@ -206,7 +206,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version < 2002)
                 {
                     tok = reader.ReadToken();
-                    if (tok == null | !tok.Validate("cloakTransitionTime", BinaryFieldType.DATA_FLOAT))
+                    if (tok == null || !tok.Validate("cloakTransitionTime", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse cloakTransitionTime/FLOAT");
                     tok.ApplySingle(obj, x => x.cloakTransitionTime);
                 }

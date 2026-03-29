@@ -716,7 +716,7 @@ namespace BZNParser.Battlezone
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WritePtr32("objAddr", (UInt32)obj_addr);
+                writer.WritePtr("objAddr", this, x => x.obj_addr);
             }
 
             if (writer.Format == BZNFormat.Battlezone2)

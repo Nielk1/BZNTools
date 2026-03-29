@@ -519,15 +519,20 @@ namespace BZNParser.Tokenizer
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_LONG);
                 InternalWriteBinarySize(4);
-                InternalWriteFloatValue(parent, property);
+                byte[] buff = BitConverter.GetBytes(value);
+                if (IsBigEndian)
+                    Array.Reverse(buff);
+                BaseStream.Write(buff, 0, 4);
                 InternalAlignBinary();
                 TokenIndex++;
                 return (value, valueOriginal);
             }
 
+            string textValue = value.ToString();
+
             BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name!, parent, property)} [1] ="));
             InternalWriteNewline();
-            InternalWriteFloatValue(parent, property);
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
             InternalWriteNewline();
             TokenIndex++;
             return (value, valueOriginal);
@@ -1334,8 +1339,11 @@ namespace BZNParser.Tokenizer
         /// <param name="name"></param>
         /// <param name="parent"></param>
         /// <param name="property"></param>
-        public (UInt32 written, TProp stored) WriteUInt32<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
+        public (UInt32 written, TProp stored) WriteUInt32<T, TProp>(string? name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
         {
+            if (!InBinary && name == null)
+                throw new InvalidOperationException("Cannot write a text token with a null name");
+
             TProp valueInternal = ExtractPropertyValue(parent, property);
             UInt32 value = 0;
 
@@ -2635,63 +2643,6 @@ namespace BZNParser.Tokenizer
 
 
 
-        [Obsolete]
-        public void WriteUnsignedValues(string name, params UInt16[] values)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_SHORT);
-                InternalWriteBinarySize(sizeof(UInt16) * values.Length);
-                foreach (UInt16 value in values)
-                {
-                    byte[] bytes = BitConverter.GetBytes(value);
-                    if (IsBigEndian)
-                        Array.Reverse(bytes);
-                    BaseStream.Write(bytes);
-                }
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [{values.Length}] ="));
-            InternalWriteNewline();
-            for (int i = 0; i < values.Length; i++)
-            {
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(values[i].ToString()));
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
-
-
-        [Obsolete]
-        public void WriteUnsignedHexLValues(string name, params UInt32[] values)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_LONG);
-                InternalWriteBinarySize(sizeof(UInt32) * values.Length);
-                foreach (UInt32 value in values)
-                {
-                    byte[] bytes = BitConverter.GetBytes(value);
-                    if (IsBigEndian)
-                        Array.Reverse(bytes);
-                    BaseStream.Write(bytes);
-                }
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} [{values.Length}] ="));
-            InternalWriteNewline();
-            for (int i = 0; i < values.Length; i++)
-            {
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(values[i].ToString("x")));
-                InternalWriteNewline();
-            }
-            TokenIndex++;
-        }
-
         // used for: undefaicmd
         [Obsolete]
         public void WriteCmd(string name, UInt32 value)
@@ -2777,61 +2728,6 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
-        [Obsolete]
-        public void WriteChars(string name, string value, IMalformable.MalformationManager malformations)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
-                byte[] stringBytes = BZNEncoding.win1252.GetBytes(value);
-                InternalWriteBinarySize(stringBytes.Length);
-                BaseStream.Write(stringBytes);
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} ="));
-
-//            if (malformations != null && malformations.GetMalformations(Malformation.RIGHT_TRIM, name).Any())
-//            {
-//                // missing space after the =, so just do nothing
-//            }
-//            else
-            {
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(" ")); // only have the trailing space if the value exists
-            }
-
-            InternalWriteStringValue(value);
-            InternalWriteNewline();
-            TokenIndex++;
-        }
-
-        [Obsolete]
-        public void WriteVoidBytesL(string name, UInt32 value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            if (IsBigEndian)
-                Array.Reverse(bytes);
-            WriteVoidBytesL(name, bytes);
-        }
-        [Obsolete]
-        public void WriteVoidBytesL(string name, byte[] value)
-        {
-            if (InBinary)
-            {
-                InternalWriteBinaryType(BinaryFieldType.DATA_VOID);
-                InternalWriteBinarySize(value.Length);
-                BaseStream.Write(value);
-                InternalAlignBinary();
-                TokenIndex++;
-                return;
-            }
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name} = "));
-            //InternalWriteStringValue(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant());
-            BaseStream.Write(BZNEncoding.win1252.GetBytes(BitConverter.ToString(value).Replace("-", string.Empty).ToLowerInvariant()));
-            InternalWriteNewline();
-            TokenIndex++;
-        }
 
         [Obsolete]
         public void WriteVoidBytesRaw(string name, byte[] value)

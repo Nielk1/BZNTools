@@ -1129,7 +1129,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteBoolean("isSelected", obj, x => x.isSelected);
                 }
 
-                writer.WriteUnsignedHexLValues("isVisible", obj.isVisible);
+                writer.WriteUInt32h("isVisible", obj, x => x.isVisible);
 
                 if (writer.Format == BZNFormat.Battlezone)
                 {

@@ -611,22 +611,19 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                if (label != null && label.Value.StartsWith("bzn64label_"))
+                writer.WriteUInt32(null, this, x => x.label, (label) =>
                 {
-                    string possibleLabelNum = label.Value.Substring("bzn64label_".Length);
-                    if (ushort.TryParse(possibleLabelNum, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleLabelID))
+                    if (label != null && label.Value.StartsWith("bzn64label_"))
                     {
-                        writer.WriteUnsignedValues(null, possibleLabelID);
-                    }
-                    else
-                    {
+                        string possibleLabelNum = label.Value.Substring("bzn64label_".Length);
+                        if (ushort.TryParse(possibleLabelNum, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleLabelID))
+                        {
+                            return possibleLabelID;
+                        }
                         throw new Exception("Failed to parse label/CHAR");
                     }
-                }
-                else
-                {
                     throw new Exception("Failed to parse label/CHAR");
-                }
+                });
             }
             else if (writer.Format == BZNFormat.Battlezone)
             {

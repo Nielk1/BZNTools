@@ -107,7 +107,7 @@ namespace BZNParser.Battlezone.GameObject
         {
             writer.WriteSingle("buildDoneTime", obj, x => x.buildDoneTime);
             writer.WriteBoolean("buildActive", obj, x => x.buildActive);
-            writer.WriteSignedValues("buildCount", obj.buildItems.Length);
+            writer.WriteLength("buildCount", obj, x => x.buildItems);
 
             //foreach (string? item in obj.buildItems)
             for (int i = 0; i < obj.buildItems.Length; i++)

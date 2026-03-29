@@ -52,8 +52,8 @@ namespace BZNParser.Battlezone.GameObject
                 if (obj != null)
                 {
                     int count = tok.GetCount();
-                    if (count > APC_MAX_SOLDIERS)
-                        obj.Malformations.AddOvercount("ExternalSoldiers");
+                    //if (count > APC_MAX_SOLDIERS)
+                    //    obj.Malformations.AddOvercount("ExternalSoldiers");
                     obj.ExternalSoldiers = new UInt32[Math.Max(APC_MAX_SOLDIERS, count)];
                     for(int i = 0; i < count; i++)
                     {

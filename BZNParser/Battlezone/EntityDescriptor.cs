@@ -456,9 +456,9 @@ namespace BZNParser.Battlezone
                 if (!reader.InBinary)
                 {
                     reader.Bookmark.Mark();
-                    IBZNToken tok = reader.ReadToken();
+                    IBZNToken? tok = reader.ReadToken();
                     reader.Bookmark.RevertToBookmark();
-                    if (!tok.IsValidationOnly() || tok == null || !tok.Validate("GameObject", BinaryFieldType.DATA_UNKNOWN))
+                    if (tok == null || !tok.IsValidationOnly() || !tok.Validate("GameObject", BinaryFieldType.DATA_UNKNOWN))
                     {
                         // next field isn't the start of a GameObject
                         return false;
@@ -727,15 +727,15 @@ namespace BZNParser.Battlezone
 
 
             // GameObject
-            if (gameObject is MultiClass)
+            if (gameObject is MultiClass mc)
             {
                 // TODO if they all serialize the same, spit out that data, else throw an error
                 // for now we just cheat and use the first one
-                (gameObject as MultiClass).Candidates.OrderBy(dr => dr.Expected ? 0 : 1).First().Object.Write(parent, writer, binary, save);
+                mc.Candidates.OrderBy(dr => dr.Expected ? 0 : 1).First().Object.Write(parent, writer, binary, save);
             }
             else
             {
-                gameObject.Write(parent, writer, binary, save);
+                gameObject?.Write(parent, writer, binary, save);
             }
         }
     }

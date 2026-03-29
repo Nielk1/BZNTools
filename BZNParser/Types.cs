@@ -119,12 +119,14 @@ namespace BZNParser
         {
             this.internalType1 = value;
             this.fromType2 = false;
+            this.internalType2 = default!;
         }
 
         public DualModeValue(T2 value)
         {
             this.internalType2 = value;
             this.fromType2 = true;
+            this.internalType1 = default!;
         }
     }
     static class OtherTypeExtenions // clean this up later

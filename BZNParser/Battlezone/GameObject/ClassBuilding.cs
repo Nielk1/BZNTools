@@ -58,7 +58,7 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 bool m_AlignsToObject = false;
-                string saveClass = null;
+                string? saveClass = null;
 
                 if (reader.Version >= 1147)
                 {

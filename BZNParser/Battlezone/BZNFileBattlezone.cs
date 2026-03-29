@@ -313,6 +313,8 @@ namespace BZNParser.Battlezone
             if (reader.Format != BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
+                if (tok == null)
+                    throw new Exception("Null Version Token");
                 tok.ApplyInt32(this, x => x.Version);
                 Console.WriteLine($"Version: {Version}"); // don't bother validating first field maybe?
                 if (!tok.IsBinary && tok is BZNTokenString strTok)
@@ -481,7 +483,9 @@ namespace BZNParser.Battlezone
                     LongTermClassLabelLookupCache.Clear();
                     Hydrate(reader);
 
-                    Malformations.AddIncorrect("missionSave", true);
+                    //Malformations.AddIncorrect("missionSave", true);
+                    Malformations.AddIncorrectRaw<BZNFileBattlezone, SaveType>(x => x.SaveType, 0, new byte[] { (byte)SaveType.SAVE });
+                    Malformations.AddIncorrectTextParse<BZNFileBattlezone, SaveType>(x => x.SaveType, 0, "false");
 
                     // TODO this path needs to be resolved with the new malformation engine stuff ^
                 }
@@ -637,12 +641,16 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
+                if (tok == null)
+                    throw new Exception("Failed to parse n64 Mission token");
                 //string mission = string.Format("BZn64Mission_{0,4:X4}", tok.GetUInt16());
                 //this.Mission = new SizedString() { Value = mission };
                 (SizedString mission, _) = tok.ApplyUInt16(this, x => x.Mission, 0, (v) => new SizedString(string.Format("BZn64Mission_{0,4:X4}", v)));
                 Console.WriteLine($"Mission: {mission.Value}");
 
                 tok = reader.ReadToken();
+                if (tok == null)
+                    throw new Exception("Failed to parse n64 Mission sObject token");
                 //sObject = reader.ReadBZ1_PtrDepricated("sObject");
                 tok.ApplyUInt32H8(this, x => x.Mission_sObject);
             }
@@ -664,6 +672,8 @@ namespace BZNParser.Battlezone
                 //    sObject = reader.ReadBZ1_Ptr("sObject", reader.Version);
                 //}
                 tok = reader.ReadToken();
+                if (tok == null)
+                    throw new Exception("Failed to parse token");
                 if (reader.Version < 1002)
                 {
                     tok.ApplyVoidBytesRaw(this, x => x.Mission_sObject, 0, (v) => BitConverter.ToUInt32(v));
@@ -684,7 +694,7 @@ namespace BZNParser.Battlezone
                     if (SaveType == SaveType.BZN ? reader.Version == 1044 : reader.Version >= 1044)
                     {
                         tok = reader.ReadToken();
-                        if (!tok.Validate("undefbool", BinaryFieldType.DATA_BOOL))
+                        if (tok == null || !tok.Validate("undefbool", BinaryFieldType.DATA_BOOL))
                             throw new Exception("Failed to parse undefbool/BOOL");
                         tok.ApplyBoolean(this, x => x.bz1_luamission_started);
                     }
@@ -882,9 +892,9 @@ namespace BZNParser.Battlezone
 
                     // 1188 1192
                     tok = reader.ReadToken();
-                    if (!tok.Validate("hasEntered", BinaryFieldType.DATA_BOOL))
+                    if (tok == null || !tok.Validate("hasEntered", BinaryFieldType.DATA_BOOL))
                     {
-                        if (tok.Validate("PadData", BinaryFieldType.DATA_VOID))
+                        if (tok != null && tok.Validate("PadData", BinaryFieldType.DATA_VOID))
                         {
                             // SatellitePanel data is missing when it must exist, deal with damaged BZN?
                             reader.Bookmark.RevertToBookmark();
@@ -901,7 +911,7 @@ namespace BZNParser.Battlezone
                         for (int i = 0; i < 3/*MAX_WORLDS*/; i++)
                         {
                             tok = reader.ReadToken();
-                            if (!tok.Validate("ownerObj", BinaryFieldType.DATA_LONG))
+                            if (tok == null || !tok.Validate("ownerObj", BinaryFieldType.DATA_LONG))
                                 throw new Exception("Failed to parse ownerObj/LONG");
                             //Int32 pathType = tok.GetUInt32H();
                         }
@@ -914,12 +924,12 @@ namespace BZNParser.Battlezone
                 if (!reader.InBinary)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.IsValidationOnly() || !tok.Validate("AiTasks", BinaryFieldType.DATA_UNKNOWN))
+                    if (tok == null || !tok.IsValidationOnly() || !tok.Validate("AiTasks", BinaryFieldType.DATA_UNKNOWN))
                         throw new Exception("Failed to parse [AiTasks]");
                 }
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("count", BinaryFieldType.DATA_LONG))
+                if (tok == null || !tok.Validate("count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse count/LONG");
                 Int32 CountAiTasks = tok.GetInt32();
 
@@ -934,13 +944,13 @@ namespace BZNParser.Battlezone
                 if (reader.Version >= 1115)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.Validate("PadData", BinaryFieldType.DATA_VOID))
+                    if (tok == null || !tok.Validate("PadData", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse PadData/VOID");
 
                     if (reader.Version >= 1119)
                     {
                         tok = reader.ReadToken();
-                        if (!tok.Validate("PadData2", BinaryFieldType.DATA_VOID))
+                        if (tok == null || !tok.Validate("PadData2", BinaryFieldType.DATA_VOID))
                             throw new Exception("Failed to parse PadData2/VOID");
                     }
                 }
@@ -951,14 +961,14 @@ namespace BZNParser.Battlezone
                 if (!reader.InBinary)
                 {
                     tok = reader.ReadToken();
-                    if (!tok.IsValidationOnly() || !tok.Validate("Terrain", BinaryFieldType.DATA_UNKNOWN))
+                    if (tok == null || !tok.IsValidationOnly() || !tok.Validate("Terrain", BinaryFieldType.DATA_UNKNOWN))
                         throw new Exception("Failed to parse [Terrain]");
                 }
 
                 tok = reader.ReadToken();
-                TerrainName = tok.GetString();
-                if (!tok.Validate("Name", BinaryFieldType.DATA_UNKNOWN))
+                if (tok == null || !tok.Validate("Name", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse Name/UNKNOWN");
+                TerrainName = tok.GetString();
                 Console.WriteLine($"TerrainName: {TerrainName}");
             }
 
@@ -1227,7 +1237,7 @@ namespace BZNParser.Battlezone
                 // 1001A (AiMission)
                 // 1011A (AiMission)
                 // 1012A (AiMission)
-                writer.WriteChars("name", this, x => x.UserProcess_name, (v) => v != null ? BZNEncoding.win1252.GetBytes(v) : BZNEncoding.win1252.GetBytes("UserProcess"));
+                writer.WriteChars("name", this, x => x.UserProcess_name!, (v) => v != null ? BZNEncoding.win1252.GetBytes(v) : BZNEncoding.win1252.GetBytes("UserProcess"));
                 //if (writer.Version < 1002)
                 //{
                 //    writer.WriteBZ1_PtrDepricated("sObject", UserProcess_sObject.Value);

@@ -244,6 +244,9 @@ namespace BZNParser.Tokenizer
 
         public bool Validate(string? name, BinaryFieldType type = BinaryFieldType.DATA_UNKNOWN)
         {
+            if (name == null)
+                throw new InvalidOperationException("Cannot validate a text token with a null name");
+
             //return this.name == name;
             if (this.name.Trim() == name)
                 return true;

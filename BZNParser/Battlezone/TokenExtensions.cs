@@ -162,12 +162,12 @@ public static class TokenExtensions
             var genericArgs = typeof(TProp).GetGenericArguments();
             if (genericArgs[0] == typeof(Single))
             {
-                setVal = (TProp)Activator.CreateInstance(typeof(TProp), (object)valueInternal);
+                setVal = (TProp)Activator.CreateInstance(typeof(TProp), valueInternal)!;
                 did = true;
             }
             else if (genericArgs[1] == typeof(Single))
             {
-                setVal = (TProp)Activator.CreateInstance(typeof(TProp), (object)valueInternal);
+                setVal = (TProp)Activator.CreateInstance(typeof(TProp), valueInternal)!;
                 did = true;
             }
         }
@@ -248,12 +248,12 @@ public static class TokenExtensions
             var genericArgs = typeof(TProp).GetGenericArguments();
             if (genericArgs[0] == typeof(Int32))
             {
-                setVal = (TProp)Activator.CreateInstance(typeof(TProp), (object)valueInternal);
+                setVal = (TProp)Activator.CreateInstance(typeof(TProp), valueInternal)!;
                 did = true;
             }
             else if (genericArgs[1] == typeof(Int32))
             {
-                setVal = (TProp)Activator.CreateInstance(typeof(TProp), (object)valueInternal);
+                setVal = (TProp)Activator.CreateInstance(typeof(TProp), valueInternal)!;
                 did = true;
             }
         }

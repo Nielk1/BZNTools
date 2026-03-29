@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -314,39 +315,49 @@ namespace BZNParser.Tokenizer
                 long tmpPosition = stream.Position;
                 if (Format == BZNFormat.BattlezoneN64)
                 {
-                    IBZNToken SeqNoToken = ReadToken(); // 4 byte number
+                    IBZNToken? SeqNoToken = ReadToken(); // 4 byte number
 
-                    IBZNToken MissionSaveToken = ReadToken();
+                    IBZNToken? MissionSaveToken = ReadToken();
+                    if (MissionSaveToken == null)
+                        throw new Exception("Failed to parse MissionSaveToken");
                     bool MissionSave = MissionSaveToken.GetBoolean();
                     //SaveType = MissionSave ? 0 : 1;
 
-                    IBZNToken TerrainOrMissionName = ReadToken(); // long, probably 64 bytes of text
+                    IBZNToken? TerrainOrMissionName = ReadToken(); // long, probably 64 bytes of text
                 }
                 else
                 {
-                    IBZNToken VersionToken = ReadToken();
-                    Version = VersionToken.GetInt32();
+                    IBZNToken? VersionToken = ReadToken();
+                    if (VersionToken != null)
+                    {
+                        Version = VersionToken.GetInt32();
 
-                    tmpPosition = position = stream.Position;
-                    IBZNToken SaveTypeToken = ReadToken();
-                    if (!InBinary && SaveTypeToken.Validate("saveType"))
-                    {
-                        //SaveType = SaveTypeToken.GetInt32();
-                        TypeSize = 1;
-                        TypeSizeSet = true;
-                        Format = BZNFormat.Battlezone2;
-                    }
-                    else if (!InBinary && SaveTypeToken.Validate("saveGameDesc"))
-                    {
-                        TypeSize = 4; // Star Trek Armada, 3 bytes are garbage
-                        TypeSizeSet = true;
-                        SizeSize = 4;
-                        Format = BZNFormat.StarTrekArmada;
+                        tmpPosition = position = stream.Position;
+                        IBZNToken? SaveTypeToken = ReadToken();
+                        if (SaveTypeToken != null && !InBinary && SaveTypeToken.Validate("saveType"))
+                        {
+                            //SaveType = SaveTypeToken.GetInt32();
+                            TypeSize = 1;
+                            TypeSizeSet = true;
+                            Format = BZNFormat.Battlezone2;
+                        }
+                        else if (SaveTypeToken != null && !InBinary && SaveTypeToken.Validate("saveGameDesc"))
+                        {
+                            TypeSize = 4; // Star Trek Armada, 3 bytes are garbage
+                            TypeSizeSet = true;
+                            SizeSize = 4;
+                            Format = BZNFormat.StarTrekArmada;
+                        }
+                        else
+                        {
+                            // we didn't read a saveType, walk back
+                            //stream.Position = position;
+                            Bookmark.Set(position);
+                        }
                     }
                     else
                     {
-                        // we didn't read a saveType, walk back
-                        //stream.Position = position;
+                        // null on the read, so just walk back even thoug we're probably screwed at this point
                         Bookmark.Set(position);
                     }
 
@@ -412,7 +423,7 @@ namespace BZNParser.Tokenizer
                             else if (tok != null && tok.Validate("size"))
                             {
                                 tok = ReadToken();
-                                if (tok.IsValidationOnly() && tok.Validate("GameObject"))
+                                if (tok != null && tok.IsValidationOnly() && tok.Validate("GameObject"))
                                 {
                                     // SaveType here is obviously 0
                                     TypeSize = 2;

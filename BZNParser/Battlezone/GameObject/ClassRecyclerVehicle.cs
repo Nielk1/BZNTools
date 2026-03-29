@@ -75,7 +75,7 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteSingle("nextRepair", obj, x => x.nextRepair);
                 writer.WriteSingle("buildDoneTime", obj, x => x.buildDoneTime);
                 writer.WriteBoolean("buildActive", obj, x => x.buildActive);
-                writer.WriteSignedValues("buildCount", obj.buildItems.Length);
+                writer.WriteLength("buildCount", obj, x => x.buildItems);
                 for (int i = 0; i < obj.buildItems.Length; i++)
                 {
                     //writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem", obj.Malformations);

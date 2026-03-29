@@ -574,7 +574,7 @@ namespace BZNParser.Tokenizer
                 if (genericArgs[0] == typeof(Single) || genericArgs[1] == typeof(Single))
                 {
                     // Use dynamic to call Get<Single>() on the DualModeValue instance
-                    dynamic dual = valueInternal;
+                    dynamic dual = valueInternal!;
                     value = dual.Get<Single>();
                 }
                 else
@@ -1227,7 +1227,7 @@ namespace BZNParser.Tokenizer
             UInt64[] values;
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() != null)
             {
-                var arr = (Array)(object)valueInternal;
+                var arr = (Array)(object)valueInternal!;
                 int arrLen = arr.Length;
                 values = new UInt64[arrLen];
                 for (int i = 0; i < arrLen; i++)
@@ -2145,10 +2145,10 @@ namespace BZNParser.Tokenizer
             if (PreserveMalformations)
             {
                 (bool hasIncorrectName, string? incorrectName) = parent.Malformations.GetIncorrectName(property);
-                if (hasIncorrectName)
+                if (hasIncorrectName && incorrectName != null)
                     name = incorrectName;
             }
-            return name;
+            return name!;
         }
         private void InternalWriteVector2DValue(Vector2D value)
         {
@@ -2197,7 +2197,7 @@ namespace BZNParser.Tokenizer
         private void InternalWriteDoubleValue<T, TProp>(T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
             TProp value_ = BZNStreamWriter.ExtractPropertyValue(parent, property);
-            double value = (double)(object)value_;
+            double value = (double)(object)value_!;
 
             if (InBinary)
             {
@@ -2293,13 +2293,13 @@ namespace BZNParser.Tokenizer
             Vector2D[] vectors;
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(Vector2D))
             {
-                vectors = (Vector2D[])(object)propValue;
+                vectors = (Vector2D[])(object)propValue!;
             }
             else
             {
-                vectors = new Vector2D[] { (Vector2D)(object)propValue };
+                vectors = new Vector2D[] { (Vector2D)(object)propValue! };
             }
-            int length = vectors.Length;
+            int length = vectors!.Length;
 
             if (InBinary)
             {
@@ -2321,19 +2321,22 @@ namespace BZNParser.Tokenizer
                 }
             }
             TokenIndex++;
-            return (vectors.Length > 0 ? vectors[0] : default(Vector2D), propValue);
+            return (vectors.Length > 0 ? vectors[0] : default(Vector2D), propValue)!;
         }
-        public (Vector3D written, TProp stored) WriteVector3D<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
+        public (Vector3D written, TProp stored) WriteVector3D<T, TProp>(string? name, T parent, Expression<Func<T, TProp>> property) where T : IMalformable
         {
+            if (!InBinary && name == null)
+                throw new InvalidOperationException("Cannot write a text token with a null name");
+
             TProp propValue = ExtractPropertyValue(parent, property);
             Vector3D[] vectors;
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(Vector3D))
             {
-                vectors = (Vector3D[])(object)propValue;
+                vectors = (Vector3D[])(object)propValue!;
             }
             else
             {
-                vectors = new Vector3D[] { (Vector3D)(object)propValue };
+                vectors = new Vector3D[] { (Vector3D)(object)propValue! };
             }
             int length = vectors.Length;
 
@@ -2357,7 +2360,7 @@ namespace BZNParser.Tokenizer
                 }
             }
             TokenIndex++;
-            return (vectors.Length > 0 ? vectors[0] : default(Vector3D), propValue);
+            return (vectors.Length > 0 ? vectors[0] : default(Vector3D), propValue)!;
         }
         public Euler WriteEuler<T>(string name, T parent, Expression<Func<T, Euler>> property) where T : IMalformable
         {

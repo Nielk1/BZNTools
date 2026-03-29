@@ -32,7 +32,7 @@ namespace BZNParser.Battlezone.GameObject
         public ClassPoweredBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPoweredBuilding? obj)
         {
-            IBZNToken tok;
+            IBZNToken? tok;
 
             //TapHelper::Save((this + 2060), a2); // used by PoweredBuilding and Turret (gun tower) to save lung data
             if (reader.Version >= 1062)
@@ -40,7 +40,7 @@ namespace BZNParser.Battlezone.GameObject
                 // we don't know how many taps there are without the ODF, so just try to read forever
                 reader.Bookmark.Mark();
                 tok = reader.ReadToken();
-                if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
+                if (tok != null && tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                 {
                     obj.powerHandle = Enumerable.Range(0, tok.GetCount()).Select(i => tok.GetInt32(i)).ToArray();
                     reader.Bookmark.Commit();

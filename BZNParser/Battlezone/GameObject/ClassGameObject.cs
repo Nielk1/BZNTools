@@ -868,7 +868,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("hasPilot", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse hasPilot/BOOL");
                     // test this works
-                    tok.ApplyBoolean<ClassGameObject, SizedString>(obj, x => x.curPilot, 0, (hasPilot) => new SizedString(hasPilot ? obj.isUser ? obj.PrjID.Value[0] + "suser" : obj.PrjID.Value[0] + "spilo" : string.Empty));
+                    tok.ApplyBoolean<ClassGameObject, SizedString>(obj, x => x.curPilot, 0, (hasPilot) => new SizedString(hasPilot ? obj!.isUser ? obj.PrjID.Value[0] + "suser" : obj.PrjID.Value[0] + "spilo" : string.Empty));
                 }
                 else
                 {

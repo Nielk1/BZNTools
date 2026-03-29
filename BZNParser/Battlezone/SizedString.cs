@@ -77,7 +77,7 @@ static class SizedStringExtension
     /// <param name="property"></param>
     /// <param name="destinationIndex">We already read index 0 of the Token, but this is what index we're writing to</param>
     /// <exception cref="Exception"></exception>
-    public static (string stored, string raw) ReadSizedString<T, TProp>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, TProp?>>? property, int destinationIndex = 0) where T : IMalformable
+    public static (string? stored, string? raw) ReadSizedString<T, TProp>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, TProp?>> property, int destinationIndex = 0) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -165,12 +165,12 @@ static class SizedStringExtension
         }
     }
 
-    public static (string stored, string raw) ReadGameObjectClass_BZ2<T, TProp>(this BZNStreamReader reader, SaveType saveType, string name, T? parent, Expression<Func<T, TProp>>? property, int index = 0) where T : IMalformable
+    public static (string? stored, string? raw) ReadGameObjectClass_BZ2<T, TProp>(this BZNStreamReader reader, SaveType saveType, string name, T? parent, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable
     {
         if (reader.Version < 1145)
         {
             //return reader.ReadSizedString_BZ2_1145(name, 16, malformations);
-            return reader.ReadSizedString(name, parent, property, index);
+            return reader.ReadSizedString(name, parent, property!, index);
         }
         else
         {
@@ -180,7 +180,7 @@ static class SizedStringExtension
             }
             else
             {
-                return reader.ReadSizedString(name, parent, property, index);
+                return reader.ReadSizedString(name, parent, property!, index);
             }
         }
     }
@@ -197,11 +197,11 @@ static class SizedStringExtension
         }
         //else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(SizedString))
         //{
-        //    values = (SizedString[])(object)propValue;
+        //    values = (SizedString[])(object)propValue!;
         //}
         else if (typeof(TProp) == typeof(SizedString))
         {
-            value = (SizedString)(object)wrappedValue;
+            value = (SizedString)(object)wrappedValue!;
         }
         else
         {
@@ -265,7 +265,7 @@ static class SizedStringExtension
                     throw new Exception($"Failed to parse {name}/CHAR");
                 return tok.ApplyChars(value, x => x.Value);
             }
-            return (null, null);
+            return (null, null)!;
         }
         finally
         {

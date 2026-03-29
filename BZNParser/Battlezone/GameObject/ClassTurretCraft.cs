@@ -50,7 +50,7 @@ namespace BZNParser.Battlezone.GameObject
                             {
                                 reader.Bookmark.Mark();
                                 tok = reader.ReadToken();
-                                if (tok.Validate(null, BinaryFieldType.DATA_LONG)) // "powerHandle"
+                                if (tok != null && tok.Validate(null, BinaryFieldType.DATA_LONG)) // "powerHandle"
                                 {
                                     UInt32 powerHandle = tok.GetUInt32();
                                     powerHandles.Add(powerHandle);
@@ -59,7 +59,7 @@ namespace BZNParser.Battlezone.GameObject
                                 {
                                     reader.Bookmark.RevertToBookmark(); // jump back to before this item which was a non-LONG
 
-                                    if (tok.Validate(null /*"illumination"*/, BinaryFieldType.DATA_FLOAT))
+                                    if (tok != null && tok.Validate(null /*"illumination"*/, BinaryFieldType.DATA_FLOAT))
                                     {
                                         if (reader.Version == 1041)
                                         {
@@ -114,7 +114,7 @@ namespace BZNParser.Battlezone.GameObject
                                 List<UInt32> PowerHandles = new List<UInt32>();
                                 reader.Bookmark.Mark();
                                 tok = reader.ReadToken();
-                                if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
+                                if (tok != null && tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                                 {
                                     reader.Bookmark.Commit();
                                     UInt32 powerHandle = tok.GetUInt32();
@@ -134,7 +134,7 @@ namespace BZNParser.Battlezone.GameObject
                         // we don't know how many taps there are without the ODF, so just try to read forever
                         reader.Bookmark.Mark();
                         tok = reader.ReadToken();
-                        if (tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
+                        if (tok != null && tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
                         {
                             if (obj != null) obj.powerHandles = Enumerable.Range(0, tok.GetCount()).Select(i => tok.GetUInt32(i)).ToArray();
                             reader.Bookmark.Commit();

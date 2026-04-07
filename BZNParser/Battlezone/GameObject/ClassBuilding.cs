@@ -38,19 +38,26 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassBuilding : ClassGameObject
     {
         // BZ1/BZn64 only
-        protected bool tempBuilding { get; set; }
+        protected bool tempBuilding { get; set; } // seems to only be used in SAVEs, is forced false for BZNs
+
 
         // BZ2 only
-        protected Matrix? saveMatrix { get; set; }
-        protected SizedString saveClass { get; set; }
-        protected int saveTeam { get; set; }
-        protected uint saveSeqno { get; set; } // is signed in game, very strange
-        protected SizedString saveLabel { get; set; }
-        protected SizedString saveName { get; set; }
-        public bool CLASS_m_AlignsToObject { get; private set; } // Class fields are from the ODF and are readonly
+        protected Matrix? saveMatrix { get; set; } // matrix of object replaced
+        protected SizedString saveClass { get; set; } // class of object replaced
+        protected int saveTeam { get; set; } // team of object replaced
+        protected uint saveSeqno { get; set; } // seqno of object replaced
+        protected SizedString saveLabel { get; set; } // label of object replaced
+        protected SizedString saveName { get; set; } // name of object replaced
+
+
+        // BZ2 ODF values (if the ODF doesn't match these a load likely fails)
+        public bool CLASS_AlignsToObject { get; private set; } // Class fields are from the ODF and are readonly
         public bool CLASS_loadAsDummy { get; private set; } // Class fields are from the ODF and are readonly
 
-        public ClassBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+
+        }
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBuilding? obj)
         {
             IBZNToken? tok;
@@ -84,7 +91,7 @@ namespace BZNParser.Battlezone.GameObject
                             {
                                 reader.Bookmark.RevertToBookmark();
                                 m_AlignsToObject = true;
-                                if (obj != null) obj.CLASS_m_AlignsToObject = true;
+                                if (obj != null) obj.CLASS_AlignsToObject = true;
                             }
                         }
 
@@ -146,8 +153,6 @@ namespace BZNParser.Battlezone.GameObject
         {
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                bool m_AlignsToObject = false;
-
                 if (writer.Version >= 1147)
                 {
                     if (writer.Version < 1155)
@@ -163,13 +168,9 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         if (writer.Version >= 1148)
                         {
-                            if (obj.saveMatrix != null)
+                            if (!obj.CLASS_AlignsToObject)
                             {
                                 writer.WriteMatrix("saveMatrix", obj, x => x.saveMatrix!);
-                            }
-                            else
-                            {
-                                m_AlignsToObject = true;
                             }
                         }
 

@@ -34,7 +34,6 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Walker_IK", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Walker_IK/VOID");
-                //if (obj != null) obj.Walker_IK = tok.GetBytes();
                 tok.ApplyVoidBytes(obj, x => x.Walker_IK);
 
                 ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
@@ -45,7 +44,6 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Pin_Foot", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Pin_Foot/VOID");
-                //if (obj != null) obj.Pin_Foot = tok.GetUInt32H();
                 tok.ApplyVoidBytes(obj, x => x.Pin_Foot, 0, (v) => BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
@@ -54,26 +52,20 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Anim_State", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Anim_State/VOID");
-                //if (obj != null) obj.Anim_State = tok.GetUInt32H();
                 tok.ApplyVoidBytes(obj, x => x.Anim_State, 0, (v) => BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Lead", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Lead/LONG");
-                //if (obj != null) obj.Lead = tok.GetUInt32H(); // I don't think this should be hex, but do confirm, if so the writer needs fixing too
-                tok.ApplyUInt32(obj, x => x.Current_Index);
+                tok.ApplyUInt32(obj, x => x.Lead);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Tail", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Tail/LONG");
-                //if (obj != null) obj.Tail = tok.GetUInt32H(); // I don't think this should be hex, but do confirm, if so the writer needs fixing too
-                tok.ApplyUInt32(obj, x => x.Current_Index);
+                tok.ApplyUInt32(obj, x => x.Tail);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Control_Queue", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Control_Queue/VOID");
-                //if (obj != null) obj.Control_Queue = tok.GetUInt32H();
                 tok.ApplyVoidBytes(obj, x => x.Control_Queue, 0, (v) => BitConverter.ToUInt32(v));
             }
-
-            // parent.SaveType != SaveType.BZN stuff
 
             ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }

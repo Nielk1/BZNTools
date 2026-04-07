@@ -32,6 +32,9 @@ namespace BZNParser.Battlezone.GameObject
 
             if (reader.Version == 1041) // version is special case for bz2001.bzn
             {
+                // 108 bytes of stuff
+                // DE-7B-37-40-EA-FF-69-3E-98-B3-EC-9A-5B-EC-48-C0-C3-B5-32-C0-08-00-00-00-91-0A-86-3F-00-00-10-41-00-00-50-41-00-00-20-41-00-00-80-3F-DA-0F-49-3F-DA-0F-49-3F-91-0A-86-3F-00-00-10-41-00-00-50-41-00-00-20-41-00-00-80-3F-DA-0F-49-3F-DA-0F-49-3F-91-0A-86-3F-00-00-10-41-00-00-50-41-00-00-20-41-00-00-80-3F-DA-0F-49-3F-DA-0F-49-3F
+                // 3B-75-8F-41-4B-59-89-BE-03-00-00-80-00-00-00-00-00-00-00-80-08-00-00-00-91-0A-86-3F-00-00-10-41-00-00-50-41-00-00-20-41-00-00-80-3F-DA-0F-49-3F-DA-0F-49-3F-91-0A-86-3F-00-00-10-41-00-00-50-41-00-00-20-41-00-00-80-3F-DA-0F-49-3F-DA-0F-49-3F-91-0A-86-3F-00-00-10-41-00-00-50-41-00-00-20-41-00-00-80-3F-DA-0F-49-3F-DA-0F-49-3F
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Walker_IK", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Walker_IK/VOID");
                 tok.ApplyVoidBytes(obj, x => x.Walker_IK);
@@ -42,6 +45,8 @@ namespace BZNParser.Battlezone.GameObject
 
             if (reader.Version < 1067)
             {
+                // this path is currently untested it seems?
+
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Pin_Foot", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse Pin_Foot/VOID");
                 tok.ApplyVoidBytes(obj, x => x.Pin_Foot, 0, (v) => BitConverter.ToUInt32(v));

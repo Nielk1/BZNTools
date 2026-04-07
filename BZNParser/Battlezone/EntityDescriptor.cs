@@ -576,7 +576,7 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteUInt32(null, this, x => x.label, (label) =>
+                writer.WriteUInt16(null, this, x => x.label, (label) =>
                 {
                     if (label != null && label.Value.StartsWith("bzn64label_"))
                     {

@@ -153,7 +153,7 @@ namespace BZNParser.Battlezone
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("points", BinaryFieldType.DATA_VEC2D))
                 throw new Exception("Failed to parse point/VEC2D");
-            Vector2D[] points = new Vector2D[tok.GetCount()];
+            Vector2D[] points = new Vector2D[tok.GetCount(BinaryFieldType.DATA_VEC2D)];
             if (obj != null)
                 obj.points = points;
             for (int j = 0; j < points.Length; j++)

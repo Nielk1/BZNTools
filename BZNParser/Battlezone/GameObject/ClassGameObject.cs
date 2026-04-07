@@ -385,10 +385,11 @@ namespace BZNParser.Battlezone.GameObject
                 if (tok == null || !tok.Validate("isVisible", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse isVisible/LONG");
                 if (obj != null) obj.isVisible = tok.GetUInt32H();
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("seen", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse seen/LONG");
-                if (reader.Format == BZNFormat.Battlezone)
+                //if (reader.Format == BZNFormat.Battlezone)
                 {
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate("seen", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse seen/LONG");
+
                     /*UInt32 seen;
                     try
                     {
@@ -724,7 +725,7 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         AiCmdInfo info = reader.GetAiCmdInfo("undefaicmd");
                         if (obj != null)
-                            obj.nextCmd = info;
+                            obj.curCmd = info;
                     }
 
                     tok = reader.ReadToken();
@@ -990,8 +991,7 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                if (writer.Version > 1030)
-                    writer.WriteChars("name", obj, x => x.name);
+                writer.WriteChars("name", obj, x => x.name);
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
@@ -1174,7 +1174,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 writer.WriteUInt32h("isVisible", obj, x => x.isVisible);
 
-                if (writer.Format == BZNFormat.Battlezone)
+                //if (writer.Format == BZNFormat.Battlezone)
                 {
                     //writer.WriteUnsignedValues("seen", obj.seen);
                     //writer.WriteUnsignedHexLValues("seen", obj.seen);

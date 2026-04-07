@@ -29,19 +29,22 @@ namespace BZNParser.Battlezone.GameObject
         public float nextRepair { get; set; }
         public float buildDoneTime { get; set; }
         public bool buildActive { get; set; }
-        public SizedString[] buildItems { get; set; }
+        //public SizedString[] buildItems { get; set; }
+        public MalformableArray<ClassRecyclerVehicle, SizedString> buildItems { get; private set; }
 
         public ClassRecyclerVehicle(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
         {
             nextRepair = 0;
             buildDoneTime = 0;
             buildActive = false;
-            buildItems = Array.Empty<SizedString>();
+            //buildItems = Array.Empty<SizedString>();
+            buildItems = new MalformableArray<ClassRecyclerVehicle, SizedString>(this, x => x.buildItems, 0);
         }
 
         public override void ClearMalformations()
         {
             Malformations.Clear();
+            //buildItems.ClearMalformations(); // Already cleared by above Clear as this is a window into our Malformations
             foreach (var buildItem in buildItems)
                 buildItem?.ClearMalformations();
             base.ClearMalformations();
@@ -49,6 +52,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public override void DisableMalformationAutoFix()
         {
+            buildItems.DisableMalformationAutoFix();
             foreach (var buildItem in buildItems)
                 buildItem?.DisableMalformationAutoFix();
             base.DisableMalformationAutoFix();
@@ -56,6 +60,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public override void EnableMalformationAutoFix()
         {
+            buildItems.EnableMalformationAutoFix();
             foreach (var buildItem in buildItems)
                 buildItem?.EnableMalformationAutoFix();
             base.EnableMalformationAutoFix();
@@ -85,7 +90,8 @@ namespace BZNParser.Battlezone.GameObject
                 if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
                 int buildCount = tok.GetInt32();
 
-                if (obj != null) obj.buildItems = new SizedString[buildCount];
+                //if (obj != null) obj.buildItems = new SizedString[buildCount];
+                if (obj != null) obj.buildItems = new MalformableArray<ClassRecyclerVehicle, SizedString>(obj, x => x.buildItems, buildCount);
 
                 for (int i = 0; i < buildCount; i++)
                 {
@@ -116,7 +122,8 @@ namespace BZNParser.Battlezone.GameObject
                 writer.WriteSingle("buildDoneTime", obj, x => x.buildDoneTime);
                 writer.WriteBoolean("buildActive", obj, x => x.buildActive);
                 writer.WriteLength("buildCount", obj, x => x.buildItems);
-                for (int i = 0; i < obj.buildItems.Length; i++)
+                //for (int i = 0; i < obj.buildItems.Length; i++)
+                for (int i = 0; i < obj.buildItems.Count; i++)
                 {
                     //writer.WriteGameObjectClass_BZ2(parent, obj.buildItems[i], "buildItem", obj.Malformations);
                     writer.WriteSizedString("buildItem", obj, x => x.buildItems, (v) => v[i]);

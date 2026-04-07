@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -497,6 +498,13 @@ namespace BZNParser.Tokenizer
             {
                 value = array.Length;
             }
+            else if (typeof(TProp).IsGenericType
+                && typeof(TProp).GetGenericTypeDefinition() == typeof(MalformableArray<,>)
+                && typeof(TProp).GetGenericArguments()[1] == typeof(Vector3D))
+            {
+                dynamic arr = (dynamic)(object)valueInternal!;
+                value = arr!.ToArray();
+            }
             else if (valueInternal is System.Collections.IEnumerable enumerable)
             {
                 value = enumerable.Cast<object>().Count();
@@ -961,6 +969,10 @@ namespace BZNParser.Tokenizer
                 {
                     value = new byte[] { v };
                 }
+                else if (valueInternal is UInt64 v0)
+                {
+                    value = BitConverter.GetBytes(v0);
+                }
                 else if (valueInternal is UInt32 v1)
                 {
                     value = BitConverter.GetBytes(v1);
@@ -1044,26 +1056,74 @@ namespace BZNParser.Tokenizer
             else if (valueInternal is UInt32[] u32arr)
             {
                 value = MemoryMarshal.AsBytes(new Span<UInt32>(u32arr)).ToArray();
+                if (IsBigEndian)
+                    for (int i = 0; i < value.Length; i += sizeof(UInt32))
+                    {
+                        byte[] tmp = new byte[sizeof(UInt32)];
+                        Array.Copy(value, i, tmp, 0, sizeof(UInt32));
+                        Array.Reverse(tmp);
+                        Array.Copy(tmp, 0, value, i, sizeof(UInt32));
+                    }
             }
             else if (valueInternal is Int32[] i32arr)
             {
                 value = MemoryMarshal.AsBytes(new Span<Int32>(i32arr)).ToArray();
+                if (IsBigEndian)
+                    for (int i = 0; i < value.Length; i += sizeof(Int32))
+                    {
+                        byte[] tmp = new byte[sizeof(Int32)];
+                        Array.Copy(value, i, tmp, 0, sizeof(Int32));
+                        Array.Reverse(tmp);
+                        Array.Copy(tmp, 0, value, i, sizeof(Int32));
+                    }
             }
             else if (valueInternal is UInt16[] u16arr)
             {
                 value = MemoryMarshal.AsBytes(new Span<UInt16>(u16arr)).ToArray();
+                if (IsBigEndian)
+                    for (int i = 0; i < value.Length; i += sizeof(UInt16))
+                    {
+                        byte[] tmp = new byte[sizeof(UInt16)];
+                        Array.Copy(value, i, tmp, 0, sizeof(UInt16));
+                        Array.Reverse(tmp);
+                        Array.Copy(tmp, 0, value, i, sizeof(UInt16));
+                    }
             }
             else if (valueInternal is Int16[] i16arr)
             {
                 value = MemoryMarshal.AsBytes(new Span<Int16>(i16arr)).ToArray();
+                if (IsBigEndian)
+                    for (int i = 0; i < value.Length; i += sizeof(Int16))
+                    {
+                        byte[] tmp = new byte[sizeof(Int16)];
+                        Array.Copy(value, i, tmp, 0, sizeof(Int16));
+                        Array.Reverse(tmp);
+                        Array.Copy(tmp, 0, value, i, sizeof(Int16));
+                    }
             }
             else if (valueInternal is float[] farr)
             {
                 value = MemoryMarshal.AsBytes(new Span<float>(farr)).ToArray();
+                if (IsBigEndian)
+                    for (int i = 0; i < value.Length; i += sizeof(float))
+                    {
+                        byte[] tmp = new byte[sizeof(float)];
+                        Array.Copy(value, i, tmp, 0, sizeof(float));
+                        Array.Reverse(tmp);
+                        Array.Copy(tmp, 0, value, i, sizeof(float));
+                    }
             }
             else if (valueInternal is double[] darr)
             {
                 value = MemoryMarshal.AsBytes(new Span<double>(darr)).ToArray();
+                if (IsBigEndian)
+                    for (int i = 0; i < value.Length; i += sizeof(double))
+                    {
+                        byte[] tmp = new byte[sizeof(double)];
+                        Array.Copy(value, i, tmp, 0, sizeof(double));
+                        Array.Reverse(tmp);
+                        Array.Copy(tmp, 0, value, i, sizeof(double));
+                    }
             }
             else if (valueInternal is sbyte[] s8arr)
             {
@@ -1078,26 +1138,38 @@ namespace BZNParser.Tokenizer
                 else if (valueInternal is UInt32 v1)
                 {
                     value = BitConverter.GetBytes(v1);
+                    if (IsBigEndian)
+                        value.Reverse();
                 }
                 else if (valueInternal is Int32 v2)
                 {
                     value = BitConverter.GetBytes(v2);
+                    if (IsBigEndian)
+                        value.Reverse();
                 }
                 else if (valueInternal is UInt16 v3)
                 {
                     value = BitConverter.GetBytes(v3);
+                    if (IsBigEndian)
+                        value.Reverse();
                 }
                 else if (valueInternal is Int16 v4)
                 {
                     value = BitConverter.GetBytes(v4);
+                    if (IsBigEndian)
+                        value.Reverse();
                 }
                 else if (valueInternal is float v5)
                 {
                     value = BitConverter.GetBytes(v5);
+                    if (IsBigEndian)
+                        value.Reverse();
                 }
                 else if (valueInternal is double v6)
                 {
                     value = BitConverter.GetBytes(v6);
+                    if (IsBigEndian)
+                        value.Reverse();
                 }
                 else if (valueInternal is sbyte sb)
                 {
@@ -2295,6 +2367,13 @@ namespace BZNParser.Tokenizer
             {
                 vectors = (Vector2D[])(object)propValue!;
             }
+            else if (typeof(TProp).IsGenericType
+                && typeof(TProp).GetGenericTypeDefinition() == typeof(MalformableArray<,>)
+                && typeof(TProp).GetGenericArguments()[1] == typeof(Vector2D))
+            {
+                dynamic arr = (dynamic)(object)propValue!;
+                vectors = arr!.ToArray();
+            }
             else
             {
                 vectors = new Vector2D[] { (Vector2D)(object)propValue! };
@@ -2333,6 +2412,13 @@ namespace BZNParser.Tokenizer
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(Vector3D))
             {
                 vectors = (Vector3D[])(object)propValue!;
+            }
+            else if (typeof(TProp).IsGenericType
+                && typeof(TProp).GetGenericTypeDefinition() == typeof(MalformableArray<,>)
+                && typeof(TProp).GetGenericArguments()[1] == typeof(Vector3D))
+            {
+                dynamic arr = (dynamic)(object)propValue!;
+                vectors = arr!.ToArray();
             }
             else
             {

@@ -30,6 +30,10 @@ namespace BZNParser.Tokenizer
         {
             return values.Length;
         }
+        public int GetCount(BinaryFieldType type)
+        {
+            return values.Length;
+        }
         public int GetSubCount(int index = 0) => 0;
         public IBZNToken GetSubToken(int index = 0, int subIndex = 0) { throw new InvalidOperationException("Basic String Tokens have no sub tokens."); }
 

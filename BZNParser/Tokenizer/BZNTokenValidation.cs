@@ -17,6 +17,7 @@ namespace BZNParser.Tokenizer
         public bool IsBinary => false;
 
         public int GetCount() => 0;
+        public int GetCount(BinaryFieldType type) => 0;
         public int GetSubCount(int index = 0) => 0;
         public IBZNToken GetSubToken(int index = 0, int subIndex = 0) { throw new InvalidOperationException("Validation Tokens have no data, check IsValidationOnly() before processing"); }
         public bool GetBoolean(int index = 0) { throw new InvalidOperationException("Validation Tokens have no data, check IsValidationOnly() before processing"); }

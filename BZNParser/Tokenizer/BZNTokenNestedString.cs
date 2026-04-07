@@ -21,6 +21,10 @@ namespace BZNParser.Tokenizer
             //throw new InvalidOperationException();
             return values.Length;
         }
+        public int GetCount(BinaryFieldType type)
+        {
+            return values.Length;
+        }
         public int GetSubCount(int index = 0)
         {
             if (index >= values.Length) throw new ArgumentOutOfRangeException();

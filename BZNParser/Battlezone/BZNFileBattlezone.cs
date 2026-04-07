@@ -1039,6 +1039,14 @@ namespace BZNParser.Battlezone
             if (newLine != null)
                 writer.NewLine = newLine;
 
+            if (writer.Format == BZNFormat.BattlezoneN64)
+            {
+                if (binary)
+                    writer.SetBinary();
+                //else
+                //    throw new InvalidOperationException("N64 BZN must be Binary");
+            }
+
             if (writer.Format != BZNFormat.BattlezoneN64)
             {
                 if (Version != writer.Version)
@@ -1190,12 +1198,15 @@ namespace BZNParser.Battlezone
                 {
                     Match m = Regex.Match(v.Value, "BZn64Mission_(?<id>[0-9A-F]{4})");
                     if (m.Success)
-                        return UInt16.Parse(m.Groups["id"].Value);
+                        if (ushort.TryParse(m.Groups["id"].Value, System.Globalization.NumberStyles.HexNumber, null, out ushort possibleItemID))
+                            return possibleItemID;
+
                     throw new InvalidCastException("Mission name was not in expected format");
                 });
 
                 //writer.WriteBZ1_PtrDepricated("sObject", (UInt32)sObject);
-                writer.WriteVoidBytes("sObject", this, x => x.Mission_sObject);
+                //writer.WriteVoidBytes("sObject", this, x => x.Mission_sObject);
+                writer.WriteUInt32("sObject", this, x => x.Mission_sObject);
             }
             if (writer.Format == BZNFormat.Battlezone)
             {

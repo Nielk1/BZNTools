@@ -55,37 +55,40 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTorpedo1? obj)
         {
-            if (reader.Version < 1031)
+            if (reader.Format == BZNFormat.Battlezone)
             {
-                if (reader.Version < 1019)
+                if (reader.Version < 1031)
                 {
-                    // obsolete
-                    IBZNToken? tok;
+                    if (reader.Version < 1019)
+                    {
+                        // obsolete
+                        IBZNToken? tok;
 
-                    tok = reader.ReadToken();
-                    tok = reader.ReadToken();
-                    tok = reader.ReadToken();
-                    tok = reader.ReadToken();
-                    tok = reader.ReadToken();
-                    tok = reader.ReadToken();
+                        tok = reader.ReadToken();
+                        tok = reader.ReadToken();
+                        tok = reader.ReadToken();
+                        tok = reader.ReadToken();
+                        tok = reader.ReadToken();
+                        tok = reader.ReadToken();
 
-                    tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D))
-                        throw new Exception("Failed to parse ???/VEC3D");
-                    // there are 6 vectors here, but we don't know what they are for and are probably able to be forgotten
+                        tok = reader.ReadToken();
+                        if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D))
+                            throw new Exception("Failed to parse ???/VEC3D");
+                        // there are 6 vectors here, but we don't know what they are for and are probably able to be forgotten
 
-                    throw new NotImplementedException();
-                }
-                else if (reader.Version > 1027)
-                {
-                    // read in abandoned flag
-                    IBZNToken? tok;
-                    tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("abandoned", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse abandoned/LONG");
-                    if (tok.GetCount() != 1)
-                        throw new Exception("Failed to parse abandoned/LONG (wrong entry count)");
-                    tok.ApplyInt32(obj, x => x.abandoned);
+                        throw new NotImplementedException();
+                    }
+                    else if (reader.Version > 1027)
+                    {
+                        // read in abandoned flag
+                        IBZNToken? tok;
+                        tok = reader.ReadToken();
+                        if (tok == null || !tok.Validate("abandoned", BinaryFieldType.DATA_LONG))
+                            throw new Exception("Failed to parse abandoned/LONG");
+                        if (tok.GetCount(BinaryFieldType.DATA_LONG) != 1)
+                            throw new Exception("Failed to parse abandoned/LONG (wrong entry count)");
+                        tok.ApplyInt32(obj, x => x.abandoned);
+                    }
                 }
             }
 

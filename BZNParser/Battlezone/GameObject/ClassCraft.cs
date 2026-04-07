@@ -57,7 +57,7 @@ namespace BZNParser.Battlezone.GameObject
         public UInt32 energy1maximum { get; set; }
         public UInt32 energy2current { get; set; }
         public UInt32 energy2maximum { get; set; }
-        public Vector3D[] bumpers { get; set; }
+        public Vector3D[]? bumpers { get; set; }
 
 
 
@@ -83,22 +83,25 @@ namespace BZNParser.Battlezone.GameObject
         public override void ClearMalformations()
         {
             Malformations.Clear();
-            foreach (var bumper in bumpers)
-                bumper.ClearMalformations();
+            if (bumpers != null)
+                foreach (var bumper in bumpers)
+                    bumper?.ClearMalformations();
             base.ClearMalformations();
         }
 
         public override void DisableMalformationAutoFix()
         {
-            foreach (var bumper in bumpers)
-                bumper.DisableMalformationAutoFix();
+            if (bumpers != null)
+                foreach (var bumper in bumpers)
+                    bumper?.DisableMalformationAutoFix();
             base.DisableMalformationAutoFix();
         }
 
         public override void EnableMalformationAutoFix()
         {
-            foreach (var bumper in bumpers)
-                bumper.EnableMalformationAutoFix();
+            if (bumpers != null)
+                foreach (var bumper in bumpers)
+                    bumper?.EnableMalformationAutoFix();
             base.EnableMalformationAutoFix();
         }
 
@@ -188,7 +191,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("abandoned", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse abandoned/LONG");
-                if (tok.GetCount() != 1)
+                if (tok.GetCount(BinaryFieldType.DATA_LONG) != 1)
                     throw new Exception("Failed to parse abandoned/LONG (wrong entry count)"); // vastly improves type auto-detect
 
                 tok.ApplyInt32(obj, x => x.abandoned);

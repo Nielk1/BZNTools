@@ -28,7 +28,7 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassArmory2 : ClassPoweredBuilding
     {
-        public SizedString[] buildItems { get; private set; }
+        public MalformableArray<ClassArmory2, SizedString> buildItems { get; private set; }
         public float buildDoneTime { get; set; }
         public bool buildActive { get; set; }
         public bool buildStall { get; set; }
@@ -39,7 +39,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public ClassArmory2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
         {
-            buildItems = Array.Empty<SizedString>();
+            buildItems = new MalformableArray<ClassArmory2, SizedString>(this, x => x.buildItems, 0);
             buildDoneTime = 0;
             buildActive = false;
             buildStall = false;
@@ -52,6 +52,7 @@ namespace BZNParser.Battlezone.GameObject
         public override void ClearMalformations()
         {
             Malformations.Clear();
+            //buildItems.ClearMalformations(); // Already cleared by above Clear as this is a window into our Malformations
             foreach (var buildItem in buildItems)
                 buildItem?.ClearMalformations();
             buildRally.ClearMalformations();
@@ -61,6 +62,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public override void DisableMalformationAutoFix()
         {
+            buildItems.DisableMalformationAutoFix();
             foreach(var buildItem in buildItems)
                 buildItem?.DisableMalformationAutoFix();
             buildRally.DisableMalformationAutoFix();
@@ -70,6 +72,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public override void EnableMalformationAutoFix()
         {
+            buildItems.EnableMalformationAutoFix();
             foreach (var buildItem in buildItems)
                 buildItem?.EnableMalformationAutoFix();
             buildRally.EnableMalformationAutoFix();
@@ -96,7 +99,8 @@ namespace BZNParser.Battlezone.GameObject
                 throw new Exception("Failed to parse buildCount/LONG");
             int buildCount = tok.GetInt32();
 
-            if (obj != null) obj.buildItems = new SizedString[buildCount];
+            //if (obj != null) obj.buildItems = new SizedString[buildCount];
+            if (obj != null) obj.buildItems = new MalformableArray<ClassArmory2, SizedString>(obj, x => x.buildItems, buildCount);
 
             for (int i = 0; i < buildCount; i++)
             {
@@ -159,7 +163,8 @@ namespace BZNParser.Battlezone.GameObject
             writer.WriteLength("buildCount", obj, x => x.buildItems);
 
             //foreach (string? item in obj.buildItems)
-            for (int i = 0; i < obj.buildItems.Length; i++)
+            //for (int i = 0; i < obj.buildItems.Length; i++)
+            for (int i = 0; i < obj.buildItems.Count; i++)
             {
                 //writer.WriteGameObjectClass_BZ2(parent, item, "buildItem", obj.Malformations);
                 writer.WriteSizedString("buildItem", obj, x => x.buildItems, (v) => v[i]);

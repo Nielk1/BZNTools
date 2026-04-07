@@ -117,6 +117,18 @@ static class SizedStringExtension
                     did = true;
                 }
             }
+            else if (typeof(TProp).IsGenericType
+                && typeof(TProp).GetGenericTypeDefinition() == typeof(MalformableArray<,>)
+                && typeof(TProp).GetGenericArguments()[1] == typeof(SizedString))
+            {
+                dynamic? arr = (dynamic?)propInfo?.GetValue(parent);
+                if (arr != null && destinationIndex >= 0 && destinationIndex < arr!.Count)
+                {
+                    arr![destinationIndex] = value;
+                    setVal = (TProp)(object)arr;
+                    did = true;
+                }
+            }
 
             IBZNToken? tok;
             if (reader.InBinary)

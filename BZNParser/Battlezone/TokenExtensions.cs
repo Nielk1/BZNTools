@@ -39,6 +39,18 @@ public static class TokenExtensions
                 did = true;
             }
         }
+        else if (typeof(TProp).IsGenericType
+            && typeof(TProp).GetGenericTypeDefinition() == typeof(MalformableArray<,>)
+            && typeof(TProp).GetGenericArguments()[1] == typeof(Vector3D))
+        {
+            dynamic? arr = (dynamic?)propInfo?.GetValue(parent);
+            if (arr != null && index >= 0 && index < arr!.Count)
+            {
+                arr![index] = value;
+                setVal = (TProp)(object)arr;
+                did = true;
+            }
+        }
 
         // store the value into the property if possible
         if (parent != null && propInfo != null && did)
@@ -82,6 +94,18 @@ public static class TokenExtensions
             if (arr != null && index >= 0 && index < arr.Length)
             {
                 arr[index] = value;
+                setVal = (TProp)(object)arr;
+                did = true;
+            }
+        }
+        else if (typeof(TProp).IsGenericType
+            && typeof(TProp).GetGenericTypeDefinition() == typeof(MalformableArray<,>)
+            && typeof(TProp).GetGenericArguments()[1] == typeof(Vector2D))
+        {
+            dynamic? arr = (dynamic?)propInfo?.GetValue(parent);
+            if (arr != null && index >= 0 && index < arr!.Count)
+            {
+                arr![index] = value;
                 setVal = (TProp)(object)arr;
                 did = true;
             }
@@ -353,7 +377,12 @@ public static class TokenExtensions
         bool did = false;
 
         // Array handling (including nullable arrays)
-        if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(UInt32))
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(UInt32))
         {
             var arr = (UInt32[]?)propInfo?.GetValue(parent);
             if (arr != null && index >= 0 && index < arr.Length)
@@ -363,10 +392,17 @@ public static class TokenExtensions
                 did = true;
             }
         }
-        else if (convert != null)
+        else if (typeof(TProp).IsGenericType
+            && typeof(TProp).GetGenericTypeDefinition() == typeof(MalformableArray<,>)
+            && typeof(TProp).GetGenericArguments()[1] == typeof(UInt32))
         {
-            setVal = convert(valueInternal);
-            did = true;
+            dynamic? arr = (dynamic?)propInfo?.GetValue(parent);
+            if (arr != null && index >= 0 && index < arr!.Count)
+            {
+                arr![index] = valueInternal;
+                setVal = (TProp)(object)arr;
+                did = true;
+            }
         }
         else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
         {

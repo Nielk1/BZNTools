@@ -69,7 +69,7 @@
 0x007D	avwalk
 0x009A	boltmine
 0x00A0	bvapc
-0x00A2	avhaul
+0x00A2	bvhaul
 0x00A3	bvhraz
 0x00A4	bvltnk
 0x00A6	bvmuf
@@ -158,7 +158,7 @@
 0x018C	svrecy_n64_1
 0x018D	svrecy_n64_2
 0x018E	svrecy_n64_3
-0x018F	svrecy_n64_6
+0x018F	svrecy_n64_4
 0x0190	svrecy_n64_5
 0x0191	svrecy_n64_6
 0x0193	svscav_n64_1

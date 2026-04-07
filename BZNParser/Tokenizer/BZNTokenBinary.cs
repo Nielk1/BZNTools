@@ -50,6 +50,29 @@ namespace BZNParser.Tokenizer
             }
             throw new NotImplementedException();
         }
+        public int GetCount(BinaryFieldType type)
+        {
+            switch (type)
+            {
+                case BinaryFieldType.DATA_VOID: return data.Length / 4;
+                case BinaryFieldType.DATA_BOOL: return data.Length / 1;
+                case BinaryFieldType.DATA_CHAR: return data.Length / 1;
+                case BinaryFieldType.DATA_SHORT: return data.Length / 2;
+                case BinaryFieldType.DATA_LONG: return data.Length / 4;
+                case BinaryFieldType.DATA_FLOAT: return data.Length / 4;
+                case BinaryFieldType.DATA_DOUBLE: return data.Length / 8;
+                case BinaryFieldType.DATA_ID: return data.Length / 4;
+                case BinaryFieldType.DATA_PTR: return data.Length / PtrSize;
+                case BinaryFieldType.DATA_VEC3D: return data.Length / 4 / 3;
+                case BinaryFieldType.DATA_VEC2D: return data.Length / 4 / 2;
+                case BinaryFieldType.DATA_MAT3DOLD: throw new NotImplementedException(); // make sure you account for bigPosit if you implement this
+                case BinaryFieldType.DATA_MAT3D: throw new NotImplementedException();
+                case BinaryFieldType.DATA_STRING: throw new NotImplementedException();
+                case BinaryFieldType.DATA_QUAT: throw new NotImplementedException();
+                case BinaryFieldType.DATA_UNKNOWN: throw new NotImplementedException();
+            }
+            throw new NotImplementedException();
+        }
         public int GetSubCount(int index = 0) => 0;
         public IBZNToken GetSubToken(int index = 0, int subIndex = 0) { throw new InvalidOperationException("Binary Tokens have no sub tokens."); }
 
@@ -74,7 +97,12 @@ namespace BZNParser.Tokenizer
             return BitConverter.ToInt32(data, index * sizeof(Int32));
         }
         public Int32 GetInt32H(int index = 0) => GetInt32(index);
-        public UInt32 GetUInt32HR(int index = 0) => GetUInt32(index);
+        public UInt32 GetUInt32HR(int index = 0)
+        {
+            if (index >= data.Length / sizeof(UInt32)) throw new ArgumentOutOfRangeException();
+            //if (IsBigEndian) return BitConverter.ToUInt32(data.Skip(index * sizeof(UInt32)).Take(sizeof(UInt32)).Reverse().ToArray(), 0);
+            return BitConverter.ToUInt32(data, index * sizeof(UInt32));
+        }
 
         public UInt32 GetUInt32(int index = 0)
         {

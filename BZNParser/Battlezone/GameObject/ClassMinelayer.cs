@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassMinelayer(preamble, classLabel);
-            ClassMinelayer.Hydrate(parent, reader, obj as ClassMinelayer);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassMinelayer.Hydrate(parent, reader, obj as ClassMinelayer);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassMinelayer : ClassHoverCraft

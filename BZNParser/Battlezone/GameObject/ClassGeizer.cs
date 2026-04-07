@@ -10,16 +10,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassGeizer(preamble, classLabel);
-            ClassGeizer.Hydrate(parent, reader, obj as ClassGeizer);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassGeizer.Hydrate(parent, reader, obj as ClassGeizer);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassGeizer : ClassBuilding
     {
         public UInt32 undefptr { get; set; }
 
-        public ClassGeizer(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassGeizer(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            undefptr = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassGeizer? obj)
         {
             ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);

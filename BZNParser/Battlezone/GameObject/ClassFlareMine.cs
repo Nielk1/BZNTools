@@ -11,16 +11,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassFlareMine(preamble, classLabel);
-            ClassFlareMine.Hydrate(parent, reader, obj as ClassFlareMine);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassFlareMine.Hydrate(parent, reader, obj as ClassFlareMine);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassFlareMine : ClassMine
     {
         public float Undeffloat { get; set; }
 
-        public ClassFlareMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassFlareMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            Undeffloat = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFlareMine? obj)
         {
             IBZNToken? tok;

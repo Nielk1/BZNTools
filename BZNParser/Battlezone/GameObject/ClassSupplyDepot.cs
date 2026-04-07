@@ -10,9 +10,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassSupplyDepot(preamble, classLabel);
-            ClassSupplyDepot.Hydrate(parent, reader, obj as ClassSupplyDepot);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassSupplyDepot.Hydrate(parent, reader, obj as ClassSupplyDepot);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassSupplyDepot : ClassBuilding

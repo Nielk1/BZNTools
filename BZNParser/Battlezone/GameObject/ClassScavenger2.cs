@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassScavenger2(preamble, classLabel);
-            ClassScavenger2.Hydrate(parent, reader, obj as ClassScavenger2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassScavenger2.Hydrate(parent, reader, obj as ClassScavenger2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassScavenger2 : ClassTrackedDeployable
@@ -26,7 +36,39 @@ namespace BZNParser.Battlezone.GameObject
         public UInt32 pickupScrap { get; set; }
         public UInt32 scrapTimer { get; set; }
 
-        public ClassScavenger2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassScavenger2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            curScrap = 0;
+            maxScrap = 0;
+            buildActive = false;
+            bornTime = 0;
+            lifeTime = 0;
+            buildTime = 0;
+            buildMatrix = new Matrix();
+            pickupScrap = 0;
+            scrapTimer = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            buildMatrix.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            buildMatrix.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            buildMatrix.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScavenger2? obj)
         {
             if (parent.SaveType != SaveType.BZN)

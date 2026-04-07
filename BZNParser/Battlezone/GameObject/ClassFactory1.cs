@@ -14,9 +14,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassFactory1(preamble, classLabel);
-            ClassFactory1.Hydrate(parent, reader, obj as ClassFactory1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassFactory1.Hydrate(parent, reader, obj as ClassFactory1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassFactory1 : ClassProducer

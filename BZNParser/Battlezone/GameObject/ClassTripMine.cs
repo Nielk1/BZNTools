@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassTripMine(preamble, classLabel);
-            ClassTripMine.Hydrate(parent, reader, obj as ClassTripMine);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassTripMine.Hydrate(parent, reader, obj as ClassTripMine);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassTripMine : ClassMine

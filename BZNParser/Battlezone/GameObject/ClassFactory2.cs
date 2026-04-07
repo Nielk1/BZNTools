@@ -10,9 +10,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassFactory2(preamble, classLabel);
-            ClassFactory2.Hydrate(parent, reader, obj as ClassFactory2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassFactory2.Hydrate(parent, reader, obj as ClassFactory2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassFactory2 : ClassPoweredBuilding
@@ -23,7 +33,38 @@ namespace BZNParser.Battlezone.GameObject
         public SizedString[] buildItems { get; set; }
         public Int32 navHandle { get; set; }
 
-        public ClassFactory2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassFactory2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            buildTime = 0;
+            buildActive = false;
+            buildItemCount = 0;
+            buildItems = Array.Empty<SizedString>();
+            navHandle = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            foreach (var buildItem in buildItems)
+                buildItem?.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            foreach (var buildItem in buildItems)
+                buildItem?.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            foreach (var buildItem in buildItems)
+                buildItem?.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFactory2? obj)
         {

@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassAssaultHover(preamble, classLabel);
-            ClassAssaultHover.Hydrate(parent, reader, obj as ClassAssaultHover);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassAssaultHover.Hydrate(parent, reader, obj as ClassAssaultHover);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassAssaultHover : ClassHoverCraft

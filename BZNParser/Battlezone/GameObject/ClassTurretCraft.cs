@@ -16,9 +16,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassTurretCraft(preamble, classLabel);
-            ClassTurretCraft.Hydrate(parent, reader, obj as ClassTurretCraft);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassTurretCraft.Hydrate(parent, reader, obj as ClassTurretCraft);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassTurretCraft : ClassCraft
@@ -31,7 +41,41 @@ namespace BZNParser.Battlezone.GameObject
         public SizedString? saveLabel { get; set; }
         public SizedString? saveName { get; set; }
         public Int32? scriptPowerOverride { get; set; }
-        public ClassTurretCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassTurretCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            powerHandles = Array.Empty<UInt32>();
+            saveClass = new SizedString();
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            saveClass.ClearMalformations();
+            saveMatrix?.ClearMalformations();
+            saveLabel?.ClearMalformations();
+            saveName?.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            saveClass.DisableMalformationAutoFix();
+            saveMatrix?.DisableMalformationAutoFix();
+            saveLabel?.DisableMalformationAutoFix();
+            saveName?.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            saveClass.EnableMalformationAutoFix();
+            saveMatrix?.EnableMalformationAutoFix();
+            saveLabel?.EnableMalformationAutoFix();
+            saveName?.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretCraft? obj)
         {
             IBZNToken? tok;

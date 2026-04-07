@@ -205,52 +205,60 @@ namespace BZNParser
             if (reader.InBinary)
             {
                 Euler euler = new Euler();
+                euler.DisableMalformationAutoFix();
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
-                tok.ApplySingle(euler, x => x.mass);
+                try
+                {
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    tok.ApplySingle(euler, x => x.Mass);
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
-                tok.ApplySingle(euler, x => x.mass_inv);
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    tok.ApplySingle(euler, x => x.MassInv);
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
-                tok.ApplySingle(euler, x => x.v_mag);
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    tok.ApplySingle(euler, x => x.VMag);
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
-                tok.ApplySingle(euler, x => x.v_mag_inv);
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    tok.ApplySingle(euler, x => x.VMagInv);
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
-                tok.ApplySingle(euler, x => x.I);
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    tok.ApplySingle(euler, x => x.I);
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
-                tok.ApplySingle(euler, x => x.I_inv);
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse euler's FLOAT");
+                    tok.ApplySingle(euler, x => x.IInv);
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ApplyVector3D(euler, x => x.v);
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                    tok.ApplyVector3D(euler, x => x.v);
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ApplyVector3D(euler, x => x.omega);
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                    tok.ApplyVector3D(euler, x => x.omega);
 
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ApplyVector3D(euler, x => x.Accel);
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
+                    tok.ApplyVector3D(euler, x => x.Accel);
 
-                // store the value into the property if possible
-                if (parent != null && propInfo != null)
-                    propInfo.SetValue(parent, euler);
+                    // store the value into the property if possible
+                    if (parent != null && propInfo != null)
+                        propInfo.SetValue(parent, euler);
 
-                // we can't process anything, so just serve the euler as is
-                if (parent == null || propInfo == null)
+                    // we can't process anything, so just serve the euler as is
+                    if (parent == null || propInfo == null)
+                        return euler;
+
                     return euler;
-
-                return euler;
+                }
+                finally
+                {
+                    euler.EnableMalformationAutoFix();
+                }
             }
 
             tok = reader.ReadToken();
@@ -258,27 +266,35 @@ namespace BZNParser
                 throw new Exception($"Failed to parse {name}");
 
             Euler value = tok.GetEuler(index);
+            value.DisableMalformationAutoFix();
 
-            // store the value into the property if possible
-            if (parent != null && propInfo != null)
-                propInfo.SetValue(parent, value);
+            try
+            {
+                // store the value into the property if possible
+                if (parent != null && propInfo != null)
+                    propInfo.SetValue(parent, value);
 
-            // we can't process anything, so just serve the euler as is
-            if (parent == null || propInfo == null)
-                return value;
+                // we can't process anything, so just serve the euler as is
+                if (parent == null || propInfo == null)
+                    return value;
             
-            IBZNToken subTok;
-            subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.mass     ); if (subTok.GetRawName() != @" mass"     ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.mass     , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.mass_inv ); if (subTok.GetRawName() != @" mass_inv" ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.mass_inv , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.v_mag    ); if (subTok.GetRawName() != @" v_mag"    ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.v_mag    , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.v_mag_inv); if (subTok.GetRawName() != @" v_mag_inv") { value.Malformations.AddIncorrectName<Euler, float>(x => x.v_mag_inv, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.I        ); if (subTok.GetRawName() != @" I"        ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I        , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.I_inv    ); if (subTok.GetRawName() != @" k_i"      ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I_inv    , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 6); subTok.ApplyVector3D(value, x => x.v      ); if (subTok.GetRawName() != @" v"        ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.v     , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 7); subTok.ApplyVector3D(value, x => x.omega  ); if (subTok.GetRawName() != @" omega"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.omega , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 8); subTok.ApplyVector3D(value, x => x.Accel  ); if (subTok.GetRawName() != @" Accel"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.Accel , subTok.GetRawName()); }
+                IBZNToken subTok;
+                subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.Mass   ); if (subTok.GetRawName() != @" mass"     ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.Mass    , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.MassInv); if (subTok.GetRawName() != @" mass_inv" ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.MassInv , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.VMag   ); if (subTok.GetRawName() != @" v_mag"    ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.VMag    , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.VMagInv); if (subTok.GetRawName() != @" v_mag_inv") { value.Malformations.AddIncorrectName<Euler, float>(x => x.VMagInv , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.I      ); if (subTok.GetRawName() != @" I"        ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I       , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.IInv   ); if (subTok.GetRawName() != @" k_i"      ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.IInv    , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 6); subTok.ApplyVector3D(value, x => x.v    ); if (subTok.GetRawName() != @" v"        ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.v    , subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 7); subTok.ApplyVector3D(value, x => x.omega); if (subTok.GetRawName() != @" omega"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.omega, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 8); subTok.ApplyVector3D(value, x => x.Accel); if (subTok.GetRawName() != @" Accel"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.Accel, subTok.GetRawName()); }
 
-            return value;
+                return value;
+            }
+            finally
+            {
+                value.EnableMalformationAutoFix();
+            }
         }
     }
 
@@ -286,27 +302,43 @@ namespace BZNParser
     {
         private readonly IMalformable.MalformationManager _malformationManager;
         public IMalformable.MalformationManager Malformations => _malformationManager;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Vector3D()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+            DisableMalformationAutoFix();
+        }
+        public Vector3D(float x, float y, float z)
+        {
+            this._malformationManager = new IMalformable.MalformationManager(this);
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            EnableMalformationAutoFix();
         }
         public void ClearMalformations()
         {
             Malformations.Clear();
         }
-
+        private bool blockAutoFixMalformations = false;
+        public void DisableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = true;
+        }
+        public void EnableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = false;
+        }
 
         public float X
         {
             get { return x; }
             set
             {
-                if (value != x)
-                {
-                    // reset malformations
-                }
+                if (!blockAutoFixMalformations && value != x)
+                    Malformations.Clear<Vector3D, float>((x) => x.X);
                 x = value;
             }
         }
@@ -315,10 +347,8 @@ namespace BZNParser
             get { return y; }
             set
             {
-                if (value != y)
-                {
-                    // reset malformations
-                }
+                if (!blockAutoFixMalformations && value != y)
+                    Malformations.Clear<Vector3D, float>((x) => x.Y);
                 y = value;
             }
         }
@@ -327,10 +357,8 @@ namespace BZNParser
             get { return z; }
             set
             {
-                if (value != z)
-                {
-                    // reset malformations
-                }
+                if (!blockAutoFixMalformations && value != z)
+                    Malformations.Clear<Vector3D, float>((x) => x.Z);
                 z = value;
             }
         }
@@ -349,15 +377,32 @@ namespace BZNParser
     {
         private readonly IMalformable.MalformationManager _malformationManager;
         public IMalformable.MalformationManager Malformations => _malformationManager;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Vector2D()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
+            this.x = 0;
+            this.z = 0;
+            DisableMalformationAutoFix();
+        }
+        public Vector2D(float x, float z)
+        {
+            this._malformationManager = new IMalformable.MalformationManager(this);
+            this.x = x;
+            this.z = z;
+            EnableMalformationAutoFix();
         }
         public void ClearMalformations()
         {
             Malformations.Clear();
+        }
+        private bool blockAutoFixMalformations = false;
+        public void DisableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = true;
+        }
+        public void EnableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = false;
         }
 
 
@@ -367,10 +412,8 @@ namespace BZNParser
             get { return x; }
             set
             {
-                if (value != x)
-                {
-                    // reset malformations
-                }
+                if (!blockAutoFixMalformations && value != x)
+                    Malformations.Clear<Vector2D, float>((x) => x.X);
                 x = value;
             }
         }
@@ -379,10 +422,8 @@ namespace BZNParser
             get { return z; }
             set
             {
-                if (value != z)
-                {
-                    // reset malformations
-                }
+                if (!blockAutoFixMalformations && value != z)
+                    Malformations.Clear<Vector2D, float>((x) => x.Z);
                 z = value;
             }
         }
@@ -395,11 +436,16 @@ namespace BZNParser
     {
         private readonly IMalformable.MalformationManager _malformationManager;
         public IMalformable.MalformationManager Malformations => _malformationManager;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Euler()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
+            this.mass = 0;
+            this.mass_inv = 0;
+            this.i = 0;
+            this.i_inv = 0;
+            this.v_mag = 0;
+            this.v_mag_inv = 0;
+            EnableMalformationAutoFix();
         }
         public void ClearMalformations()
         {
@@ -409,6 +455,25 @@ namespace BZNParser
             Alpha.ClearMalformations();
             Pos.ClearMalformations();
             Malformations.Clear();
+        }
+        private bool blockAutoFixMalformations = false;
+        public void DisableMalformationAutoFix()
+        {
+            v.DisableMalformationAutoFix();
+            omega.DisableMalformationAutoFix();
+            Accel.DisableMalformationAutoFix();
+            Alpha.DisableMalformationAutoFix();
+            Pos.DisableMalformationAutoFix();
+            blockAutoFixMalformations = true;
+        }
+        public void EnableMalformationAutoFix()
+        {
+            v.EnableMalformationAutoFix();
+            omega.EnableMalformationAutoFix();
+            Accel.EnableMalformationAutoFix();
+            Alpha.EnableMalformationAutoFix();
+            Pos.EnableMalformationAutoFix();
+            blockAutoFixMalformations = false;
         }
 
         public const float EPSILON = 1.0e-4f;
@@ -423,14 +488,70 @@ namespace BZNParser
         public Vector3D Alpha { get; set; }
         public Vector3D Pos { get; set; }
 
-        public float mass { get; set; }
-        public float mass_inv { get; set; }
+        public float Mass {
+            get { return mass; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != mass)
+                    Malformations.Clear<Euler, float>((x) => x.Mass);
+                mass = value;
+            }
+        }
+        public float MassInv {
+            get { return mass_inv; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != mass_inv)
+                    Malformations.Clear<Euler, float>((x) => x.MassInv);
+                mass_inv = value;
+            }
+        }
 
-        public float I { get; set; }
-        public float I_inv { get; set; }
+        public float I {
+            get { return i; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != i)
+                    Malformations.Clear<Euler, float>((x) => x.I);
+                i = value;
+            }
+        }
+        public float IInv {
+            get { return i_inv; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != i_inv)
+                    Malformations.Clear<Euler, float>((x) => x.IInv);
+                i_inv = value;
+            }
+        }
 
-        public float v_mag { get; set; }
-        public float v_mag_inv { get; set; }
+        public float VMag {
+            get { return v_mag; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != v_mag)
+                    Malformations.Clear<Euler, float>((x) => x.VMag);
+                v_mag = value;
+            }
+        }
+        public float VMagInv
+        {
+            get { return v_mag_inv; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != v_mag_inv)
+                    Malformations.Clear<Euler, float>((x) => x.VMagInv);
+                v_mag_inv = value;
+            }
+        }
+
+        private float mass;
+        private float mass_inv;
+        private float i;
+        private float i_inv;
+        private float v_mag;
+        private float v_mag_inv;
 
         public void InitLoadSave()
         {
@@ -443,17 +564,17 @@ namespace BZNParser
         // Reads the 'mass' member, builds mass_inv and I_inv fields
         public void CalcMassIInv()
         {
-            mass_inv = HUGE_NUMBER;
-            I_inv = HUGE_NUMBER;
-            if (mass > EPSILON)
+            MassInv = HUGE_NUMBER;
+            IInv = HUGE_NUMBER;
+            if (Mass > EPSILON)
             {
-                mass_inv = 1.0f / mass;
-                I_inv = 1.0f / I;
+                MassInv = 1.0f / Mass;
+                IInv = 1.0f / I;
             }
             else
             {
-                mass_inv = HUGE_NUMBER;
-                I_inv = HUGE_NUMBER;
+                MassInv = HUGE_NUMBER;
+                IInv = HUGE_NUMBER;
             }
         }
 
@@ -461,8 +582,8 @@ namespace BZNParser
         // Reads the 'v' member, builds the 'v_mag' and 'v_mag_inv' members
         public void CalcVMag()
         {
-            v_mag = v.Magnitude();
-            v_mag_inv = (v_mag == 0.0f) ? HUGE_NUMBER : 1.0f / v_mag;
+            VMag = v.Magnitude();
+            VMagInv = (VMag == 0.0f) ? HUGE_NUMBER : 1.0f / VMag;
         }
     }
 
@@ -478,35 +599,224 @@ namespace BZNParser
     {
         private readonly IMalformable.MalformationManager _malformationManager;
         public IMalformable.MalformationManager Malformations => _malformationManager;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Matrix()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             this._malformationManager = new IMalformable.MalformationManager(this);
+            this.rightx = 1;
+            this.righty = 0;
+            this.rightz = 0;
+            this.rightw = 0;
+            this.upx = 0;
+            this.upy = 1;
+            this.upz = 0;
+            this.upw = 0;
+            this.frontx = 0;
+            this.fronty = 0;
+            this.frontz = 1;
+            this.frontw = 0;
+            this.positx = 0;
+            this.posity = 0;
+            this.positz = 0;
+            this.positw = 1;
+        }
+        public Matrix(Vector3D pos)
+        {
+            this._malformationManager = new IMalformable.MalformationManager(this);
+            this.rightx = 1;
+            this.righty = 0;
+            this.rightz = 0;
+            this.rightw = 0;
+            this.upx = 0;
+            this.upy = 1;
+            this.upz = 0;
+            this.upw = 0;
+            this.frontx = 0;
+            this.fronty = 0;
+            this.frontz = 1;
+            this.frontw = 0;
+            this.positx = pos.X;
+            this.posity = pos.Y;
+            this.positz = pos.Z;
+            this.positw = 1;
         }
         public void ClearMalformations()
         {
             Malformations.Clear();
+            junk = 0;
+        }
+        private bool blockAutoFixMalformations = false;
+        public void DisableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = true;
+        }
+        public void EnableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = false;
         }
 
 
-        public float rightx { get; set; }
-        public float righty { get; set; }
-        public float rightz { get; set; }
-        public float rightw { get; set; }
-        public float upx { get; set; }
-        public float upy { get; set; }
-        public float upz { get; set; }
-        public float upw { get; set; }
-        public float frontx { get; set; }
-        public float fronty { get; set; }
-        public float frontz { get; set; }
-        public float frontw { get; set; }
+        public float RightX {
+            get { return rightx; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != rightx)
+                    Malformations.Clear<Matrix, float>((x) => x.RightX);
+                rightx = value;
+            }
+        }
+        public float RightY {
+            get { return righty; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != righty)
+                    Malformations.Clear<Matrix, float>((x) => x.RightY);
+                righty = value;
+            }
+        }
+        public float RightZ {
+            get { return rightz; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != rightz)
+                    Malformations.Clear<Matrix, float>((x) => x.RightZ);
+                rightz = value;
+            }
+        }
+        public float RightW {
+            get { return rightw; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != rightw)
+                    Malformations.Clear<Matrix, float>((x) => x.RightW);
+                rightw = value;
+            }
+        }
+        public float UpX {
+            get { return upx; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != upx)
+                    Malformations.Clear<Matrix, float>((x) => x.UpX);
+                upx = value;
+            }
+        }
+        public float UpY {
+            get { return upy; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != upy)
+                    Malformations.Clear<Matrix, float>((x) => x.UpY);
+                upy = value;
+            }
+        }
+        public float UpZ {
+            get { return upz; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != upz)
+                    Malformations.Clear<Matrix, float>((x) => x.UpZ);
+                upz = value;
+            }
+        }
+        public float UpW {
+            get { return upw; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != upw)
+                    Malformations.Clear<Matrix, float>((x) => x.UpW);
+                upw = value;
+            }
+        }
+        public float FrontX {
+            get { return frontx; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != frontx)
+                    Malformations.Clear<Matrix, float>((x) => x.FrontX);
+                frontx = value;
+            }
+        }
+        public float FrontY {
+            get { return fronty; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != fronty)
+                    Malformations.Clear<Matrix, float>((x) => x.FrontY);
+                fronty = value;
+            }
+        }
+        public float FrontZ {
+            get { return frontz; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != frontz)
+                    Malformations.Clear<Matrix, float>((x) => x.FrontZ);
+                frontz = value;
+            }
+        }
+        public float FrontW {
+            get { return frontw; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != frontw)
+                    Malformations.Clear<Matrix, float>((x) => x.FrontW);
+                frontw = value;
+            }
+        }
         public UInt32 junk { get; set; } // used only in double-posit mode
-        public double positx { get; set; }
-        public double posity { get; set; }
-        public double positz { get; set; }
-        public double positw { get; set; }
+        public double PositX {
+            get { return positx; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != positx)
+                    Malformations.Clear<Matrix, double>((x) => x.PositX);
+                positx = value;
+            }
+        }
+        public double PositY {
+            get { return posity; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != posity)
+                    Malformations.Clear<Matrix, double>((x) => x.PositY);
+                posity = value;
+            }
+        }
+        public double PositZ {
+            get { return positz; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != positz)
+                    Malformations.Clear<Matrix, double>((x) => x.PositZ);
+                positz = value;
+            }
+        }
+        public double PositW {
+            get { return positw; }
+            set
+            {
+                if (!blockAutoFixMalformations && value != positw)
+                    Malformations.Clear<Matrix, double>((x) => x.PositW);
+                positw = value;
+            }
+        }
+
+        private float rightx;
+        private float righty;
+        private float rightz;
+        private float rightw;
+        private float upx;
+        private float upy;
+        private float upz;
+        private float upw;
+        private float frontx;
+        private float fronty;
+        private float frontz;
+        private float frontw;
+        private double positx;
+        private double posity;
+        private double positz;
+        private double positw;
     }
 
     static class MatrixExtension
@@ -517,42 +827,48 @@ namespace BZNParser
             if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
                 propInfo = propInfo_;
 
-
             IBZNToken? tok;
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_MAT3D))
                 throw new Exception($"Failed to parse {name}/MAT3D");
 
             Matrix value = tok.GetMatrix(index);
+            value.DisableMalformationAutoFix();
+            try
+            {
+                // store the value into the property if possible
+                if (parent != null && propInfo != null)
+                    propInfo.SetValue(parent, value);
 
-            // store the value into the property if possible
-            if (parent != null && propInfo != null)
-                propInfo.SetValue(parent, value);
+                // we can't process anything, so just serve the matrix as is
+                if (parent == null || propInfo == null)
+                    return value;
 
-            // we can't process anything, so just serve the matrix as is
-            if (parent == null || propInfo == null)
+                // binary doesn't have subtokens, it's just a blob of data
+                if (tok.IsBinary)
+                    return value;
+
+                // we have stuff to play with, so lets re-read the values back into the matrix again, but this time pass through our validation function
+                IBZNToken subTok;
+                subTok = tok.GetSubToken(index,  0); subTok.ApplySingle(value, x => x.RightX); if (subTok.GetRawName() != @"  right.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightX, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  1); subTok.ApplySingle(value, x => x.RightY); if (subTok.GetRawName() != @"  right.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightY, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  2); subTok.ApplySingle(value, x => x.RightZ); if (subTok.GetRawName() != @"  right.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightZ, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  3); subTok.ApplySingle(value, x => x.UpX   ); if (subTok.GetRawName() != @"  up.x"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpX, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  4); subTok.ApplySingle(value, x => x.UpY   ); if (subTok.GetRawName() != @"  up.y"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpY, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  5); subTok.ApplySingle(value, x => x.UpZ   ); if (subTok.GetRawName() != @"  up.z"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpZ, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  6); subTok.ApplySingle(value, x => x.FrontX); if (subTok.GetRawName() != @"  front.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontX, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  7); subTok.ApplySingle(value, x => x.FrontY); if (subTok.GetRawName() != @"  front.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontY, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  8); subTok.ApplySingle(value, x => x.FrontZ); if (subTok.GetRawName() != @"  front.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontZ, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  9); subTok.ApplySingle(value, x => x.PositX); if (subTok.GetRawName() != @"  posit.x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositX, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 10); subTok.ApplySingle(value, x => x.PositY); if (subTok.GetRawName() != @"  posit.y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositY, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 11); subTok.ApplySingle(value, x => x.PositZ); if (subTok.GetRawName() != @"  posit.z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositZ, subTok.GetRawName()); }
+
                 return value;
-
-            // binary doesn't have subtokens, it's just a blob of data
-            if (tok.IsBinary)
-                return value;
-
-            // we have stuff to play with, so lets re-read the values back into the matrix again, but this time pass through our validation function
-            IBZNToken subTok;
-            subTok = tok.GetSubToken(index,  0); subTok.ApplySingle(value, x => x.rightx); if (subTok.GetRawName() != @"  right.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.rightx, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  1); subTok.ApplySingle(value, x => x.righty); if (subTok.GetRawName() != @"  right.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.righty, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  2); subTok.ApplySingle(value, x => x.rightz); if (subTok.GetRawName() != @"  right.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.rightz, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  3); subTok.ApplySingle(value, x => x.upx   ); if (subTok.GetRawName() != @"  up.x"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upx   , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  4); subTok.ApplySingle(value, x => x.upy   ); if (subTok.GetRawName() != @"  up.y"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upy   , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  5); subTok.ApplySingle(value, x => x.upz   ); if (subTok.GetRawName() != @"  up.z"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upz   , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  6); subTok.ApplySingle(value, x => x.frontx); if (subTok.GetRawName() != @"  front.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.frontx, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  7); subTok.ApplySingle(value, x => x.fronty); if (subTok.GetRawName() != @"  front.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.fronty, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  8); subTok.ApplySingle(value, x => x.frontz); if (subTok.GetRawName() != @"  front.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.frontz, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  9); subTok.ApplySingle(value, x => x.positx); if (subTok.GetRawName() != @"  posit.x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positx, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 10); subTok.ApplySingle(value, x => x.posity); if (subTok.GetRawName() != @"  posit.y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.posity, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 11); subTok.ApplySingle(value, x => x.positz); if (subTok.GetRawName() != @"  posit.z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positz, subTok.GetRawName()); }
-
-            return value;
+            }
+            finally
+            {
+                value.EnableMalformationAutoFix();
+            }
         }
         public static Matrix ReadMatrixOld<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Matrix>>? property, int index = 0) where T : IMalformable
         {
@@ -560,52 +876,58 @@ namespace BZNParser
             if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
                 propInfo = propInfo_;
 
-
             IBZNToken? tok;
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_MAT3DOLD))
                 throw new Exception($"Failed to parse {name}/MAT3DOLD");
 
             Matrix value = tok.GetMatrixOld();
-
-            // store the value into the property if possible
-            if (parent != null && propInfo != null)
-                propInfo.SetValue(parent, value);
-
-            // we can't process anything, so just serve the matrix as is
-            if (parent == null || propInfo == null)
-                return value;
-
-            // binary doesn't have subtokens, it's just a blob of data
-            if (tok.IsBinary)
-                return value;
-
-            // we have stuff to play with, so lets re-read the values back into the matrix again, but this time pass through our validation function
-            IBZNToken subTok;
-            subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.rightx); if (subTok.GetRawName() != @"  right_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.rightx, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.righty); if (subTok.GetRawName() != @"  right_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.righty, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.rightz); if (subTok.GetRawName() != @"  right_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.rightz, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.upx   ); if (subTok.GetRawName() != @"  up_x"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upx   , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.upy   ); if (subTok.GetRawName() != @"  up_y"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upy   , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.upz   ); if (subTok.GetRawName() != @"  up_z"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.upz   , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 6); subTok.ApplySingle(value, x => x.frontx); if (subTok.GetRawName() != @"  front_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.frontx, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 7); subTok.ApplySingle(value, x => x.fronty); if (subTok.GetRawName() != @"  front_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.fronty, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 8); subTok.ApplySingle(value, x => x.frontz); if (subTok.GetRawName() != @"  front_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.frontz, subTok.GetRawName()); }
-
-            //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 0) // BREADCRUMB VER_BIGPOSIT
-            //{
-            //    subTok = tok.GetSubToken(index,  9); subTok.ReadDouble(value, x => x.positx); if (subTok.GetRawName() != @"  posit_x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positx, subTok.GetRawName()); }
-            //    subTok = tok.GetSubToken(index, 10); subTok.ReadDouble(value, x => x.posity); if (subTok.GetRawName() != @"  posit_y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.posity, subTok.GetRawName()); }
-            //    subTok = tok.GetSubToken(index, 11); subTok.ReadDouble(value, x => x.positz); if (subTok.GetRawName() != @"  posit_z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positz, subTok.GetRawName()); }
-            //}
-            //else
+            value.DisableMalformationAutoFix();
+            try
             {
-                subTok = tok.GetSubToken(index,  9); subTok.ApplySingle(value, x => x.positx); if (subTok.GetRawName() != @"  posit_x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positx, subTok.GetRawName()); }
-                subTok = tok.GetSubToken(index, 10); subTok.ApplySingle(value, x => x.posity); if (subTok.GetRawName() != @"  posit_y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.posity, subTok.GetRawName()); }
-                subTok = tok.GetSubToken(index, 11); subTok.ApplySingle(value, x => x.positz); if (subTok.GetRawName() != @"  posit_z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positz, subTok.GetRawName()); }
-            }
+                // store the value into the property if possible
+                if (parent != null && propInfo != null)
+                    propInfo.SetValue(parent, value);
 
-            return value;
+                // we can't process anything, so just serve the matrix as is
+                if (parent == null || propInfo == null)
+                    return value;
+
+                // binary doesn't have subtokens, it's just a blob of data
+                if (tok.IsBinary)
+                    return value;
+
+                // we have stuff to play with, so lets re-read the values back into the matrix again, but this time pass through our validation function
+                IBZNToken subTok;
+                subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.RightX); if (subTok.GetRawName() != @"  right_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightX, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.RightY); if (subTok.GetRawName() != @"  right_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightY, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.RightZ); if (subTok.GetRawName() != @"  right_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightZ, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.UpX); if (subTok.GetRawName() != @"  up_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpX, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.UpY); if (subTok.GetRawName() != @"  up_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpY, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.UpZ); if (subTok.GetRawName() != @"  up_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpZ, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 6); subTok.ApplySingle(value, x => x.FrontX); if (subTok.GetRawName() != @"  front_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontX, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 7); subTok.ApplySingle(value, x => x.FrontY); if (subTok.GetRawName() != @"  front_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontY, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 8); subTok.ApplySingle(value, x => x.FrontZ); if (subTok.GetRawName() != @"  front_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontZ, subTok.GetRawName()); }
+
+                //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 0) // BREADCRUMB VER_BIGPOSIT
+                //{
+                //    subTok = tok.GetSubToken(index,  9); subTok.ReadDouble(value, x => x.positx); if (subTok.GetRawName() != @"  posit_x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positx, subTok.GetRawName()); }
+                //    subTok = tok.GetSubToken(index, 10); subTok.ReadDouble(value, x => x.posity); if (subTok.GetRawName() != @"  posit_y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.posity, subTok.GetRawName()); }
+                //    subTok = tok.GetSubToken(index, 11); subTok.ReadDouble(value, x => x.positz); if (subTok.GetRawName() != @"  posit_z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.positz, subTok.GetRawName()); }
+                //}
+                //else
+                {
+                    subTok = tok.GetSubToken(index, 9); subTok.ApplySingle(value, x => x.PositX); if (subTok.GetRawName() != @"  posit_x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositX, subTok.GetRawName()); }
+                    subTok = tok.GetSubToken(index, 10); subTok.ApplySingle(value, x => x.PositY); if (subTok.GetRawName() != @"  posit_y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositY, subTok.GetRawName()); }
+                    subTok = tok.GetSubToken(index, 11); subTok.ApplySingle(value, x => x.PositZ); if (subTok.GetRawName() != @"  posit_z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositZ, subTok.GetRawName()); }
+                }
+
+                return value;
+            }
+            finally
+            {
+                value.EnableMalformationAutoFix();
+            }
         }
     }
 

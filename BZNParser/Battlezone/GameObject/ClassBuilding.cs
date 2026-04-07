@@ -30,9 +30,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassBuilding(preamble, classLabel);
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassBuilding : ClassGameObject
@@ -56,8 +66,46 @@ namespace BZNParser.Battlezone.GameObject
 
         public ClassBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
         {
-
+            tempBuilding = false;
+            saveMatrix = null;
+            saveClass = new SizedString();
+            saveTeam = 0;
+            saveSeqno = 0;
+            saveLabel = new SizedString();
+            saveName = new SizedString();
+            CLASS_AlignsToObject = false;
+            CLASS_loadAsDummy = false;
         }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            saveMatrix?.ClearMalformations();
+            saveClass.ClearMalformations();
+            saveLabel.ClearMalformations();
+            saveName.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            saveMatrix?.DisableMalformationAutoFix();
+            saveClass.DisableMalformationAutoFix();
+            saveLabel.DisableMalformationAutoFix();
+            saveName.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            saveMatrix?.EnableMalformationAutoFix();
+            saveClass.EnableMalformationAutoFix();
+            saveLabel.EnableMalformationAutoFix();
+            saveName.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBuilding? obj)
         {
             IBZNToken? tok;

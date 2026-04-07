@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassShieldTower2(preamble, classLabel);
-            ClassShieldTower2.Hydrate(parent, reader, obj as ClassShieldTower2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassShieldTower2.Hydrate(parent, reader, obj as ClassShieldTower2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassShieldTower2 : ClassPoweredBuilding

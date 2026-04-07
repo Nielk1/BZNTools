@@ -10,14 +10,24 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassWalker2(preamble, classLabel);
-            ClassWalker2.Hydrate(parent, reader, obj as ClassWalker2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassWalker2.Hydrate(parent, reader, obj as ClassWalker2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassWalker2 : ClassCraft
     {
-        public byte[] Walker_IK { get; set; }
+        public byte[]? Walker_IK { get; set; }
         public uint Pin_Foot { get; set; }
         public float Current_Index { get; set; }
         public uint Anim_State { get; set; }
@@ -25,7 +35,33 @@ namespace BZNParser.Battlezone.GameObject
         public uint Tail { get; set; }
         public uint Control_Queue { get; set; }
 
-        public ClassWalker2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassWalker2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            Pin_Foot = 0;
+            Current_Index = 0;
+            Anim_State = 0;
+            Lead = 0;
+            Tail = 0;
+            Control_Queue = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassWalker2? obj)
         {
             IBZNToken? tok;

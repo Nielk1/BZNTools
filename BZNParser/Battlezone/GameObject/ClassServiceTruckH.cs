@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassServiceTruckH(preamble, classLabel);
-            ClassServiceTruckH.Hydrate(parent, reader, obj as ClassServiceTruckH);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassServiceTruckH.Hydrate(parent, reader, obj as ClassServiceTruckH);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassServiceTruckH : ClassHoverCraft

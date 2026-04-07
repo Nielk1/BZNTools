@@ -259,6 +259,8 @@ namespace BZNParser.Battlezone
 
         public BZNFileBattlezone(BZNStreamReader reader, BattlezoneBZNHints? Hints = null)
         {
+            DisableMalformationAutoFix();
+
             this.LongTermClassLabelLookupCache = new Dictionary<string, HashSet<string>>();
 
             this._malformationManager = new IMalformable.MalformationManager(this);
@@ -548,6 +550,8 @@ namespace BZNParser.Battlezone
                     Malformations.SetFloatTextFormat(reader.FloatFormat);//, ExpectedFloatFormat);
                 }
             }
+
+            EnableMalformationAutoFix();
         }
         public void ClearMalformations()
         {
@@ -561,6 +565,15 @@ namespace BZNParser.Battlezone
                 aipath.ClearMalformations();
             ExtraVec2D?.ClearMalformations();
             Malformations.Clear();
+        }
+        private bool blockAutoFixMalformations = false;
+        public void DisableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = true;
+        }
+        public void EnableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = false;
         }
 
         private void Hydrate(BZNStreamReader reader)

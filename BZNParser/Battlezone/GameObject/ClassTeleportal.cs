@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassTeleportal(preamble, classLabel);
-            ClassTeleportal.Hydrate(parent, reader, obj as ClassTeleportal);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassTeleportal.Hydrate(parent, reader, obj as ClassTeleportal);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassTeleportal : ClassPoweredBuilding

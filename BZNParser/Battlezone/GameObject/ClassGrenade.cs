@@ -8,9 +8,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassGrenade(preamble, classLabel);
-            ClassGrenade.Hydrate(parent, reader, obj as ClassGrenade);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassGrenade.Hydrate(parent, reader, obj as ClassGrenade);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassGrenade : ClassRocket

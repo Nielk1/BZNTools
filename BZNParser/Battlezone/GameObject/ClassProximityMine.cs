@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassProximityMine(preamble, classLabel);
-            ClassProximityMine.Hydrate(parent, reader, obj as ClassProximityMine);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassProximityMine.Hydrate(parent, reader, obj as ClassProximityMine);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassProximityMine : ClassMine

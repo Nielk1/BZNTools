@@ -14,9 +14,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassTurretTank1(preamble, classLabel);
-            ClassTurretTank1.Hydrate(parent, reader, obj as ClassTurretTank1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassTurretTank1.Hydrate(parent, reader, obj as ClassTurretTank1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassTurretTank1 : ClassHoverCraft
@@ -27,7 +37,33 @@ namespace BZNParser.Battlezone.GameObject
         protected float timeUndeploy { get; set; } // obsolete
         protected float delayTimer { get; set; }
         protected bool wantTurret { get; set; } // obsolete
-        public ClassTurretTank1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassTurretTank1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            omegaTurret = 0;
+            alphaTurret = 0;
+            timeDeploy = 0;
+            timeUndeploy = 0;
+            delayTimer = 0;
+            wantTurret = false;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank1? obj)
         {
             IBZNToken? tok;

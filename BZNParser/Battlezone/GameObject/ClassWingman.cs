@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassWingman(preamble, classLabel);
-            ClassWingman.Hydrate(parent, reader, obj as ClassWingman);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassWingman.Hydrate(parent, reader, obj as ClassWingman);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassWingman : ClassHoverCraft

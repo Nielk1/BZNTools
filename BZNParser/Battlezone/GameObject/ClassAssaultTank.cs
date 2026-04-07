@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassAssaultTank(preamble, classLabel);
-            ClassAssaultTank.Hydrate(parent, reader, obj as ClassAssaultTank);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassAssaultTank.Hydrate(parent, reader, obj as ClassAssaultTank);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassAssaultTank : ClassTrackedVehicle

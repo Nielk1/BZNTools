@@ -9,16 +9,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassKingOfHill(preamble, classLabel);
-            ClassKingOfHill.Hydrate(parent, reader, obj as ClassKingOfHill);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassKingOfHill.Hydrate(parent, reader, obj as ClassKingOfHill);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassKingOfHill : ClassBuilding
     {
         public float scoreTimer { get; set; }
 
-        public ClassKingOfHill(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassKingOfHill(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            scoreTimer = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassKingOfHill? obj)
         {
             IBZNToken? tok;

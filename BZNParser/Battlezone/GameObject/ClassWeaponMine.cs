@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassWeaponMine(preamble, classLabel);
-            ClassWeaponMine.Hydrate(parent, reader, obj as ClassWeaponMine);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassWeaponMine.Hydrate(parent, reader, obj as ClassWeaponMine);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassWeaponMine : ClassMine

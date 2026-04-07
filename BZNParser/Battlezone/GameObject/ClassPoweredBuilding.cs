@@ -19,9 +19,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassPoweredBuilding(preamble, classLabel);
-            ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassPoweredBuilding : ClassBuilding
@@ -29,7 +39,29 @@ namespace BZNParser.Battlezone.GameObject
         public int scriptPowerOverride { get; set; }
         public Int32[]? powerHandle { get; set; }
 
-        public ClassPoweredBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassPoweredBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            scriptPowerOverride = 0;
+            powerHandle = null;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPoweredBuilding? obj)
         {
             IBZNToken? tok;

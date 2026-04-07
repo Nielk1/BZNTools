@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -23,24 +25,47 @@ namespace BZNParser.Battlezone
 
         private readonly IMalformable.MalformationManager _malformationManager;
         public IMalformable.MalformationManager Malformations => _malformationManager;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public AreaOfInterest()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
+            this.path = 0;
+            this.team = 0;
+            this.interesting = false;
+            this.inside = false;
+            this.value = 0;
+            this.force = 0;
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
         public void ClearMalformations()
         {
             Malformations.Clear();
         }
+        private bool blockAutoFixMalformations = false;
+        public void DisableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = true;
+        }
+        public void EnableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = false;
+        }
 
         public static bool Create(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, out AreaOfInterest? obj, bool create = true)
         {
             obj = null;
             if (create)
+            {
                 obj = new AreaOfInterest();
-            AreaOfInterest.Hydrate(parent, reader, countLeft, obj);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                AreaOfInterest.Hydrate(parent, reader, countLeft, obj);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
 
         public static bool Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, AreaOfInterest? obj)

@@ -8,9 +8,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassRocket(preamble, classLabel);
-            ClassRocket.Hydrate(parent, reader, obj as ClassRocket);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassRocket.Hydrate(parent, reader, obj as ClassRocket);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassRocket : ClassBullet

@@ -389,8 +389,104 @@ public interface IMalformable
                 malformations.Pop();
             malformations.Push((new List<MalformationData>(), new Dictionary<(PropertyInfo, int?), List<MalformationData>>()));
         }
+
+        /// <summary>
+        /// Clear all malformations from the specific property, or root if propertyLambda is null.
+        /// Look at all possible indexes for the property.
+        /// If the malformation parameter is provided, only clear malformations of that type, otherwise clear all malformations for the property or root.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TProp"></typeparam>
+        /// <param name="propertyLambda"></param>
+        /// <param name="malformation"></param>
+        public void Clear<T, TProp>(Expression<Func<T, TProp>>? propertyLambda, Malformation? malformation = null) where T : IMalformable
+        {
+            // loop all malformation layers without popping any
+            foreach (var layer in malformations)
+            {
+                if (propertyLambda == null)
+                {
+                    if (malformation.HasValue)
+                    {
+                        layer.Root.RemoveAll(mal => mal.Property == null && mal.Type == malformation.Value);
+                    }
+                    else
+                    {
+                        layer.Root.RemoveAll(mal => mal.Property == null);
+                    }
+                }
+                else if (propertyLambda.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+                {
+                    layer.Properties.Where(dr => dr.Key.Item1 == propInfo).ToList().ForEach(dr =>
+                    {
+                        if (malformation.HasValue)
+                        {
+                            dr.Value.RemoveAll(mal => mal.Type == malformation.Value);
+                        }
+                        else
+                        {
+                            dr.Value.Clear();
+                        }
+                    });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clear all malformations from the specific property, or root if propertyLambda is null.
+        /// Loop at specific property index, even null is a valid property index which is where there's a differnt function to ignore index.
+        /// If the malformation parameter is provided, only clear malformations of that type, otherwise clear all malformations for the property or root.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TProp"></typeparam>
+        /// <param name="propertyLambda"></param>
+        /// <param name="index"></param>
+        /// <param name="malformation"></param>
+        public void Clear<T, TProp>(Expression<Func<T, TProp>>? propertyLambda, int? index, Malformation? malformation = null) where T : IMalformable
+        {
+            // loop all malformation layers without popping any
+            foreach (var layer in malformations)
+            {
+                if (propertyLambda == null)
+                {
+                    if (malformation.HasValue)
+                    {
+                        layer.Root.RemoveAll(mal => mal.Property == null && mal.Type == malformation.Value);
+                    }
+                    else
+                    {
+                        layer.Root.RemoveAll(mal => mal.Property == null);
+                    }
+                }
+                else if (propertyLambda.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+                {
+                    var key = (propInfo, index);
+                    if (layer.Properties.ContainsKey(key))
+                    {
+                        if (malformation.HasValue)
+                        {
+                            layer.Properties[key].RemoveAll(mal => mal.Type == malformation.Value);
+                        }
+                        else
+                        {
+                            layer.Properties[key].Clear();
+                        }
+                    }
+                }
+            }
+        }
     }
  
     public MalformationManager Malformations { get; }
     public void ClearMalformations();
+
+    /// <summary>
+    /// Set object are currently building so it should not auto-alter properties
+    /// </summary>
+    public void DisableMalformationAutoFix();
+
+    /// <summary>
+    /// Set object as finalized so it can auto-alter properties as needed
+    /// </summary>
+    public void EnableMalformationAutoFix();
 }

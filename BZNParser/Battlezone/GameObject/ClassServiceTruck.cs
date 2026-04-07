@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassServiceTruck(preamble, classLabel);
-            ClassServiceTruck.Hydrate(parent, reader, obj as ClassServiceTruck);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassServiceTruck.Hydrate(parent, reader, obj as ClassServiceTruck);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassServiceTruck : ClassTrackedVehicle

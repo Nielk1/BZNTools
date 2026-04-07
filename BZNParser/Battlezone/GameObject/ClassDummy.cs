@@ -13,9 +13,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassDummy(preamble, classLabel);
-            ClassDummy.Hydrate(parent, reader, obj as ClassDummy);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassDummy.Hydrate(parent, reader, obj as ClassDummy);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassDummy : ClassGameObject

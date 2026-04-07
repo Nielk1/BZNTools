@@ -11,15 +11,61 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassAPC1(preamble, classLabel);
-            ClassAPC1.Hydrate(parent, reader, obj as ClassAPC1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassAPC1.Hydrate(parent, reader, obj as ClassAPC1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassAPC1 : ClassHoverCraft
     {
-        public int soldierCount { get; set; }
-        public ClassAPC1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public int SoldierCount
+        {
+            get
+            {
+                return soldierCount;
+            }
+            set
+            {
+                if (!blockAutoFixMalformations && value != soldierCount)
+                    Malformations.Clear<ClassAPC1, int>(x => x.SoldierCount);
+                soldierCount = value;
+            }
+        }
+        private int soldierCount;
+
+        public ClassAPC1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            soldierCount = 0;
+        }
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        private bool blockAutoFixMalformations = false;
+        public override void DisableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = true;
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = false;
+            base.EnableMalformationAutoFix();
+        }
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAPC1? obj)
         {
             IBZNToken? tok;
@@ -27,7 +73,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("soldierCount", BinaryFieldType.DATA_LONG))
                 throw new Exception("Failed to parse soldierCount/LONG");
-            tok.ApplyInt32(obj, x => x.soldierCount);
+            tok.ApplyInt32(obj, x => x.SoldierCount);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
@@ -44,7 +90,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassAPC1 obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            writer.WriteInt32("soldierCount", obj, x => x.soldierCount);
+            writer.WriteInt32("soldierCount", obj, x => x.SoldierCount);
             writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));
             ClassHoverCraft.Dehydrate(obj, parent, writer, binary, save);
         }

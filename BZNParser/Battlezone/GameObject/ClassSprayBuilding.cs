@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassSprayBuilding(preamble, classLabel);
-            ClassSprayBuilding.Hydrate(parent, reader, obj as ClassSprayBuilding);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassSprayBuilding.Hydrate(parent, reader, obj as ClassSprayBuilding);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassSprayBuilding : ClassBuilding

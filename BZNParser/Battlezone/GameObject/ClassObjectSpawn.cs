@@ -13,9 +13,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassObjectSpawn(preamble, classLabel);
-            ClassObjectSpawn.Hydrate(parent, reader, obj as ClassObjectSpawn);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassObjectSpawn.Hydrate(parent, reader, obj as ClassObjectSpawn);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassObjectSpawn : ClassBuilding
@@ -23,7 +33,29 @@ namespace BZNParser.Battlezone.GameObject
         public Int32 spawnHandle { get; set; }
         public float spawnTimer { get; set; }
 
-        public ClassObjectSpawn(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassObjectSpawn(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            spawnHandle = 0;
+            spawnTimer = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassObjectSpawn? obj)
         {
             IBZNToken? tok;

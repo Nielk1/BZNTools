@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassPlant(preamble, classLabel);
-            ClassPlant.Hydrate(parent, reader, obj as ClassPlant);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassPlant.Hydrate(parent, reader, obj as ClassPlant);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassPlant : ClassBuilding

@@ -100,10 +100,10 @@ namespace BZNParser.Tokenizer
             // TODO account for double posit items
             return new Matrix()
             {
-                rightx = subToks[ 0].GetSingle(), righty = subToks[ 1].GetSingle(), rightz = subToks[ 2].GetSingle(), rightw = 0,
-                upx    = subToks[ 3].GetSingle(), upy    = subToks[ 4].GetSingle(), upz    = subToks[ 5].GetSingle(), upw    = 0,
-                frontx = subToks[ 6].GetSingle(), fronty = subToks[ 7].GetSingle(), frontz = subToks[ 8].GetSingle(), frontw = 0,
-                positx = subToks[ 9].GetSingle(), posity = subToks[10].GetSingle(), positz = subToks[11].GetSingle(), positw = 1,
+                RightX = subToks[ 0].GetSingle(), RightY = subToks[ 1].GetSingle(), RightZ = subToks[ 2].GetSingle(), RightW = 0,
+                UpX    = subToks[ 3].GetSingle(), UpY    = subToks[ 4].GetSingle(), UpZ    = subToks[ 5].GetSingle(), UpW    = 0,
+                FrontX = subToks[ 6].GetSingle(), FrontY = subToks[ 7].GetSingle(), FrontZ = subToks[ 8].GetSingle(), FrontW = 0,
+                PositX = subToks[ 9].GetSingle(), PositY = subToks[10].GetSingle(), PositZ = subToks[11].GetSingle(), PositW = 1,
             };
         }
         public Matrix GetMatrix(int index = 0)
@@ -124,10 +124,10 @@ namespace BZNParser.Tokenizer
 
             return new Matrix()
             {
-                rightx = subToks[ 0].GetSingle(), righty = subToks[ 1].GetSingle(), rightz = subToks[ 2].GetSingle(), rightw = 0,
-                upx    = subToks[ 3].GetSingle(), upy    = subToks[ 4].GetSingle(), upz    = subToks[ 5].GetSingle(), upw    = 0,
-                frontx = subToks[ 6].GetSingle(), fronty = subToks[ 7].GetSingle(), frontz = subToks[ 8].GetSingle(), frontw = 0,
-                positx = subToks[ 9].GetSingle(), posity = subToks[10].GetSingle(), positz = subToks[11].GetSingle(), positw = 1,
+                RightX = subToks[ 0].GetSingle(), RightY = subToks[ 1].GetSingle(), RightZ = subToks[ 2].GetSingle(), RightW = 0,
+                UpX    = subToks[ 3].GetSingle(), UpY    = subToks[ 4].GetSingle(), UpZ    = subToks[ 5].GetSingle(), UpW    = 0,
+                FrontX = subToks[ 6].GetSingle(), FrontY = subToks[ 7].GetSingle(), FrontZ = subToks[ 8].GetSingle(), FrontW = 0,
+                PositX = subToks[ 9].GetSingle(), PositY = subToks[10].GetSingle(), PositZ = subToks[11].GetSingle(), PositW = 1,
             };
         }
         public Euler GetEuler(int index = 0)
@@ -145,12 +145,12 @@ namespace BZNParser.Tokenizer
 
             return new Euler()
             {
-                mass = subToks[0].GetSingle(),
-                mass_inv = subToks[1].GetSingle(),
-                v_mag = subToks[2].GetSingle(),
-                v_mag_inv = subToks[3].GetSingle(),
+                Mass = subToks[0].GetSingle(),
+                MassInv = subToks[1].GetSingle(),
+                VMag = subToks[2].GetSingle(),
+                VMagInv = subToks[3].GetSingle(),
                 I = subToks[4].GetSingle(),
-                I_inv = subToks[5].GetSingle(),
+                IInv = subToks[5].GetSingle(),
                 v = subToks[6].GetVector3D(),
                 omega = subToks[7].GetVector3D(),
                 Accel = subToks[8].GetVector3D()

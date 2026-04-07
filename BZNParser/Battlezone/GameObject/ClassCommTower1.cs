@@ -10,9 +10,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassCommTower1(preamble, classLabel);
-            ClassCommTower1.Hydrate(parent, reader, obj as ClassCommTower1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassCommTower1.Hydrate(parent, reader, obj as ClassCommTower1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassCommTower1 : ClassBuilding

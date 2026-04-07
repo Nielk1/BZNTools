@@ -16,9 +16,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassCraft(preamble, classLabel);
-            ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassCraft : ClassGameObject
@@ -52,7 +62,47 @@ namespace BZNParser.Battlezone.GameObject
 
 
 
-        public ClassCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            abandoned = 0;
+            cloakTransitionTime = null;
+            cloakState = null;
+            cloakTransBeginTime = null;
+            cloakTransEndTime = null;
+            m_ejectRatio = 0;
+
+            energy0current = 0;
+            energy0maximum = 0;
+            energy1current = 0;
+            energy1maximum = 0;
+            energy2current = 0;
+            energy2maximum = 0;
+            bumpers = new Vector3D[6];
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            foreach (var bumper in bumpers)
+                bumper.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            foreach (var bumper in bumpers)
+                bumper.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            foreach (var bumper in bumpers)
+                bumper.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassCraft? obj)
         {
             IBZNToken? tok;

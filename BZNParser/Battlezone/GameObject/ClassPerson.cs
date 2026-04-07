@@ -16,16 +16,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassPerson(preamble, classLabel);
-            ClassPerson.Hydrate(parent, reader, obj as ClassPerson);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassPerson.Hydrate(parent, reader, obj as ClassPerson);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassPerson : ClassCraft
     {
         public float nextScream { get; set; }
 
-        public ClassPerson(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassPerson(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            nextScream = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPerson? obj)
         {
             IBZNToken? tok;

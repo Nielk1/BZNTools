@@ -13,16 +13,50 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassDeployBuilding(preamble, classLabel);
-            ClassDeployBuilding.Hydrate(parent, reader, obj as ClassDeployBuilding);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassDeployBuilding.Hydrate(parent, reader, obj as ClassDeployBuilding);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassDeployBuilding : ClassTrackedDeployable
     {
         public Matrix dropMat { get; set; }
 
-        public ClassDeployBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassDeployBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            dropMat = new Matrix();
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            dropMat.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            dropMat.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            dropMat.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployBuilding? obj)
         {

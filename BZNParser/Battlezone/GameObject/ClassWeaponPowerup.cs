@@ -15,9 +15,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassWeaponPowerup(preamble, classLabel);
-            ClassWeaponPowerup.Hydrate(parent, reader, obj as ClassWeaponPowerup);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassWeaponPowerup.Hydrate(parent, reader, obj as ClassWeaponPowerup);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassWeaponPowerup : ClassPowerUp

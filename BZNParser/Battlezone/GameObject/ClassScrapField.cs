@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassScrapField(preamble, classLabel);
-            ClassScrapField.Hydrate(parent, reader, obj as ClassScrapField);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassScrapField.Hydrate(parent, reader, obj as ClassScrapField);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassScrapField : ClassBuilding

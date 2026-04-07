@@ -14,9 +14,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassProducer(preamble, classLabel);
-            ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassProducer : ClassHoverCraft
@@ -42,7 +52,41 @@ namespace BZNParser.Battlezone.GameObject
         public Int32 buildDc { get; set; }
 
 
-        public ClassProducer(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassProducer(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            //setAltitude = 0;
+            timeDeploy = 0;
+            timeUndeploy = 0;
+            powerSource = 0;
+            //state = new byte[4];
+            //delayTimer = 0;
+            delayTimer = 0;
+            nextRepair = 0;
+            buildClass = string.Empty;
+            buildDoneTime = 0;
+            buildCost = 0;
+            buildUpdateTime = 0;
+            buildDt = 0;
+            buildDc = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassProducer? obj)
         {
             IBZNToken? tok;

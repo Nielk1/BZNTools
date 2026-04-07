@@ -12,9 +12,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassPowerPlant(preamble, classLabel);
-            ClassPowerPlant.Hydrate(parent, reader, obj as ClassPowerPlant);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassPowerPlant.Hydrate(parent, reader, obj as ClassPowerPlant);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassPowerPlant : ClassBuilding

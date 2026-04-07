@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassDayWrecker(preamble, classLabel);
-            ClassDayWrecker.Hydrate(parent, reader, obj as ClassDayWrecker);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassDayWrecker.Hydrate(parent, reader, obj as ClassDayWrecker);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassDayWrecker : ClassPowerUp

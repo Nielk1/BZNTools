@@ -10,9 +10,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassHealthPowerup1(preamble, classLabel);
-            ClassHealthPowerup1.Hydrate(parent, reader, obj as ClassHealthPowerup1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassHealthPowerup1.Hydrate(parent, reader, obj as ClassHealthPowerup1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassHealthPowerup1 : ClassPowerUp

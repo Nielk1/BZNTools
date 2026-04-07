@@ -13,9 +13,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassDeposit(preamble, classLabel);
-            ClassDeposit.Hydrate(parent, reader, obj as ClassDeposit);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassDeposit.Hydrate(parent, reader, obj as ClassDeposit);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassDeposit : ClassBuilding

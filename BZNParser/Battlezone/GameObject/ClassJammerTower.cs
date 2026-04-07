@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassJammerTower(preamble, classLabel);
-            ClassJammerTower.Hydrate(parent, reader, obj as ClassJammerTower);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassJammerTower.Hydrate(parent, reader, obj as ClassJammerTower);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassJammerTower : ClassPoweredBuilding

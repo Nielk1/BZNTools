@@ -13,9 +13,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassTrackedVehicle(preamble, classLabel);
-            ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassTrackedVehicle : ClassCraft

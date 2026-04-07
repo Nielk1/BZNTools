@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassLandCreature(preamble, classLabel);
-            ClassLandCreature.Hydrate(parent, reader, obj as ClassLandCreature);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassLandCreature.Hydrate(parent, reader, obj as ClassLandCreature);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassLandCreature : ClassCraft

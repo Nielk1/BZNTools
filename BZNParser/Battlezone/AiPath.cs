@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using static BZNParser.Tokenizer.BZNStreamReader;
@@ -22,26 +23,58 @@ namespace BZNParser.Battlezone
 
         private readonly IMalformable.MalformationManager _malformationManager;
         public IMalformable.MalformationManager Malformations => _malformationManager;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public AiPath()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
+            this.label = new SizedString();
+            this.pointCount = 0;
+            points = Array.Empty<Vector2D>();
+            this.pathType = 0;
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
         public void ClearMalformations()
         {
             AiPathDummy?.ClearMalformations();
             label?.ClearMalformations();
+            foreach (var point in points)
+                point.ClearMalformations();
             Malformations.Clear();
         }
+        private bool blockAutoFixMalformations = false;
+        public void DisableMalformationAutoFix()
+        {
+            AiPathDummy?.DisableMalformationAutoFix();
+            label?.DisableMalformationAutoFix();
+            foreach(var point in points)
+                point.DisableMalformationAutoFix();
+            blockAutoFixMalformations = true;
+        }
+        public void EnableMalformationAutoFix()
+        {
+            AiPathDummy?.EnableMalformationAutoFix();
+            label?.EnableMalformationAutoFix();
+            foreach (var point in points)
+                point.EnableMalformationAutoFix();
+            blockAutoFixMalformations = false;
+        }
+
 
         public static bool Create(BZNFileBattlezone parent, BZNStreamReader reader, int countPaths, int countLeft, out AiPath? obj, bool create = true)
         {
             obj = null;
             if (create)
+            {
                 obj = new AiPath();
-            AiPath.Hydrate(parent, reader, countPaths, countLeft, obj);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                AiPath.Hydrate(parent, reader, countPaths, countLeft, obj);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
 
         public static bool Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countPaths, int countLeft, AiPath? obj)

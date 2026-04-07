@@ -10,15 +10,46 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassBarracks1(preamble, classLabel);
-            ClassBarracks1.Hydrate(parent, reader, obj as ClassBarracks1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassBarracks1.Hydrate(parent, reader, obj as ClassBarracks1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassBarracks1 : ClassBuilding
     {
         protected Int32 nextEmptyCheck { get; set; }
-        public ClassBarracks1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassBarracks1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            this.nextEmptyCheck = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBarracks1? obj)
         {
             if (parent.SaveType != SaveType.BZN)

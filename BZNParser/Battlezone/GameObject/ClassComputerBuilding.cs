@@ -9,16 +9,48 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassComputerBuilding(preamble, classLabel);
-            ClassComputerBuilding.Hydrate(parent, reader, obj as ClassComputerBuilding);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassComputerBuilding.Hydrate(parent, reader, obj as ClassComputerBuilding);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassComputerBuilding : ClassDummy
     {
         protected UInt32 Nozzle1_Handle { get; set; }
         protected UInt32 Nozzle2_Handle { get; set; }
-        public ClassComputerBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassComputerBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            Nozzle1_Handle = 0;
+            Nozzle2_Handle = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassComputerBuilding? obj)
         {

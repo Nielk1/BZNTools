@@ -14,16 +14,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassScrapSilo1(preamble, classLabel);
-            ClassScrapSilo1.Hydrate(parent, reader, obj as ClassScrapSilo1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassScrapSilo1.Hydrate(parent, reader, obj as ClassScrapSilo1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassScrapSilo1 : ClassGameObject
     {
         public UInt32 undefptr { get; set; }
 
-        public ClassScrapSilo1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassScrapSilo1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            undefptr = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScrapSilo1? obj)
         {
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 1020)

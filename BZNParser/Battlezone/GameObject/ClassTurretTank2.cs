@@ -10,9 +10,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassTurretTank2(preamble, classLabel);
-            ClassTurretTank2.Hydrate(parent, reader, obj as ClassTurretTank2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassTurretTank2.Hydrate(parent, reader, obj as ClassTurretTank2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassTurretTank2 : ClassDeployable
@@ -28,7 +38,36 @@ namespace BZNParser.Battlezone.GameObject
 
         public float alphaTurret { get; set; } // obsolete, only read in LOCKSTEP/JOINSAVE, ignored otherwise
 
-        public ClassTurretTank2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassTurretTank2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            omegaTurret = 0;
+            timeDeploy = 0;
+            timeUndeploy = 0;
+            change_state = 0;
+            delayTimer = 0;
+            turretAligned = false;
+            wantTurret = false;
+            prevYaw = 0;
+            alphaTurret = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank2? obj)
         {
             IBZNToken? tok;

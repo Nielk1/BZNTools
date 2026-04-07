@@ -15,9 +15,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassConstructionRig1(preamble, classLabel);
-            ClassConstructionRig1.Hydrate(parent, reader, obj as ClassConstructionRig1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassConstructionRig1.Hydrate(parent, reader, obj as ClassConstructionRig1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassConstructionRig1 : ClassProducer
@@ -26,7 +36,33 @@ namespace BZNParser.Battlezone.GameObject
         public string dropClass { get; set; }
         public UInt32 lastRecycled { get; set; }
 
-        public ClassConstructionRig1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassConstructionRig1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            dropMat = new Matrix();
+            dropClass = string.Empty;
+            lastRecycled = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            dropMat.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            dropMat.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            dropMat.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassConstructionRig1? obj)
         {
             IBZNToken? tok;

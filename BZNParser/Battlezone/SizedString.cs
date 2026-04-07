@@ -19,10 +19,7 @@ public class SizedString : IMalformable
     }
     #endregion Malformable
 
-    public SizedString() : this(string.Empty, null) {
-        // we are created empty so prevent automatic clearing of the length when the value is set
-        blockAutoFixMalformations = true;
-    }
+    public SizedString() : this(string.Empty, null) {}
     public SizedString(string value, uint? length = null)
     {
         _malformationManager = new IMalformable.MalformationManager(this);
@@ -54,12 +51,15 @@ public class SizedString : IMalformable
     {
         return Value;
     }
-
+    public void DisableMalformationAutoFix()
+    {
+        blockAutoFixMalformations = true;
+    }
     /// <summary>
     /// Allow automatic malformation and data corrections when data altered.
     /// This is blocked when constructed with no paramaters.
     /// </summary>
-    public void Finalized()
+    public void EnableMalformationAutoFix()
     {
         blockAutoFixMalformations = false;
     }
@@ -96,26 +96,28 @@ static class SizedStringExtension
         //}
 
         SizedString? value = new SizedString();
-        TProp setVal = default!;
-        bool did = false;
-        if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
-        {
-            setVal = (TProp)(object)value;
-            did = true;
-        }
-        else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(SizedString))
-        {
-            SizedString[]? arr = (SizedString[]?)propInfo?.GetValue(parent);
-            if (arr != null && destinationIndex >= 0 && destinationIndex < arr.Length)
-            {
-                arr[destinationIndex] = value;
-                setVal = (TProp)(object)arr;
-                did = true;
-            }
-        }
+        value.DisableMalformationAutoFix();
 
         try
         {
+            TProp setVal = default!;
+            bool did = false;
+            if (typeof(TProp) == typeof(SizedString) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(SizedString))
+            {
+                setVal = (TProp)(object)value;
+                did = true;
+            }
+            else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(SizedString))
+            {
+                SizedString[]? arr = (SizedString[]?)propInfo?.GetValue(parent);
+                if (arr != null && destinationIndex >= 0 && destinationIndex < arr.Length)
+                {
+                    arr[destinationIndex] = value;
+                    setVal = (TProp)(object)arr;
+                    did = true;
+                }
+            }
+
             IBZNToken? tok;
             if (reader.InBinary)
             {
@@ -161,7 +163,7 @@ static class SizedStringExtension
         }
         finally
         {
-            value?.Finalized();
+            value?.EnableMalformationAutoFix();
         }
     }
 
@@ -241,10 +243,14 @@ static class SizedStringExtension
         if (parent != null)
             value = (SizedString?)(propInfo?.GetValue(parent));
         if (value == null && propInfo != null)
+        {
             value = new SizedString();
+            value.DisableMalformationAutoFix();
+        }
         if (propInfo != null)
         {
             value = new SizedString();
+            value.DisableMalformationAutoFix();
             if (parent != null)
                 propInfo.SetValue(parent, value);
         }
@@ -270,7 +276,7 @@ static class SizedStringExtension
         finally
         {
             // unlock the SizedString so editing its value wipes the length override
-            value?.Finalized();
+            value?.EnableMalformationAutoFix();
         }
     }
     public static void WriteSizedStringType2<T>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, SizedString>> property)

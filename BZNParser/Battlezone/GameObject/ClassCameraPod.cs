@@ -11,15 +11,46 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassCameraPod(preamble, classLabel);
-            ClassCameraPod.Hydrate(parent, reader, obj as ClassCameraPod);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassCameraPod.Hydrate(parent, reader, obj as ClassCameraPod);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassCameraPod : ClassPowerUp
     {
         protected int navSlot { get; set; }
-        public ClassCameraPod(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassCameraPod(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            navSlot = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassCameraPod? obj)
         {
             if (reader.Format == BZNFormat.Battlezone2)

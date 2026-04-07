@@ -8,9 +8,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassBullet(preamble, classLabel);
-            ClassBullet.Hydrate(parent, reader, obj as ClassBullet);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassBullet.Hydrate(parent, reader, obj as ClassBullet);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassBullet : ClassOrdnance

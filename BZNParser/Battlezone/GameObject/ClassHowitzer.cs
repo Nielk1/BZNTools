@@ -15,9 +15,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassHowitzer(preamble, classLabel);
-            ClassHowitzer.Hydrate(parent, reader, obj as ClassHowitzer);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassHowitzer.Hydrate(parent, reader, obj as ClassHowitzer);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassHowitzer : ClassTurretTank1

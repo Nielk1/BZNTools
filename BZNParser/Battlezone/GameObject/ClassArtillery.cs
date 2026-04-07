@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassArtillery(preamble, classLabel);
-            ClassArtillery.Hydrate(parent, reader, obj as ClassArtillery);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassArtillery.Hydrate(parent, reader, obj as ClassArtillery);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassArtillery : ClassTurretTank2
@@ -20,7 +30,27 @@ namespace BZNParser.Battlezone.GameObject
         //public float deployTimer { get; set; }
         //public float prevYaw { get; set; }
 
-        public ClassArtillery(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassArtillery(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            heightDeploy = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassArtillery? obj)
         {
             if (reader.Version < 1110)

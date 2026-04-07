@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassRecyclerVehicle(preamble, classLabel);
-            ClassRecyclerVehicle.Hydrate(parent, reader, obj as ClassRecyclerVehicle);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassRecyclerVehicle.Hydrate(parent, reader, obj as ClassRecyclerVehicle);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassRecyclerVehicle : ClassDeployBuilding
@@ -21,7 +31,37 @@ namespace BZNParser.Battlezone.GameObject
         public bool buildActive { get; set; }
         public SizedString[] buildItems { get; set; }
 
-        public ClassRecyclerVehicle(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassRecyclerVehicle(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            nextRepair = 0;
+            buildDoneTime = 0;
+            buildActive = false;
+            buildItems = Array.Empty<SizedString>();
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            foreach (var buildItem in buildItems)
+                buildItem?.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            foreach (var buildItem in buildItems)
+                buildItem?.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            foreach (var buildItem in buildItems)
+                buildItem?.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassRecyclerVehicle? obj)
         {

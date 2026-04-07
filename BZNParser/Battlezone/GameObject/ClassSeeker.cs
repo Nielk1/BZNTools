@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassSeeker(preamble, classLabel);
-            ClassSeeker.Hydrate(parent, reader, obj as ClassSeeker);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassSeeker.Hydrate(parent, reader, obj as ClassSeeker);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassSeeker : ClassMine

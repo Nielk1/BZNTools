@@ -13,9 +13,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassMorphTank(preamble, classLabel);
-            ClassMorphTank.Hydrate(parent, reader, obj as ClassMorphTank);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassMorphTank.Hydrate(parent, reader, obj as ClassMorphTank);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassMorphTank : ClassDeployable

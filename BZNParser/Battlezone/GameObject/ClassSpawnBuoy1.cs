@@ -14,9 +14,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassSpawnBuoy1(preamble, classLabel);
-            ClassSpawnBuoy1.Hydrate(parent, reader, obj as ClassSpawnBuoy1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassSpawnBuoy1.Hydrate(parent, reader, obj as ClassSpawnBuoy1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassSpawnBuoy1 : ClassGameObject

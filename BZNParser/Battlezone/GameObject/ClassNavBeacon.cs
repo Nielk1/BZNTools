@@ -13,9 +13,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassNavBeacon(preamble, classLabel);
-            ClassNavBeacon.Hydrate(parent, reader, obj as ClassNavBeacon);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassNavBeacon.Hydrate(parent, reader, obj as ClassNavBeacon);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassNavBeacon : ClassGameObject
@@ -23,7 +33,29 @@ namespace BZNParser.Battlezone.GameObject
         //public string name { get; set; }
         public int navSlot { get; set; }
 
-        public ClassNavBeacon(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassNavBeacon(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            //name = string.Empty;
+            navSlot = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassNavBeacon? obj)
         {
             IBZNToken? tok;

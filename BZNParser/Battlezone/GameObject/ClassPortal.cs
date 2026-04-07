@@ -13,9 +13,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassPortal(preamble, classLabel);
-            ClassPortal.Hydrate(parent, reader, obj as ClassPortal);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassPortal.Hydrate(parent, reader, obj as ClassPortal);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassPortal : ClassGameObject
@@ -25,7 +35,31 @@ namespace BZNParser.Battlezone.GameObject
         public float portalEndTime { get; set; }
         public bool isIn { get; set; }
 
-        public ClassPortal(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassPortal(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            portalState = 0;
+            portalBeginTime = 0;
+            portalEndTime = 0;
+            isIn = false;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPortal? obj)
         {
             IBZNToken? tok;

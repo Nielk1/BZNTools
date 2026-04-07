@@ -10,9 +10,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassConstructionRig2(preamble, classLabel);
-            ClassConstructionRig2.Hydrate(parent, reader, obj as ClassConstructionRig2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassConstructionRig2.Hydrate(parent, reader, obj as ClassConstructionRig2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassConstructionRig2 : ClassDeployable
@@ -26,7 +36,40 @@ namespace BZNParser.Battlezone.GameObject
         public UInt32 upgradeHandle { get; set; }
         public UInt32 buildGroup { get; set; }
 
-        public ClassConstructionRig2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassConstructionRig2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            dropMat = new Matrix();
+            dropClass = new SizedString();
+            buildQueued = false;
+            buildActive = false;
+            buildTime = 0;
+            upgradeHandle = 0;
+            buildGroup = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            dropMat.ClearMalformations();
+            dropClass.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            dropMat.DisableMalformationAutoFix();
+            dropClass.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            dropMat.EnableMalformationAutoFix();
+            dropClass.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassConstructionRig2? obj)
         {
             IBZNToken? tok;

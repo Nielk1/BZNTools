@@ -15,9 +15,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassMagnetMine(preamble, classLabel);
-            ClassMagnetMine.Hydrate(parent, reader, obj as ClassMagnetMine);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassMagnetMine.Hydrate(parent, reader, obj as ClassMagnetMine);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassMagnetMine : ClassMine

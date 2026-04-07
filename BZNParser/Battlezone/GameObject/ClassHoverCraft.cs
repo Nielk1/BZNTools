@@ -14,9 +14,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassHoverCraft(preamble, classLabel);
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassHoverCraft : ClassCraft
@@ -44,7 +54,48 @@ namespace BZNParser.Battlezone.GameObject
         public float throttle { get; set; }
         public float airBorne { get; set; }
 
-        public ClassHoverCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassHoverCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            setAltitude = 0;
+            accelDragStop = 0;
+            accelDragFull = 0;
+            alphaTrack = 0;
+            alphaDamp = 0;
+            pitchPitch = 0;
+            pitchThrust = 0;
+            rollStrafe = 0;
+            rollSteer = 0;
+            velocForward = 0;
+            velocReverse = 0;
+            velocStrafe = 0;
+            accelThrust = 0;
+            accelBrake = 0;
+            omegaSpin = 0;
+            omegaTurn = 0;
+            alphaSteer = 0;
+            accelJump = 0;
+            thrustRatio = 0;
+            throttle = 0;
+            airBorne = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassHoverCraft? obj)
         {
             if (reader.Format == BZNFormat.Battlezone && reader.Version > 1001 && reader.Version < 1026)

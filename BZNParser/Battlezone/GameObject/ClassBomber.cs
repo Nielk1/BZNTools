@@ -9,16 +9,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassBomber(preamble, classLabel);
-            ClassBomber.Hydrate(parent, reader, obj as ClassBomber);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassBomber.Hydrate(parent, reader, obj as ClassBomber);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassBomber : ClassHoverCraft
     {
         public float m_ReloadTime { get; set; }
 
-        public ClassBomber(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassBomber(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            m_ReloadTime = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBomber? obj)
         {
             IBZNToken? tok;

@@ -13,16 +13,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassTrackedDeployable(preamble, classLabel);
-            ClassTrackedDeployable.Hydrate(parent, reader, obj as ClassTrackedDeployable);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassTrackedDeployable.Hydrate(parent, reader, obj as ClassTrackedDeployable);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassTrackedDeployable : ClassTrackedVehicle
     {
         public float deployTimer { get; set; }
 
-        public ClassTrackedDeployable(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassTrackedDeployable(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            deployTimer = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTrackedDeployable? obj)
         {
             IBZNToken? tok;

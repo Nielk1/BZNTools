@@ -14,16 +14,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassScavenger1(preamble, classLabel);
-            ClassScavenger1.Hydrate(parent, reader, obj as ClassScavenger1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassScavenger1.Hydrate(parent, reader, obj as ClassScavenger1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassScavenger1 : ClassHoverCraft
     {
         public UInt32 scrapHeld { get; set; }
 
-        public ClassScavenger1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassScavenger1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            scrapHeld = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScavenger1? obj)
         {
             if (reader.Format == BZNFormat.Battlezone)

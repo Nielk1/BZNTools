@@ -180,22 +180,22 @@ namespace BZNParser.Tokenizer
                 return GetMatrixDoubleOld(index);
             return new Matrix()
             {
-                rightx = GetSingle(index * 12 +  0),
-                righty = GetSingle(index * 12 +  1),
-                rightz = GetSingle(index * 12 +  2),
-                rightw = 0,
-                upx    = GetSingle(index * 12 +  3),
-                upy    = GetSingle(index * 12 +  4),
-                upz    = GetSingle(index * 12 +  5),
-                upw    = 0,
-                frontx = GetSingle(index * 12 +  6),
-                fronty = GetSingle(index * 12 +  7),
-                frontz = GetSingle(index * 12 +  8),
-                frontw = 0,
-                positx = GetSingle(index * 12 +  9),
-                posity = GetSingle(index * 12 + 10),
-                positz = GetSingle(index * 12 + 11),
-                positw = 1,
+                RightX = GetSingle(index * 12 +  0),
+                RightY = GetSingle(index * 12 +  1),
+                RightZ = GetSingle(index * 12 +  2),
+                RightW = 0,
+                UpX    = GetSingle(index * 12 +  3),
+                UpY    = GetSingle(index * 12 +  4),
+                UpZ    = GetSingle(index * 12 +  5),
+                UpW    = 0,
+                FrontX = GetSingle(index * 12 +  6),
+                FrontY = GetSingle(index * 12 +  7),
+                FrontZ = GetSingle(index * 12 +  8),
+                FrontW = 0,
+                PositX = GetSingle(index * 12 +  9),
+                PositY = GetSingle(index * 12 + 10),
+                PositZ = GetSingle(index * 12 + 11),
+                PositW = 1,
             };
         }
         private Matrix GetMatrixDoubleOld(int index = 0)
@@ -203,45 +203,45 @@ namespace BZNParser.Tokenizer
             int stride = sizeof(float) * 8 + sizeof(UInt32) + sizeof(double) * 3;
             return new Matrix()
             {
-                rightx = GetFloatInternal(stride * index + 0 * sizeof(float)),
-                righty = GetFloatInternal(stride * index + 1 * sizeof(float)),
-                rightz = GetFloatInternal(stride * index + 2 * sizeof(float)),
-                rightw = 0,
-                upx    = GetFloatInternal(stride * index + 3 * sizeof(float)),
-                upy    = GetFloatInternal(stride * index + 4 * sizeof(float)),
-                upz    = GetFloatInternal(stride * index + 5 * sizeof(float)),
-                upw    = 0,
-                frontx = GetFloatInternal(stride * index + 6 * sizeof(float)),
-                fronty = GetFloatInternal(stride * index + 7 * sizeof(float)),
-                frontz = GetFloatInternal(stride * index + 8 * sizeof(float)),
-                frontw = 0,
+                RightX = GetFloatInternal(stride * index + 0 * sizeof(float)),
+                RightY = GetFloatInternal(stride * index + 1 * sizeof(float)),
+                RightZ = GetFloatInternal(stride * index + 2 * sizeof(float)),
+                RightW = 0,
+                UpX    = GetFloatInternal(stride * index + 3 * sizeof(float)),
+                UpY    = GetFloatInternal(stride * index + 4 * sizeof(float)),
+                UpZ    = GetFloatInternal(stride * index + 5 * sizeof(float)),
+                UpW    = 0,
+                FrontX = GetFloatInternal(stride * index + 6 * sizeof(float)),
+                FrontY = GetFloatInternal(stride * index + 7 * sizeof(float)),
+                FrontZ = GetFloatInternal(stride * index + 8 * sizeof(float)),
+                FrontW = 0,
                 junk   = GetUInt32Internal(stride * index + 9 * sizeof(float) + 0 * sizeof(UInt32)), // junk padding
-                positx = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 0 * sizeof(double)),
-                posity = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 1 * sizeof(double)),
-                positz = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 2 * sizeof(double)),
-                positw = 1,
+                PositX = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 0 * sizeof(double)),
+                PositY = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 1 * sizeof(double)),
+                PositZ = GetDoubleInternal(stride * index + 9 * sizeof(float) + 1 * sizeof(UInt32) + 2 * sizeof(double)),
+                PositW = 1,
             };
         }
         public Matrix GetMatrix(int index = 0)
         {
             return new Matrix()
             {
-               rightx = GetSingle(index * 16 +  0),
-               righty = GetSingle(index * 16 +  1),
-               rightz = GetSingle(index * 16 +  2),
-               rightw = GetSingle(index * 16 +  3),
-               upx    = GetSingle(index * 16 +  4),
-               upy    = GetSingle(index * 16 +  5),
-               upz    = GetSingle(index * 16 +  6),
-               upw    = GetSingle(index * 16 +  7),
-               frontx = GetSingle(index * 16 +  8),
-               fronty = GetSingle(index * 16 +  9),
-               frontz = GetSingle(index * 16 + 10),
-               frontw = GetSingle(index * 16 + 11),
-               positx = GetSingle(index * 16 + 12),
-               posity = GetSingle(index * 16 + 13),
-               positz = GetSingle(index * 16 + 14),
-               positw = GetSingle(index * 16 + 15),
+               RightX = GetSingle(index * 16 +  0),
+               RightY = GetSingle(index * 16 +  1),
+               RightZ = GetSingle(index * 16 +  2),
+               RightW = GetSingle(index * 16 +  3),
+               UpX    = GetSingle(index * 16 +  4),
+               UpY    = GetSingle(index * 16 +  5),
+               UpZ    = GetSingle(index * 16 +  6),
+               UpW    = GetSingle(index * 16 +  7),
+               FrontX = GetSingle(index * 16 +  8),
+               FrontY = GetSingle(index * 16 +  9),
+               FrontZ = GetSingle(index * 16 + 10),
+               FrontW = GetSingle(index * 16 + 11),
+               PositX = GetSingle(index * 16 + 12),
+               PositY = GetSingle(index * 16 + 13),
+               PositZ = GetSingle(index * 16 + 14),
+               PositW = GetSingle(index * 16 + 15),
             };
         }
 
@@ -298,18 +298,18 @@ namespace BZNParser.Tokenizer
                 case BinaryFieldType.DATA_MAT3DOLD:
                     {
                         Matrix m = GetMatrixOld();
-                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.rightx,10:0.00}, {m.righty,10:0.00}, {m.rightz,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.upx,10:0.00}, {m.upy,10:0.00}, {m.upz,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.frontx,10:0.00}, {m.fronty,10:0.00}, {m.frontz,10:0.00} }},\r\n" +
-                               $"      \t                   \t         {{ {m.positx,10:0.00}, {m.posity,10:0.00}, {m.positz,10:0.00} }} }}";
+                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.RightX,10:0.00}, {m.RightY,10:0.00}, {m.RightZ,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.UpX,10:0.00}, {m.UpY,10:0.00}, {m.UpZ,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.FrontX,10:0.00}, {m.FrontY,10:0.00}, {m.FrontZ,10:0.00} }},\r\n" +
+                               $"      \t                   \t         {{ {m.PositX,10:0.00}, {m.PositY,10:0.00}, {m.PositZ,10:0.00} }} }}";
                     }
                 case BinaryFieldType.DATA_MAT3D:
                     {
                         Matrix m = GetMatrix();
-                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.rightx,10:0.00}, {m.righty,10:0.00}, {m.rightz,10:0.00}, {m.rightw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.upx,10:0.00}, {m.upy,10:0.00}, {m.upz,10:0.00}, {m.upw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.frontx,10:0.00}, {m.fronty,10:0.00}, {m.frontz,10:0.00}, {m.frontw,10:0.00} }},\r\n" +
-                                $"      \t                   \t         {{ {m.positx,10:0.00}, {m.posity,10:0.00}, {m.positz,10:0.00}, {m.positw,10:0.00} }} }}";
+                        return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {{ {{ {m.RightX,10:0.00}, {m.RightY,10:0.00}, {m.RightZ,10:0.00}, {m.RightW,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.UpX,10:0.00}, {m.UpY,10:0.00}, {m.UpZ,10:0.00}, {m.UpW,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.FrontX,10:0.00}, {m.FrontY,10:0.00}, {m.FrontZ,10:0.00}, {m.FrontW,10:0.00} }},\r\n" +
+                                $"      \t                   \t         {{ {m.PositX,10:0.00}, {m.PositY,10:0.00}, {m.PositZ,10:0.00}, {m.PositW,10:0.00} }} }}";
                     }
             }
             return $"BINARY\tType: {type.ToString().PadRight(13)}\tValue: {BitConverter.ToString(data.Take(20).ToArray())}{(data.Length > 20 ? "..." : string.Empty)}";

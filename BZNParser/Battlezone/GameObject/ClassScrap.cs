@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassScrap(preamble, classLabel);
-            ClassScrap.Hydrate(parent, reader, obj as ClassScrap);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassScrap.Hydrate(parent, reader, obj as ClassScrap);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassScrap : ClassGameObject

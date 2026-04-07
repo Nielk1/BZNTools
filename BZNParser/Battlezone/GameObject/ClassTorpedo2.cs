@@ -9,16 +9,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassTorpedo2(preamble, classLabel);
-            ClassTorpedo2.Hydrate(parent, reader, obj as ClassTorpedo2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassTorpedo2.Hydrate(parent, reader, obj as ClassTorpedo2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassTorpedo2 : ClassGameObject
     {
         public float lifeTimer { get; set; }
 
-        public ClassTorpedo2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassTorpedo2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            lifeTimer = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTorpedo2? obj)
         {
             IBZNToken? tok;

@@ -10,9 +10,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassAirCraft(preamble, classLabel);
-            ClassAirCraft.Hydrate(parent, reader, obj as ClassAirCraft);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassAirCraft.Hydrate(parent, reader, obj as ClassAirCraft);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassAirCraft : ClassCraft
@@ -24,7 +34,35 @@ namespace BZNParser.Battlezone.GameObject
         protected bool m_bLockMode { get; set; }
         protected bool m_bLockModeDeployed { get; set; }
 
-        public ClassAirCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassAirCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) {
+            deployTimer = 0;
+            lastSteer = 0;
+            lastThrot = 0;
+            lastStrafe = 0;
+            m_bLockMode = false;
+            m_bLockModeDeployed = false;
+        }
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        // implement it later for non-BZN save types
+        //private bool blockAutoFixMalformations = false;
+        public override void DisableMalformationAutoFix()
+        {
+            //blockAutoFixMalformations = true;
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            //blockAutoFixMalformations = false;
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAirCraft? obj)
         {
             if (parent.SaveType != SaveType.BZN)

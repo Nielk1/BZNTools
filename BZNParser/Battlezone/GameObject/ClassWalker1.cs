@@ -14,9 +14,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassWalker1(preamble, classLabel);
-            ClassWalker1.Hydrate(parent, reader, obj as ClassWalker1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassWalker1.Hydrate(parent, reader, obj as ClassWalker1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassWalker1 : ClassCraft

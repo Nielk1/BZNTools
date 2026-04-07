@@ -11,9 +11,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassArmory2(preamble, classLabel);
-            ClassArmory2.Hydrate(parent, reader, obj as ClassArmory2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassArmory2.Hydrate(parent, reader, obj as ClassArmory2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassArmory2 : ClassPoweredBuilding
@@ -27,7 +37,46 @@ namespace BZNParser.Battlezone.GameObject
         Vector3D launchTarget { get; set; }
         int launchHandle { get; set; }
 
-        public ClassArmory2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassArmory2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            buildItems = Array.Empty<SizedString>();
+            buildDoneTime = 0;
+            buildActive = false;
+            buildStall = false;
+            buildRally = new Vector3D();
+            navHandle = 0;
+            launchTarget = new Vector3D();
+            launchHandle = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            foreach (var buildItem in buildItems)
+                buildItem?.ClearMalformations();
+            buildRally.ClearMalformations();
+            launchTarget.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            foreach(var buildItem in buildItems)
+                buildItem?.DisableMalformationAutoFix();
+            buildRally.DisableMalformationAutoFix();
+            launchTarget.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            foreach (var buildItem in buildItems)
+                buildItem?.EnableMalformationAutoFix();
+            buildRally.EnableMalformationAutoFix();
+            launchTarget.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassArmory2? obj)
         {
             IBZNToken? tok;

@@ -10,9 +10,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassAPC2(preamble, classLabel);
-            ClassAPC2.Hydrate(parent, reader, obj as ClassAPC2);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassAPC2.Hydrate(parent, reader, obj as ClassAPC2);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassAPC2 : ClassHoverCraft
@@ -20,15 +30,45 @@ namespace BZNParser.Battlezone.GameObject
         const int APC_MAX_SOLDIERS = 16;
 
         public int InternalSoldierCount { get; set; }
-        public float nextSoldierDelay { get; set; }
-        public float nextSoldierAngle { get; set; }
-        public float nextReturnToAPC { get; set; }
+        public float NextSoldierDelay { get; set; }
+        public float NextSoldierAngle { get; set; }
+        public float NextReturnToAPC { get; set; }
         public int ExternalSoldierCount { get; set; }
         public UInt32[]? ExternalSoldiers { get; set; }
         public bool DeployOnLanding { get; set; }
-        public Int32 undeployTimeout { get; set; }
+        public Int32 UndeployTimeout { get; set; }
 
-        public ClassAPC2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassAPC2(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            InternalSoldierCount = 0;
+            NextSoldierDelay = 0;
+            NextSoldierAngle = 0;
+            NextReturnToAPC = 0;
+            ExternalSoldierCount = 0;
+            ExternalSoldiers = null;
+            DeployOnLanding = false;
+            UndeployTimeout = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        private bool blockAutoFixMalformations = false;
+        public override void DisableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = true;
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            blockAutoFixMalformations = false;
+            base.EnableMalformationAutoFix();
+        }
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAPC2? obj)
         {
             IBZNToken? tok;
@@ -67,17 +107,17 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextSoldierDelay", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextSoldierDelay/FLOAT");
-                tok.ApplySingle(obj, x => x.nextSoldierDelay);
+                tok.ApplySingle(obj, x => x.NextSoldierDelay);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextSoldierAngle", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextSoldierAngle/FLOAT");
-                tok.ApplySingle(obj, x => x.nextSoldierAngle);
+                tok.ApplySingle(obj, x => x.NextSoldierAngle);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextReturnTimer", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse nextReturnTimer/FLOAT");
-                tok.ApplySingle(obj, x => x.nextReturnToAPC);
+                tok.ApplySingle(obj, x => x.NextReturnToAPC);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("DeployOnLanding", BinaryFieldType.DATA_BOOL))
@@ -87,7 +127,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undeployTimeout", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse undeployTimeout/LONG");
-                tok.ApplyInt32(obj, x => x.undeployTimeout);
+                tok.ApplyInt32(obj, x => x.UndeployTimeout);
             }
 
             tok = reader.ReadToken();
@@ -115,11 +155,11 @@ namespace BZNParser.Battlezone.GameObject
 
             if (parent.SaveType != SaveType.BZN)
             {
-                writer.WriteSingle("nextSoldierDelay", obj, x => x.nextSoldierDelay);
-                writer.WriteSingle("nextSoldierAngle", obj, x => x.nextSoldierAngle);
-                writer.WriteSingle("nextReturnTimer", obj, x => x.nextReturnToAPC);
+                writer.WriteSingle("nextSoldierDelay", obj, x => x.NextSoldierDelay);
+                writer.WriteSingle("nextSoldierAngle", obj, x => x.NextSoldierAngle);
+                writer.WriteSingle("nextReturnTimer", obj, x => x.NextReturnToAPC);
                 writer.WriteBoolean("DeployOnLanding", obj, x => x.DeployOnLanding);
-                writer.WriteInt32("undeployTimeout", obj, x => x.undeployTimeout);
+                writer.WriteInt32("undeployTimeout", obj, x => x.UndeployTimeout);
             }
 
             writer.WriteVoidBytes("state", obj, x => x.state, (v) => BitConverter.GetBytes((UInt32)v));

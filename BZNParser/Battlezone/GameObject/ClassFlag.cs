@@ -13,9 +13,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassFlag(preamble, classLabel);
-            ClassFlag.Hydrate(parent, reader, obj as ClassFlag);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassFlag.Hydrate(parent, reader, obj as ClassFlag);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassFlag : ClassPowerUp
@@ -23,7 +33,32 @@ namespace BZNParser.Battlezone.GameObject
         public Matrix startMat { get; set; }
         public UInt32 holder { get; set; }
 
-        public ClassFlag(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassFlag(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            startMat = new Matrix();
+            holder = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            startMat.ClearMalformations();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            startMat.DisableMalformationAutoFix();
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            startMat.EnableMalformationAutoFix();
+            base.EnableMalformationAutoFix();
+        }
+
+
 
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFlag? obj)
         {

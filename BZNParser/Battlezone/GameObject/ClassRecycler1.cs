@@ -14,16 +14,47 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassRecycler1(preamble, classLabel);
-            ClassRecycler1.Hydrate(parent, reader, obj as ClassRecycler1);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassRecycler1.Hydrate(parent, reader, obj as ClassRecycler1);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassRecycler1 : ClassProducer
     {
         public UInt32 undefptr { get; set; }
 
-        public ClassRecycler1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
+        public ClassRecycler1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
+        {
+            this.undefptr = 0;
+        }
+
+        public override void ClearMalformations()
+        {
+            Malformations.Clear();
+            base.ClearMalformations();
+        }
+
+        public override void DisableMalformationAutoFix()
+        {
+            base.DisableMalformationAutoFix();
+        }
+
+        public override void EnableMalformationAutoFix()
+        {
+            base.EnableMalformationAutoFix();
+        }
+
+
         public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassRecycler1? obj)
         {
             IBZNToken? tok = reader.ReadToken();

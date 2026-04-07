@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassNozzelBuilding(preamble, classLabel);
-            ClassNozzelBuilding.Hydrate(parent, reader, obj as ClassNozzelBuilding);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassNozzelBuilding.Hydrate(parent, reader, obj as ClassNozzelBuilding);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassNozzelBuilding: ClassBuilding

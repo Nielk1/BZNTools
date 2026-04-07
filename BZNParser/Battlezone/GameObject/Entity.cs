@@ -18,7 +18,8 @@ namespace BZNParser.Battlezone.GameObject
         public SizedString PrjID => preamble.PrjID;
         public UInt32 seqNo { get {return preamble.seqNo; } set { preamble.seqNo = value; } }
         public Vector3D pos { get { return preamble.pos; } set { preamble.pos = value; } }
-        public Vector3D? pos2 { get; set; }
+        public Vector3D? pos2 { get { return pos2_internal ?? pos; } set { pos2_internal = value; } }
+        private Vector3D? pos2_internal;
         public UInt32 team { get { return preamble.team; } set { preamble.team = value; } }
         public SizedString label { get { return preamble.label; } set { preamble.label = value; } }
         public bool isUser { get { return preamble.isUser; } set { preamble.isUser = value; } }
@@ -37,10 +38,21 @@ namespace BZNParser.Battlezone.GameObject
 
             this._malformationManager = new IMalformable.MalformationManager(this);
         }
-        public void ClearMalformations()
+        public virtual void ClearMalformations()
         {
-            pos2?.ClearMalformations();
+            //pos2?.ClearMalformations();
+            pos2 = null; // pos2 is just a copy of pos that in malformed files can be out of sync, so just null it entirely
             Malformations.Clear();
+        }
+
+        public virtual void DisableMalformationAutoFix()
+        {
+            pos2?.DisableMalformationAutoFix();
+        }
+
+        public virtual void EnableMalformationAutoFix()
+        {
+            pos2?.EnableMalformationAutoFix();
         }
 
         public virtual void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

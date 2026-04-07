@@ -9,9 +9,19 @@ namespace BZNParser.Battlezone.GameObject
         {
             obj = null;
             if (create)
+            {
                 obj = new ClassMotionSensor(preamble, classLabel);
-            ClassMotionSensor.Hydrate(parent, reader, obj as ClassMotionSensor);
-            return true;
+                obj.DisableMalformationAutoFix();
+            }
+            try
+            {
+                ClassMotionSensor.Hydrate(parent, reader, obj as ClassMotionSensor);
+                return true;
+            }
+            finally
+            {
+                obj?.EnableMalformationAutoFix();
+            }
         }
     }
     public class ClassMotionSensor : ClassPoweredBuilding

@@ -265,16 +265,16 @@ namespace BZNParser.Battlezone.GameObject
             }
             else
             {
-                if (obj.m_Use13Aim)
-                {
-                    if (writer.Version < 1109)
-                    {
-                        // we read a turretAligned but we're too old a version for that to be a thing
-                        throw new Exception("Use13Aim turret save data found in BZN Version < 1109, impossible, parse error expected");
-                    }
-                }
+                //if (obj.m_Use13Aim)
+                //{
+                //    if (writer.Version < 1109)
+                //    {
+                //        // we read a turretAligned but we're too old a version for that to be a thing
+                //        throw new Exception("Use13Aim turret save data found in BZN Version < 1109, impossible, parse error expected");
+                //    }
+                //}
 
-                if (!obj.m_Use13Aim)
+                if (writer.Version < 1109 || !obj.m_Use13Aim)
                 {
                     writer.WriteSingle("omegaTurret", obj, x => x.omegaTurret);
                     writer.WriteSingle("alphaTurret", obj, x => x.alphaTurret); // obsolete
@@ -284,7 +284,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteSingle("delayTimer", obj, x => x.delayTimer);
                 }
 
-                if (obj.m_Use13Aim)
+                if (writer.Version >= 1109 && obj.m_Use13Aim)
                 {
                     writer.WriteBoolean("turretAligned", obj, x => x.turretAligned);
                 }
@@ -309,15 +309,12 @@ namespace BZNParser.Battlezone.GameObject
                     }
                 }
 
-                if (obj.m_Use13Aim)
+                if (writer.Version < 1109 || !obj.m_Use13Aim)
                 {
                     if (parent.SaveType != SaveType.BZN && writer.Version >= 1140)
                     {
-                        if (!obj.m_Use13Aim)
-                        {
-                            writer.WriteSingle("prevYaw", obj, x => x.prevYaw);
-                            writer.WriteUInt32("change_state", obj, x => x.change_state);
-                        }
+                        writer.WriteSingle("prevYaw", obj, x => x.prevYaw);
+                        writer.WriteUInt32("change_state", obj, x => x.change_state);
                     }
                 }
 
@@ -329,7 +326,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (parent.SaveType != SaveType.BZN)
                 {
-                    if (obj.m_Use13Aim)
+                    if (writer.Version >= 1109 && obj.m_Use13Aim)
                     {
                         throw new NotImplementedException("Turret Control loading loop needed here");
                     }

@@ -27,10 +27,16 @@ namespace BZNParser.Battlezone.GameObject
     }
     public class ClassAirCraft : ClassCraft
     {
+        // All not BZN
+
         protected float deployTimer { get; set; }
+
+        // LOCKSTEP ONLY
         protected float lastSteer { get; set; }
         protected float lastThrot { get; set; }
         protected float lastStrafe { get; set; }
+
+        // Version >= 1138
         protected bool m_bLockMode { get; set; }
         protected bool m_bLockModeDeployed { get; set; }
 
@@ -87,8 +93,8 @@ namespace BZNParser.Battlezone.GameObject
                     tok.ApplySingle(obj, x => x.lastSteer);
 
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("lastSteer", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse lastSteer/FLOAT");
+                    if (tok == null || !tok.Validate("lastThrot", BinaryFieldType.DATA_FLOAT))
+                        throw new Exception("Failed to parse lastThrot/FLOAT");
                     tok.ApplySingle(obj, x => x.lastThrot);
 
                     tok = reader.ReadToken();

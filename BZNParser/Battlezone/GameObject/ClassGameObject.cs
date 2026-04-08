@@ -389,122 +389,24 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seen", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse seen/LONG");
-
-                    /*UInt32 seen;
-                    try
-                    {
-                        seen = tok.GetUInt32H();
-                        if ((seen & 0xFFFF0000u) != 0)
-                        {
-                            bool HasSignBit = (seen & 0x80000000) != 0;
-                            bool HasOtherOverflowBits = (seen & 0x7FFF0000) != 0;
-                            if (HasSignBit && !HasOtherOverflowBits)
-                            {
-                                if (HasSignBit && !HasOtherOverflowBits)
-                                {
-                                    // issue was caused by a bad sign bit forcing a mis-write of the data as a decimal number instead of hex
-                                    // TODO note malformation
-                                    seen &= 0x0000FFFF;
-                                }
-                                else
-                                {
-                                    // issue is undetermined other than it being decimal instead of hex
-                                    // TODO note malformation
-                                }
-                            }
-                            else if (!tok.IsBinary && tok.GetString().Any(c => !"1234567890".Contains(c)))
-                            {
-                                // assume this is a decimal number instead of hex
-                                seen = tok.GetUInt32();
-                                HasSignBit = (seen & 0x80000000) != 0;
-                                HasOtherOverflowBits = (seen & 0x7FFF0000) != 0;
-                                if (HasSignBit && !HasOtherOverflowBits)
-                                {
-                                    // issue was caused by a bad sign bit forcing a mis-write of the data as a decimal number instead of hex
-                                    // TODO note malformation
-                                    seen &= 0x0000FFFF;
-                                }
-                                else
-                                {
-                                    // issue is undetermined other than it being decimal instead of hex
-                                    // TODO note malformation
-                                }
-                            }
-                            else
-                            {
-                                // TODO note malformation
-                            }
-                        }
-                    }
-                    catch (System.OverflowException)
-                    {
-                        // if we overflowed we have to assume the value might be improperly stored as a decimal instead of a hexadecimal string
-                        seen = tok.GetUInt32();
-
-                        //bool HasMalformation = (seen & 0xFFFF0000u) != 0;
-                        bool HasSignBit = (seen & 0x80000000) != 0;
-                        bool HasOtherOverflowBits = (seen & 0x7FFF0000) != 0;
-                        if (HasSignBit && !HasOtherOverflowBits)
-                        {
-                            // issue was caused by a bad sign bit forcing a mis-write of the data as a decimal number instead of hex
-                            // TODO note malformation
-                            seen &= 0x0000FFFF;
-                        }
-                        else
-                        {
-                            // issue is undetermined other than it being decimal instead of hex
-                            // TODO note malformation
-                        }
-                    }*/
-                    //UInt32 seen = tok.GetUInt32H();
-                    //if (obj != null) obj.seen = seen;
-
                     tok.ApplyUInt32h(obj, x => x.seen);
                 }
             }
 
             if (reader.Format == BZNFormat.Battlezone2 && reader.Version != 1041 && reader.Version != 1047) // avoid bz2001.bzn via != 1041
             {
-                //if (reader.InBinary)
-                //{
-                //    Int32 groupNumber = (Int32)reader.ReadCompressedNumberFromBinary();
-                //    if (obj != null) obj.groupNumber = groupNumber;
-                //}
-                //else
+                tok = reader.ReadToken();
+                if (reader.Version <= 1128)
                 {
-                    tok = reader.ReadToken();
-                    if (reader.Version <= 1128)
-                    {
-                        if (tok == null || !tok.Validate("groupNumber", BinaryFieldType.DATA_LONG))
-                            throw new Exception("Failed to parse groupNumber/?");
-                    }
-                    else
-                    {
-                        if (tok == null || !tok.Validate("groupNumber", BinaryFieldType.DATA_CHAR))
-                            throw new Exception("Failed to parse groupNumber/?");
-                    }
-                    //if (obj != null) obj.groupNumber = tok.GetInt32();
-                    tok.ApplyInt8(obj, x => x.groupNumber);
-                }
-
-                /*tok = reader.ReadToken();
-                Int32 groupNumber;
-                if (tok.Validate("groupNumber", BinaryFieldType.DATA_LONG))
-                {
-                    groupNumber = tok.GetInt32();
-                }
-                else if (tok.Validate("groupNumber", BinaryFieldType.DATA_SHORT))
-                {
-                    groupNumber = tok.GetInt16();
-                }
-                else if (tok.Validate("groupNumber", BinaryFieldType.DATA_CHAR))
-                {
-                    groupNumber = tok.GetInt8();
+                    if (tok == null || !tok.Validate("groupNumber", BinaryFieldType.DATA_LONG))
+                        throw new Exception("Failed to parse groupNumber/?");
                 }
                 else
                 {
-                    throw new Exception("Failed to parse groupNumber/LONG/SHORT/CHAR");
-                }*/
+                    if (tok == null || !tok.Validate("groupNumber", BinaryFieldType.DATA_CHAR))
+                        throw new Exception("Failed to parse groupNumber/?");
+                }
+                tok.ApplyInt8(obj, x => x.groupNumber);
             }
 
             //if (parent.SaveType == 0)
@@ -575,17 +477,14 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("healthRatio", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse healthRatio/FLOAT");
-                //if (obj != null) obj.healthRatio = tok.GetSingle();
                 tok.ApplySingle(obj, x => x.healthRatio);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("curHealth", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse curHealth/LONG");
-                //if (obj != null) obj.curHealth = new DualModeValue<Int32, float>(tok.GetInt32());
                 tok.ApplyInt32(obj, x => x.curHealth);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("maxHealth", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse maxHealth/LONG");
-                //if (obj != null) obj.maxHealth = new DualModeValue<Int32, float>(tok.GetInt32());
                 tok.ApplyInt32(obj, x => x.maxHealth);
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -594,7 +493,6 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("healthRatio", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse healthRatio/FLOAT");
-                    //if (obj != null) obj.healthRatio = tok.GetSingle();
                     tok.ApplySingle(obj, x => x.healthRatio);
                 }
 
@@ -610,19 +508,16 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("curHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse curHealth/FLOAT");
-                    //if (obj != null) obj.curHealth = new DualModeValue<Int32, float>(tok.GetSingle());
                     tok.ApplySingle(obj, x => x.curHealth);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("maxHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse maxHealth/FLOAT");
-                    //if (obj != null) obj.maxHealth = new DualModeValue<Int32, float>(tok.GetSingle());
                     tok.ApplySingle(obj, x => x.maxHealth);
 
                     if (reader.Version != 1041 && reader.Version != 1047)
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("addHealth", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse addHealth/FLOAT");
-                        //if (obj != null) obj.addHealth = tok.GetSingle();
                         tok.ApplySingle(obj, x => x.addHealth);
                     }
                 }
@@ -847,7 +742,6 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse independence/LONG");
-                    //if (obj != null) obj.independence = tok.GetUInt32();
                     tok.ApplyUInt32(obj, x => x.independence);
                 }
             }
@@ -857,9 +751,6 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse independence");
-                    //independence = BitConverter.ToUInt32(tok.GetRaw(0));
-                    //independence = tok.GetUInt8();
-                    //if (obj != null) obj.independence = tok.GetUInt32(); // this is a bit odd, the game only uses 8 bits it appears but it uses a 32bit here
                     tok.ApplyUInt32(obj, x => x.independence);
                 }
                 else if (parent.SaveType == SaveType.BZN)
@@ -868,15 +759,12 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse independence");
-                        //if (obj != null) obj.independence = tok.GetUInt8();
                         tok.ApplyUInt8(obj, x => x.independence);
                     }
                     else
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("independence", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse independence");
-                        //if (obj != null) obj.independence = tok.GetRaw(0, 1)[0]; // game uses 1 byte by force here
-                        //tok.ApplyUInt8(obj, x => x.independence);
                         tok.ApplyVoidBytesRaw(obj, x => x.independence, 0, (v) => v[0]);
                     }
                 }
@@ -913,7 +801,6 @@ namespace BZNParser.Battlezone.GameObject
                     if (reader.Version < 1145)
                     {
                         tok = reader.ReadToken();
-                        //if (!tok.Validate("curPilot", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse curPilot/ID");
                         if (tok == null || !tok.Validate("curPilot", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse curPilot/CHAR");
                         tok.ApplyChars(obj, x => x.curPilot);
                     }
@@ -963,28 +850,23 @@ namespace BZNParser.Battlezone.GameObject
 
         public static void Dehydrate(ClassGameObject obj, BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
         {
-            //writer.WriteFloats("illumination" ? obj.Malformations : null, obj.illumination);
             writer.WriteSingle("illumination", obj, x => x.illumination);
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteVector3Ds("pos", obj.pos);
                 writer.WriteVector3D("pos", obj, x => x.pos2);
             }
 
-            //writer.WriteEulerBZ(parent.SaveType, obj.euler);
             writer.WriteEuler("euler", obj, x => x.euler);
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteUnsignedValues("seqNo", obj.seqNo);
                 writer.WriteUInt32("seqNo", obj, x => x.seqNo);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1145)
                 {
-                    //writer.WriteUnsignedHexLValues("seqNo", obj.seqNo);
                     writer.WriteUInt32h("seqNo", obj, x => x.seqNo);
                 }
             }
@@ -995,7 +877,6 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
-                // broke this section, need to fix it
                 if (writer.Version > 1030)
                     if (writer.Version < 1145)
                     {
@@ -1008,7 +889,6 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                //writer.WriteSizedString_BZ2_1145("name", 32, obj.name ?? string.Empty, obj.Malformations);
                 writer.WriteSizedString("name", obj, x => x.name);
             }
 
@@ -1018,7 +898,6 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version >= 1145)
                 {
-                    //writer.WriteBytePossibleRawPossibleSigned_BZ2("saveFlags", obj.saveFlags); // TODO break apart saveflags into its parts instead of reading and writing it as is
                     writer.WriteSaveFlags("saveFlags", obj, x => x.saveFlags, (v) =>
                     {
                         if (v.HasValue)
@@ -1031,8 +910,12 @@ namespace BZNParser.Battlezone.GameObject
                         if (obj.defaultShot) saveFlags |= 0x04;
                         if (obj.defaultHealth) saveFlags |= 0x08;
                         if (obj.isCargo) saveFlags |= 0x10;
-                        if (obj.curCmd == null) saveFlags |= 0x20;
-                        if (obj.nextCmd == null) saveFlags |= 0x40;
+                        if (parent.SaveType != SaveType.BZN)
+                        {
+                            // these only happen in non BZN saves.
+                            if (obj.curCmd == null) saveFlags |= 0x20;
+                            if (obj.nextCmd == null) saveFlags |= 0x40;
+                        }
 
                         return saveFlags;
                     });
@@ -1062,14 +945,11 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    //writer.WriteShortFlags("isVisible", (UInt16)obj.isVisible);
-                    //writer.WriteUnsignedValues("isVisible", (UInt16)obj.isVisible);
                     writer.WriteUInt16("isVisible", obj, x => x.isVisible);
                 }
 
                 if (writer.Version >= 1197)
                 {
-                    //writer.WriteUnsignedHexLValues("isDamped", obj.isDamped);
                     writer.WriteUInt16("isDamped", obj, x => x.isDamped);
                 }
                 else
@@ -1081,14 +961,12 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (writer.Version >= 1151)
                 {
-                    //writer.WriteUnsignedValues("EffectsMask", obj.EffectsMask);
                     writer.WriteUInt32("EffectsMask", obj, x => x.EffectsMask);
                 }
 
                 if (writer.Version == 1041 || writer.Version == 1047 || writer.Version == 1070)
                 {
                     // bz2001.bzn // 1041
-                    //writer.WriteUnsignedHexLValues("seen", obj.seen);
                     writer.WriteUInt32h("seen", obj, x => x.seen);
                 }
                 else if (writer.Version < 1145)
@@ -1107,39 +985,6 @@ namespace BZNParser.Battlezone.GameObject
                         writer.WriteUInt16h("isSeen", obj, x => x.seen);
                     }
                 }
-                /*if (reader.Version > 1105)
-                {
-                    tok = reader.ReadToken();
-                    if (!tok.Validate("saveFlags", BinaryFieldType.DATA_CHAR)) throw new Exception("Failed to parse saveFlags/CHAR");
-                    //saveFlags = tok.GetUInt32(); // another RAW in ASCII
-                    //saveFlags = tok.GetUInt8(); // another RAW in ASCII
-
-                    tok = reader.ReadToken();
-                    //if (!tok.Validate("isVisible", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse isVisible/LONG");
-                    if (!tok.Validate("isVisible", BinaryFieldType.DATA_SHORT)) throw new Exception("Failed to parse isVisible/SHORT");
-                    //isVisible = tok.GetUInt32();
-                    isVisible = tok.GetUInt16();
-                }
-                else
-                {
-                    tok = reader.ReadToken();
-                    if (!tok.Validate("saveFlags", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse saveFlags/BOOL");
-                    //saveFlags = tok.GetUInt8(); // another RAW in ASCII
-
-                    tok = reader.ReadToken();
-                    //if (!tok.Validate("isVisible", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse isVisible/LONG");
-                    if (!tok.Validate("isVisible", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isVisible/BOOL");
-                    //isVisible = tok.GetUInt32();
-                    isVisible = tok.GetBoolean() ? 1u : 0u;
-                }
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("EffectsMask", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse EffectsMask/LONG");
-                UInt32 EffectsMask = tok.GetUInt32();
-
-                tok = reader.ReadToken();
-                if (!tok.Validate("isSeen", BinaryFieldType.DATA_SHORT)) throw new Exception("Failed to parse isSeen/SHORT");
-                seen = tok.GetUInt16();*/
             }
 
             //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2011)
@@ -1176,8 +1021,6 @@ namespace BZNParser.Battlezone.GameObject
 
                 //if (writer.Format == BZNFormat.Battlezone)
                 {
-                    //writer.WriteUnsignedValues("seen", obj.seen);
-                    //writer.WriteUnsignedHexLValues("seen", obj.seen);
                     writer.WriteUInt32h("seen", obj, x => x.seen);
                     
                     // problem: if the sign bit is set, it will print as as an unsigned decimal instead of hexadecial
@@ -1251,18 +1094,14 @@ namespace BZNParser.Battlezone.GameObject
             }
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteFloats("healthRatio" ? obj.Malformations : null, obj.healthRatio);
                 writer.WriteSingle("healthRatio", obj, x => x.healthRatio);
-                //writer.WriteSignedValues("curHealth", obj.curHealth.Get<Int32>());
                 writer.WriteInt32("curHealth", obj, x => x.curHealth);
-                //writer.WriteSignedValues("maxHealth", obj.maxHealth.Get<Int32>());
                 writer.WriteInt32("maxHealth", obj, x => x.maxHealth);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1143)
                 {
-                    //writer.WriteFloats("healthRatio" ? obj.Malformations : null, obj.healthRatio);
                     writer.WriteSingle("healthRatio", obj, x => x.healthRatio);
                 }
 
@@ -1274,14 +1113,11 @@ namespace BZNParser.Battlezone.GameObject
                 }
                 else
                 {
-                    //writer.WriteFloats("curHealth" ? obj.Malformations : null, obj.curHealth.Get<Single>());
                     writer.WriteSingle("curHealth", obj, x => x.curHealth);
-                    //writer.WriteFloats("maxHealth" ? obj.Malformations : null, obj.maxHealth.Get<Single>());
                     writer.WriteSingle("maxHealth", obj, x => x.maxHealth);
 
                     if (writer.Version != 1041 && writer.Version != 1047)
                     {
-                        //writer.WriteFloats("addHealth" ? obj.Malformations : null, obj.addHealth);
                         writer.WriteSingle("addHealth", obj, x => x.addHealth);
                     }
                 }
@@ -1299,45 +1135,34 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteFloats("ammoRatio" ? obj.Malformations : null, obj.ammoRatio);
                 writer.WriteSingle("ammoRatio", obj, x => x.ammoRatio);
-                //writer.WriteSignedValues("curAmmo", obj.curAmmo.Get<Int32>());
                 writer.WriteInt32("curAmmo", obj, x => x.curAmmo);
-                //writer.WriteSignedValues("maxAmmo", obj.maxAmmo.Get<Int32>());
                 writer.WriteInt32("maxAmmo", obj, x => x.maxAmmo);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 if (writer.Version < 1143)
                 {
-                    //writer.WriteFloats("ammoRatio" ? obj.Malformations : null, obj.ammoRatio);
                     writer.WriteSingle("ammoRatio", obj, x => x.ammoRatio);
 
                     if (writer.Version >= 1070)
                     {
-                        // these probably should be floats not longs
-                        //writer.WriteFloats("curAmmo" ? obj.Malformations : null, obj.curAmmo.Get<Single>());
                         writer.WriteSingle("curAmmo", obj, x => x.curAmmo);
-                        //writer.WriteFloats("maxAmmo" ? obj.Malformations : null, obj.maxAmmo.Get<Single>());
                         writer.WriteSingle("maxAmmo", obj, x => x.maxAmmo);
                     }
                     else
                     {
-                        //writer.WriteSignedValues("curAmmo", obj.curAmmo.Get<Int32>());
                         writer.WriteInt32("curAmmo", obj, x => x.curAmmo);
-                        //writer.WriteSignedValues("maxAmmo", obj.maxAmmo.Get<Int32>());
                         writer.WriteInt32("maxAmmo", obj, x => x.maxAmmo);
                     }
 
                     if (writer.Version >= 1070)
                     {
                         // probably should be a float
-                        //writer.WriteFloats("addAmmo" ? obj.Malformations : null, obj.addAmmo.Get<Single>());
                         writer.WriteSingle("addAmmo", obj, x => x.addAmmo);
                     }
                     else if (writer.Version != 1041 && writer.Version != 1047) // avoid bz2001.bzn != 1041
                     {
-                        //writer.WriteSignedValues("addAmmo", obj.addAmmo.Get<Int32>());
                         writer.WriteInt32("addAmmo", obj, x => x.addAmmo);
                     }
                 }
@@ -1348,9 +1173,20 @@ namespace BZNParser.Battlezone.GameObject
                 if (parent.SaveType == SaveType.BZN)
                 {
                     if (obj.nextCmd == null || obj.nextCmd.what == 0) // == CMD_NONE
-                        writer.WriteAiCmdInfo(obj.curCmd, "undefaicmd");
+                    {
+                        if (obj.curCmd == null)
+                        {
+                            writer.WriteAiCmdInfo(new AiCmdInfo() { what = 0 }, "undefaicmd");
+                        }
+                        else
+                        {
+                            writer.WriteAiCmdInfo(obj.curCmd, "undefaicmd");
+                        }
+                    }
                     else
+                    {
                         writer.WriteAiCmdInfo(obj.nextCmd, "undefaicmd");
+                    }
                     writer.WriteBoolean("aiProcess", obj, x => x.aiProcess);
                 }
                 else
@@ -1431,7 +1267,6 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1016)
                 {
-                    //writer.WriteUnsignedValues("independence", obj.independence);
                     writer.WriteUInt32("independence", obj, x => x.independence);
                 }
             }
@@ -1439,20 +1274,16 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1145)
                 {
-                    //writer.WriteUnsignedValues("independence", obj.independence);
                     writer.WriteUInt32("independence", obj, x => x.independence);
                 }
                 else if (parent.SaveType == SaveType.BZN)
                 {
                     if (writer.Version > 1183)
                     {
-                        //writer.WriteUnsignedValues("independence", (byte)obj.independence);
                         writer.WriteUInt8("independence", obj, x => x.independence);
                     }
                     else
                     {
-                        //writer.WriteUnsignedRawValues("independence", (byte)obj.independence);
-                        //writer.WriteUInt8("independence", obj, x => x.independence);
                         writer.WriteUInt8Raw("independence", obj, x => x.independence);
                     }
                 }
@@ -1487,7 +1318,6 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1030)
                 {
-                    //writer.WriteBooleans("hasPilot" ? obj.Malformations : null, obj.curPilot.Length > s0);
                     writer.WriteBoolean("hasPilot", obj, x => x.curPilot, (curPilot => !string.IsNullOrEmpty(curPilot.Value)));
                 }
                 else
@@ -1509,14 +1339,12 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                //writer.WriteSignedValues("perceivedTeam", obj.perceivedTeam);
                 writer.WriteInt32("perceivedTeam", obj, x => x.perceivedTeam);
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
                 if (writer.Version > 1031)
                 {
-                    //writer.WriteSignedValues("perceivedTeam", obj.perceivedTeam);
                     writer.WriteInt32("perceivedTeam", obj, x => x.perceivedTeam);
                 }
                 else
@@ -1528,7 +1356,6 @@ namespace BZNParser.Battlezone.GameObject
             {
                 if (writer.Version < 1145)
                 {
-                    //writer.WriteSignedValues("perceivedTeam", obj.perceivedTeam);
                     writer.WriteInt32("perceivedTeam", obj, x => x.perceivedTeam);
                 }
                 else

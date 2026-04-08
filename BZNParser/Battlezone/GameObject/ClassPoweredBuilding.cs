@@ -41,7 +41,7 @@ namespace BZNParser.Battlezone.GameObject
 
         public ClassPoweredBuilding(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
         {
-            scriptPowerOverride = 0;
+            scriptPowerOverride = -1;
             powerHandle = null;
         }
 

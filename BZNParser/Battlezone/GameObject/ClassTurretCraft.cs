@@ -40,11 +40,12 @@ namespace BZNParser.Battlezone.GameObject
         public UInt32? saveSeqno { get; set; }
         public SizedString? saveLabel { get; set; }
         public SizedString? saveName { get; set; }
-        public Int32? scriptPowerOverride { get; set; }
+        public Int32 scriptPowerOverride { get; set; }
         public ClassTurretCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
         {
             powerHandles = Array.Empty<UInt32>();
             saveClass = new SizedString();
+            scriptPowerOverride = -1;
         }
 
         public override void ClearMalformations()
@@ -278,7 +279,6 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
                         throw new Exception("Failed to parse scriptPowerOverride/LONG");
-                    //if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
                     tok.ApplyInt32(obj, x => x.scriptPowerOverride);
                 }
 
@@ -356,7 +356,6 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // because the version needs of this are even higher than that of the above we know the above will have to have run if this will run
                     // so we know the powerHandle loop is safe since it will trip into a CHAR if it overruns due to the above.
-                    //writer.WriteSignedValues("scriptPowerOverride", obj.scriptPowerOverride.Value);
                     writer.WriteInt32("scriptPowerOverride", obj, x => x.scriptPowerOverride);
                 }
 

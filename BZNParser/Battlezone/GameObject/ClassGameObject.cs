@@ -51,7 +51,7 @@ namespace BZNParser.Battlezone.GameObject
         public Int32 who { get; set; }
         public UInt32 where { get; set; }
         public UInt32 param { get; set; }
-        public bool aiProcess { get; set; }
+        public bool hasAiProcess { get; set; }
         public AiCmdInfo? curCmd { get; set; }
         public AiCmdInfo? nextCmd { get; set; }
         public bool isCargo { get; set; }
@@ -121,7 +121,7 @@ namespace BZNParser.Battlezone.GameObject
             who = -1; // unsigned -1 for easier hex display of uninitialized value
             where = 0;
             param = 0;
-            aiProcess = false;
+            hasAiProcess = false;
             curCmd = null;
             nextCmd = null;
             isCargo = false;
@@ -625,7 +625,7 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("aiProcess", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
-                    tok.ApplyBoolean(obj, x => x.aiProcess);
+                    tok.ApplyBoolean(obj, x => x.hasAiProcess);
                 }
                 else
                 {
@@ -673,8 +673,12 @@ namespace BZNParser.Battlezone.GameObject
                         AiCmdInfo info = reader.GetAiCmdInfo();
                         if (obj != null)
                             obj.curCmd = info;
+                        
+                        info = reader.GetAiCmdInfo();
+                        if (obj != null)
+                            obj.nextCmd = info;
                     }
-
+                    else
                     {
                         AiCmdInfo info = reader.GetAiCmdInfo();
                         if (obj != null)
@@ -693,23 +697,27 @@ namespace BZNParser.Battlezone.GameObject
                         if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_UNKNOWN)) throw new Exception("Failed to parse undefptr/?");
                         tok.ApplyUInt32H8(obj, x => x.aiProcessPtr);
                     }
-                    else
+                    else if (reader.Format == BZNFormat.BattlezoneN64 || (reader.Version != 1017 && reader.Version != 1018)) // TODO get range for these
                     {
-                        if (reader.Format == BZNFormat.BattlezoneN64 || (reader.Version != 1017 && reader.Version != 1018)) // TODO get range for these
-                        {
-                            tok = reader.ReadToken();
-                            if (tok == null || !tok.Validate("aiProcess", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
-                            tok.ApplyBoolean(obj, x => x.aiProcess);
-                        }
+                        tok = reader.ReadToken();
+                        if (tok == null || !tok.Validate("aiProcess", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
+                        tok.ApplyBoolean(obj, x => x.hasAiProcess);
                     }
                 }
-                //else
-                //{
-                // savegame
-                //curCmd
-                //nextCmd
-                //aiProcess
-                //}
+                else
+                {
+                    AiCmdInfo info = reader.GetAiCmdInfo();
+                    if (obj != null)
+                        obj.curCmd = info;
+
+                    info = reader.GetAiCmdInfo();
+                    if (obj != null)
+                        obj.nextCmd = info;
+
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.Validate("aiProcess", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
+                    tok.ApplyBoolean(obj, x => x.hasAiProcess);
+                }
             }
 
             if (reader.Format == BZNFormat.Battlezone
@@ -1187,7 +1195,7 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         writer.WriteAiCmdInfo(obj.nextCmd, "undefaicmd");
                     }
-                    writer.WriteBoolean("aiProcess", obj, x => x.aiProcess);
+                    writer.WriteBoolean("aiProcess", obj, x => x.hasAiProcess);
                 }
                 else
                 {
@@ -1207,8 +1215,9 @@ namespace BZNParser.Battlezone.GameObject
                     if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
                     {
                         writer.WriteAiCmdInfo(obj.curCmd);
+                        writer.WriteAiCmdInfo(obj.nextCmd);
                     }
-
+                    else
                     {
                         writer.WriteAiCmdInfo(obj.nextCmd);
                     }
@@ -1222,25 +1231,17 @@ namespace BZNParser.Battlezone.GameObject
                         // might be worth making this a dual value with the bool
                         writer.WritePtr("undefptr", obj, x => x.aiProcessPtr);
                     }
-                    else if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001))
+                    else if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 1021)
                     {
-                        writer.WriteBoolean("undefptr", obj, x => x.aiProcess);
-                    }
-                    else
-                    {
-                        if (writer.Format == BZNFormat.BattlezoneN64 || (writer.Version != 1017 && writer.Version != 1018))
-                        {
-                            writer.WriteBoolean("aiProcess", obj, x => x.aiProcess);
-                        }
+                        writer.WriteBoolean("aiProcess", obj, x => x.hasAiProcess);
                     }
                 }
-                //else
-                //{
-                // savegame
-                //curCmd
-                //nextCmd
-                //aiProcess
-                //}
+                else
+                {
+                    writer.WriteAiCmdInfo(obj.curCmd);
+                    writer.WriteAiCmdInfo(obj.nextCmd);
+                    writer.WriteBoolean("aiProcess", obj, x => x.hasAiProcess);
+                }
             }
 
             if (writer.Format == BZNFormat.Battlezone

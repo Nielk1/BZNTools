@@ -2510,9 +2510,23 @@ namespace BZNParser.Tokenizer
             return value;
         }
 
-        public void WriteMatrix<T>(string name, T parent, Expression<Func<T, Matrix>> property) where T : IMalformable
+        public void WriteMatrix<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Matrix>? convert = null) where T : IMalformable
         {
-            Matrix value = BZNStreamWriter.ExtractPropertyValue(parent, property);
+            TProp valueInternal = ExtractPropertyValue(parent, property);
+            Matrix value;
+
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (/*typeof(TProp) == typeof(Matrix) &&*/ valueInternal is Matrix m)
+            {
+                value = m;
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with Length writing and no conversion provided");
+            }
 
             if (InBinary)
             {

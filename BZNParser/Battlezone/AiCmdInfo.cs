@@ -257,7 +257,7 @@ enum AiCommand {
     public class AiCmdInfo : IMalformable
     {
         public int priority { get; set; }
-        public uint what { get; set; } // AiCommand (not sure BZ2 vs BZ1) TODOL: handle BZ1 vs BZ2, maybe make this a dual value? or store 2 properties with conversion logic?
+        public uint what { get; set; } // AiCommand (not sure BZ2 vs BZ1) TODO: handle BZ1 vs BZ2, maybe make this a dual value? or store 2 properties with conversion logic?
         public int who { get; set; }
         public uint where { get; set; } // AiPath*
         public ulong param { get; set; } // long, not unsigned but, whatever

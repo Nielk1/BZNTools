@@ -78,6 +78,8 @@ namespace BZNParser.Battlezone.GameObject
             energy2current = 0;
             energy2maximum = 0;
             bumpers = new Vector3D[6];
+            for (int i = 0; i < bumpers.Length; i++)
+                bumpers[i] = new Vector3D();
         }
 
         public override void ClearMalformations()

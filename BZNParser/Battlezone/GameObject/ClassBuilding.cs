@@ -142,6 +142,16 @@ namespace BZNParser.Battlezone.GameObject
                                 if (obj != null) obj.CLASS_AlignsToObject = true;
                             }
                         }
+                        else
+                        {
+                            if (obj != null)
+                            {
+                                // we don't know if we are aligned here or not as there's no way to guess
+                                // if we are not, we want to use another matrix for the saveMatrix, such as the transform matrix.
+                                // TODO WARNING "Assumed ODF is AlignsToObject"
+                                obj.CLASS_AlignsToObject = true;
+                            }
+                        }
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
@@ -218,7 +228,7 @@ namespace BZNParser.Battlezone.GameObject
                         {
                             if (!obj.CLASS_AlignsToObject)
                             {
-                                writer.WriteMatrix("saveMatrix", obj, x => x.saveMatrix!);
+                                writer.WriteMatrix("saveMatrix", obj, x => x.saveMatrix!, (v) => v ?? obj.transform); // if we don't have a matrix, fall back to the transform
                             }
                         }
 

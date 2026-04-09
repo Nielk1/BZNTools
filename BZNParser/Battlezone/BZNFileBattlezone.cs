@@ -2,6 +2,7 @@
 using BZNParser.Tokenizer;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -218,7 +219,7 @@ namespace BZNParser.Battlezone
         public SizedString msn_filename { get; set; }
         public UInt32 seq_count { get; set; }
         public string TerrainName { get; set; }
-        public float? start_time { get; set; }
+        public float start_time { get; set; }
         public EntityDescriptor[] Entities { get; private set; }
         public byte[] groupTargets { get; set; }
 
@@ -261,13 +262,14 @@ namespace BZNParser.Battlezone
         {
             DisableMalformationAutoFix();
 
+            // defaults
+            start_time = 0;
+
             this.LongTermClassLabelLookupCache = new Dictionary<string, HashSet<string>>();
 
             this._malformationManager = new IMalformable.MalformationManager(this);
             this._classLabelMap = new Dictionary<string, IClassFactory>();
             this.Hints = Hints;
-
-
 
             // build ClassLabelMap
             foreach (Type type in this.GetType().Assembly.GetTypes())
@@ -455,7 +457,8 @@ namespace BZNParser.Battlezone
 
             if (reader.Format == BZNFormat.Battlezone)
             {
-                if (reader.Version == 1011 || reader.Version == 1012)
+                if ((SaveType != SaveType.BZN && reader.Version > 1002)
+                 || (reader.Version == 1011 || reader.Version == 1012))
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("start_time", BinaryFieldType.DATA_FLOAT))
@@ -627,6 +630,10 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("groupTargets", BinaryFieldType.DATA_VOID))
                         throw new Exception("Failed to parse groupTargets/VOID");
                     this.groupTargets = tok.GetBytes();
+                }
+                else
+                {
+                    this.groupTargets = new byte[640]; // default to 640 0x00s
                 }
                 if (reader.Version == 1100 || reader.Version == 1041 || reader.Version == 1047 || reader.Version == 1070) // not sure what versions this happens
                 {
@@ -1153,7 +1160,8 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone)
             {
-                if (writer.Version == 1011 || writer.Version == 1012)
+                if ((save && writer.Version > 1002)
+                 || (writer.Version == 1011 || writer.Version == 1012))
                 {
                     writer.WriteSingle("start_time", this, x => x.start_time);
                 }

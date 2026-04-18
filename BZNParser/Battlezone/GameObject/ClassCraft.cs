@@ -39,10 +39,10 @@ namespace BZNParser.Battlezone.GameObject
 
         public Int32 abandoned { get; set; }
 
-        public float? cloakTransitionTime { get; set; }
-        public UInt32? cloakState { get; set; }
-        public float? cloakTransBeginTime { get; set; }
-        public float? cloakTransEndTime { get; set; }
+        public float cloakTransitionTime { get; set; }
+        public UInt32 cloakState { get; set; }
+        public float cloakTransBeginTime { get; set; }
+        public float cloakTransEndTime { get; set; }
 
         public float m_ejectRatio { get; set; }
 
@@ -65,10 +65,10 @@ namespace BZNParser.Battlezone.GameObject
         public ClassCraft(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel)
         {
             abandoned = 0;
-            cloakTransitionTime = null;
-            cloakState = null;
-            cloakTransBeginTime = null;
-            cloakTransEndTime = null;
+            cloakTransitionTime = 0;
+            cloakState = 0;
+            cloakTransBeginTime = 0;
+            cloakTransEndTime = 0;
             m_ejectRatio = 0;
 
             energy0current = 0;
@@ -280,6 +280,11 @@ namespace BZNParser.Battlezone.GameObject
                 if (tok == null || !tok.Validate("cloakTransEndTime", BinaryFieldType.DATA_FLOAT))
                     throw new Exception("Failed to parse cloakTransEndTime/FLOAT");
                 tok.ApplySingle(obj, x => x.cloakTransEndTime);
+
+                if (reader.Version >= 2002 && obj != null)
+                {
+                    obj.cloakTransitionTime = obj.cloakTransEndTime - obj.cloakTransBeginTime;
+                }
             }
 
             if (reader.Format == BZNFormat.Battlezone2)

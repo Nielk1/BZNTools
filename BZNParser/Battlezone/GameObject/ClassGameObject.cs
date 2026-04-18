@@ -697,7 +697,7 @@ namespace BZNParser.Battlezone.GameObject
                         if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_UNKNOWN)) throw new Exception("Failed to parse undefptr/?");
                         tok.ApplyUInt32H8(obj, x => x.aiProcessPtr);
                     }
-                    else if (reader.Format == BZNFormat.BattlezoneN64 || (reader.Version != 1017 && reader.Version != 1018)) // TODO get range for these
+                    else if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 1021)
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("aiProcess", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse aiProcess/BOOL");
@@ -1214,12 +1214,22 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
                     {
-                        writer.WriteAiCmdInfo(obj.curCmd);
-                        writer.WriteAiCmdInfo(obj.nextCmd);
+                        if (obj.curCmd == null)
+                            writer.WriteAiCmdInfo(new AiCmdInfo() { what = 0 }, "undefaicmd");
+                        else
+                            writer.WriteAiCmdInfo(obj.curCmd);
+
+                        if (obj.nextCmd == null)
+                            writer.WriteAiCmdInfo(new AiCmdInfo() { what = 0 }, "undefaicmd");
+                        else
+                            writer.WriteAiCmdInfo(obj.nextCmd);
                     }
                     else
                     {
-                        writer.WriteAiCmdInfo(obj.nextCmd);
+                        if (obj.nextCmd == null)
+                            writer.WriteAiCmdInfo(new AiCmdInfo() { what = 0 }, "undefaicmd");
+                        else
+                            writer.WriteAiCmdInfo(obj.nextCmd);
                     }
 
                     // aiProcess?

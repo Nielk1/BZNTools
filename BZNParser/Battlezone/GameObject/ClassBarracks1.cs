@@ -16,8 +16,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassBarracks1.Hydrate(parent, reader, obj as ClassBarracks1);
-                return true;
+                return ClassBarracks1.Hydrate(parent, reader, obj as ClassBarracks1).Success;
             }
             finally
             {
@@ -50,17 +49,17 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBarracks1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBarracks1? obj)
         {
             if (parent.SaveType != SaveType.BZN)
             {
                 IBZNToken? tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextEmptyCheck", BinaryFieldType.DATA_LONG))
-                    throw new Exception("Failed to parse nextEmptyCheck/LONG");
+                    return ParseResult.Fail("Failed to parse nextEmptyCheck/LONG");
                 tok.ApplyInt32(obj, x => x.nextEmptyCheck);
             }
 
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

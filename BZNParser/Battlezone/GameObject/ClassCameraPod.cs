@@ -17,8 +17,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassCameraPod.Hydrate(parent, reader, obj as ClassCameraPod);
-                return true;
+                return ClassCameraPod.Hydrate(parent, reader, obj as ClassCameraPod).Success;
             }
             finally
             {
@@ -51,7 +50,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassCameraPod? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassCameraPod? obj)
         {
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -61,12 +60,12 @@ namespace BZNParser.Battlezone.GameObject
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("navSlot", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse navSlot/LONG");
+                        return ParseResult.Fail("Failed to parse navSlot/LONG");
                     tok.ApplyInt32(obj, x => x.navSlot);
                 }
             }
 
-            ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
+            return ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

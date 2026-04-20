@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassRecyclerVehicle.Hydrate(parent, reader, obj as ClassRecyclerVehicle);
-                return true;
+                return ClassRecyclerVehicle.Hydrate(parent, reader, obj as ClassRecyclerVehicle).Success;
             }
             finally
             {
@@ -68,26 +67,30 @@ namespace BZNParser.Battlezone.GameObject
 
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassRecyclerVehicle? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassRecyclerVehicle? obj)
         {
             if (reader.Version == 1047)
             {
                 IBZNToken? tok;
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("nextRepair", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextRepair/FLOAT");
+                if (tok == null || !tok.Validate("nextRepair", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse nextRepair/FLOAT");
                 tok.ApplySingle(obj, x => x.nextRepair);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse buildDoneTime/FLOAT");
+                if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse buildDoneTime/FLOAT");
                 tok.ApplySingle(obj, x => x.buildDoneTime);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse buildActive/BOOL");
+                if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL))
+                    return ParseResult.Fail("Failed to parse buildActive/BOOL");
                 tok.ApplyBoolean(obj, x => x.buildActive);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse buildCount/LONG");
+                if (tok == null || !tok.Validate("buildCount", BinaryFieldType.DATA_LONG))
+                    return ParseResult.Fail("Failed to parse buildCount/LONG");
                 int buildCount = tok.GetInt32();
 
                 //if (obj != null) obj.buildItems = new SizedString[buildCount];
@@ -106,7 +109,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassDeployBuilding.Hydrate(parent, reader, obj as ClassDeployBuilding);
+            return ClassDeployBuilding.Hydrate(parent, reader, obj as ClassDeployBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

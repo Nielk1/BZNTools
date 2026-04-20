@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassTeleportal.Hydrate(parent, reader, obj as ClassTeleportal);
-                return true;
+                return ClassTeleportal.Hydrate(parent, reader, obj as ClassTeleportal).Success;
             }
             finally
             {
@@ -27,9 +26,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassTeleportal : ClassPoweredBuilding
     {
         public ClassTeleportal(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTeleportal? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTeleportal? obj)
         {
-            ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
+            return ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

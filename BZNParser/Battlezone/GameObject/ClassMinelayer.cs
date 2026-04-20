@@ -17,8 +17,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassMinelayer.Hydrate(parent, reader, obj as ClassMinelayer);
-                return true;
+                return ClassMinelayer.Hydrate(parent, reader, obj as ClassMinelayer).Success;
             }
             finally
             {
@@ -29,9 +28,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassMinelayer : ClassHoverCraft
     {
         public ClassMinelayer(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMinelayer? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMinelayer? obj)
         {
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

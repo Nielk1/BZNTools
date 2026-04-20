@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassBomberBay.Hydrate(parent, reader, obj as ClassBomberBay);
-                return true;
+                return ClassBomberBay.Hydrate(parent, reader, obj as ClassBomberBay).Success;
             }
             finally
             {
@@ -53,14 +52,15 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBomberBay? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBomberBay? obj)
         {
             IBZNToken? tok;
 
             if (reader.Version >= 1131)
             {
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("Handle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse Handle/LONG");
+                if (tok == null || !tok.Validate("Handle", BinaryFieldType.DATA_LONG))
+                    return ParseResult.Fail("Failed to parse Handle/LONG");
                 tok.ApplyInt32(obj, x => x.m_MyBomber);
             }
             else
@@ -73,7 +73,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
+            return ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

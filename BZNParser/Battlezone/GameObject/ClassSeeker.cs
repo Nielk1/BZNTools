@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassSeeker.Hydrate(parent, reader, obj as ClassSeeker);
-                return true;
+                return ClassSeeker.Hydrate(parent, reader, obj as ClassSeeker).Success;
             }
             finally
             {
@@ -27,9 +26,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassSeeker : ClassMine
     {
         public ClassSeeker(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassSeeker? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassSeeker? obj)
         {
-            ClassMine.Hydrate(parent, reader, obj as ClassMine);
+            return ClassMine.Hydrate(parent, reader, obj as ClassMine);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

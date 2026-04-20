@@ -36,8 +36,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
-                return true;
+                return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding).Success;
             }
             finally
             {
@@ -106,7 +105,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBuilding? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBuilding? obj)
         {
             IBZNToken? tok;
 
@@ -154,11 +153,13 @@ namespace BZNParser.Battlezone.GameObject
                         }
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
+                        if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG))
+                            return ParseResult.Fail("Failed to parse saveTeam/LONG");
                         tok.ApplyInt32(obj, x => x.saveTeam);
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
+                        if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG))
+                            return ParseResult.Fail("Failed to parse saveSeqno/LONG");
                         tok.ApplyUInt32h(obj, x => x.saveSeqno); // TODO might need to be Int32 instead of UInt32, unsure
 
                         reader.ReadSizedString("saveLabel", obj, x => x.saveLabel);
@@ -175,7 +176,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (loadAsDummy)
                 {
                     reader.ReadSizedString("name", obj, x => x.name);
-                    return;
+                    return ParseResult.Ok();
                 }
 
                 ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
@@ -184,7 +185,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     //if (obj != null) obj.saveMatrix = obj.transform; // TODO: this may be incorrect, figure that out
                 }
-                return;
+                return ParseResult.Ok();
             }
 
             // BZ1/BZn64
@@ -192,14 +193,14 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("tempBuilding", BinaryFieldType.DATA_BOOL))
-                    throw new Exception("Failed to parse tempBuilding/BOOL");
+                    return ParseResult.Fail("Failed to parse tempBuilding/BOOL");
                 tok.ApplyBoolean(obj, x => x.tempBuilding);
             }
             else
             {
                 if (obj != null) obj.tempBuilding = false;
             }
-            ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+            return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

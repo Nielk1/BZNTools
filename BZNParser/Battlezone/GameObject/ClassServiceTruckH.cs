@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassServiceTruckH.Hydrate(parent, reader, obj as ClassServiceTruckH);
-                return true;
+                return ClassServiceTruckH.Hydrate(parent, reader, obj as ClassServiceTruckH).Success;
             }
             finally
             {
@@ -27,9 +26,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassServiceTruckH : ClassHoverCraft
     {
         public ClassServiceTruckH(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassServiceTruckH? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassServiceTruckH? obj)
         {
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

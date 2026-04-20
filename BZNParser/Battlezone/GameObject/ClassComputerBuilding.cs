@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassComputerBuilding.Hydrate(parent, reader, obj as ClassComputerBuilding);
-                return true;
+                return ClassComputerBuilding.Hydrate(parent, reader, obj as ClassComputerBuilding).Success;
             }
             finally
             {
@@ -52,7 +51,7 @@ namespace BZNParser.Battlezone.GameObject
 
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassComputerBuilding? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassComputerBuilding? obj)
         {
             ClassDummy.Hydrate(parent, reader, obj as ClassDummy);
 
@@ -62,12 +61,12 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Nozzle1", BinaryFieldType.DATA_VOID))
-                    throw new Exception("Failed to parse Nozzle1/VOID");
+                    return ParseResult.Fail("Failed to parse Nozzle1/VOID");
                 if (obj != null) obj.Nozzle1_Handle = tok.GetUInt32HR();
 
                 tok = reader.ReadToken();
                 if (tok == null ||!tok.Validate("Nozzle2", BinaryFieldType.DATA_VOID))
-                    throw new Exception("Failed to parse Nozzle2/VOID");
+                    return ParseResult.Fail("Failed to parse Nozzle2/VOID");
                 if (obj != null) obj.Nozzle2_Handle = tok.GetUInt32HR();
             }
             else
@@ -80,6 +79,8 @@ namespace BZNParser.Battlezone.GameObject
                     //obj.Malformations.AddNotImplemented("Nozzle2_Handle");
                 }
             }
+
+            return ParseResult.Ok();
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

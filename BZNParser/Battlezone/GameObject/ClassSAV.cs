@@ -17,8 +17,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassSAV.Hydrate(parent, reader, obj as ClassSAV);
-                return true;
+                return ClassSAV.Hydrate(parent, reader, obj as ClassSAV).Success;
             }
             finally
             {
@@ -29,9 +28,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassSAV : ClassHoverCraft
     {
         public ClassSAV(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassSAV? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassSAV? obj)
         {
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

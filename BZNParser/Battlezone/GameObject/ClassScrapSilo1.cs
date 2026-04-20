@@ -20,8 +20,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassScrapSilo1.Hydrate(parent, reader, obj as ClassScrapSilo1);
-                return true;
+                return ClassScrapSilo1.Hydrate(parent, reader, obj as ClassScrapSilo1).Success;
             }
             finally
             {
@@ -55,18 +54,19 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScrapSilo1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScrapSilo1? obj)
         {
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 1020)
             {
                 IBZNToken? tok = reader.ReadToken();
                 //if (!tok.Validate("dropoff", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse dropoff/LONG");
-                if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR)) throw new Exception("Failed to parse undefptr/LONG");
+                if (tok == null || !tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
+                    return ParseResult.Fail("Failed to parse undefptr/LONG");
                 //if (obj != null) obj.undefptr = tok.GetUInt32H();
                 tok.ApplyUInt32H8(obj, x => x.undefptr);
             }
 
-            ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+            return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

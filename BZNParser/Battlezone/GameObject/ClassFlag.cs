@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassFlag.Hydrate(parent, reader, obj as ClassFlag);
-                return true;
+                return ClassFlag.Hydrate(parent, reader, obj as ClassFlag).Success;
             }
             finally
             {
@@ -60,7 +59,7 @@ namespace BZNParser.Battlezone.GameObject
 
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFlag? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFlag? obj)
         {
             IBZNToken? tok;
 
@@ -69,11 +68,12 @@ namespace BZNParser.Battlezone.GameObject
                 reader.ReadMatrix("startMat", obj, x => x.startMat);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("holder", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse holder/LONG"); // type not confirmed
+                if (tok == null || !tok.Validate("holder", BinaryFieldType.DATA_LONG))
+                    return ParseResult.Fail("Failed to parse holder/LONG"); // type not confirmed
                 tok.ApplyUInt32(obj, x => x.holder);
             }
 
-            ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
+            return ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

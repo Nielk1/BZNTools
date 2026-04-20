@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
-                return true;
+                return ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp).Success;
             }
             finally
             {
@@ -31,13 +30,13 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassPowerUp : ClassGameObject
     {
         public ClassPowerUp(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPowerUp? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPowerUp? obj)
         {
             if (reader.Format == BZNFormat.Battlezone && parent.SaveType != SaveType.BZN)
             {
                 // flags
             }
-            ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+            return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

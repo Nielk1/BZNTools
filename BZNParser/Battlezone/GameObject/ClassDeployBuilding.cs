@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassDeployBuilding.Hydrate(parent, reader, obj as ClassDeployBuilding);
-                return true;
+                return ClassDeployBuilding.Hydrate(parent, reader, obj as ClassDeployBuilding).Success;
             }
             finally
             {
@@ -58,7 +57,7 @@ namespace BZNParser.Battlezone.GameObject
 
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployBuilding? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployBuilding? obj)
         {
             //IBZNToken? tok;
 
@@ -85,7 +84,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassTrackedDeployable.Hydrate(parent, reader, obj as ClassTrackedDeployable);
+            return ClassTrackedDeployable.Hydrate(parent, reader, obj as ClassTrackedDeployable);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

@@ -22,8 +22,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassTurretCraft.Hydrate(parent, reader, obj as ClassTurretCraft);
-                return true;
+                return ClassTurretCraft.Hydrate(parent, reader, obj as ClassTurretCraft).Success;
             }
             finally
             {
@@ -77,7 +76,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretCraft? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretCraft? obj)
         {
             IBZNToken? tok;
 
@@ -118,7 +117,7 @@ namespace BZNParser.Battlezone.GameObject
                                         {
                                             // we should have, in error, read the abandoned flag here to back out
                                             // since we didn't we know we're not a turret "craft"
-                                            throw new Exception("Not a TurretCraft");
+                                            return ParseResult.Fail("Not a TurretCraft");
                                         }
 
                                         //UInt32 possibleAbandonedFlag = powerHandles.Last();
@@ -247,12 +246,14 @@ namespace BZNParser.Battlezone.GameObject
                         }
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
+                        if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG))
+                            return ParseResult.Fail("Failed to parse saveTeam/LONG");
                         //if (obj != null) obj.saveTeam = tok.GetUInt32();
                         tok.ApplyUInt32(obj, x => x.saveTeam);
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
+                        if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG))
+                            return ParseResult.Fail("Failed to parse saveSeqno/LONG");
                         //if (obj != null) obj.saveSeqno = tok.GetUInt32H();
                         tok.ApplyUInt32(obj, x => x.saveSeqno);
 
@@ -289,11 +290,10 @@ namespace BZNParser.Battlezone.GameObject
                     // saveMatrix = GetSimObjectMatrix();
                 }
 
-                return;
+                return ParseResult.Ok();
             }
 
-            ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
-            return;
+            return ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

@@ -17,8 +17,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassAmmoPowerup1.Hydrate(parent, reader, obj as ClassAmmoPowerup1);
-                return true;
+                return ClassAmmoPowerup1.Hydrate(parent, reader, obj as ClassAmmoPowerup1).Success;
             }
             finally
             {
@@ -29,9 +28,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassAmmoPowerup1 : ClassPowerUp
     {
         public ClassAmmoPowerup1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAmmoPowerup1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAmmoPowerup1? obj)
         {
-            ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
+            return ClassPowerUp.Hydrate(parent, reader, obj as ClassPowerUp);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

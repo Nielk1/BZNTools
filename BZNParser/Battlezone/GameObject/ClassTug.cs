@@ -22,8 +22,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassTug.Hydrate(parent, reader, obj as ClassTug);
-                return true;
+                return ClassTug.Hydrate(parent, reader, obj as ClassTug).Success;
             }
             finally
             {
@@ -57,7 +56,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTug? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTug? obj)
         {
             IBZNToken? tok;
 
@@ -68,7 +67,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     // This is due to bvapc26, assumed to be a tug,in "bdmisn26.bzn"
                     if (tok == null)
-                        throw new Exception("Failed to parse undefptr/state/PTR");
+                        return ParseResult.Fail("Failed to parse undefptr/state/PTR");
                     if (!tok.Validate("undefptr", BinaryFieldType.DATA_PTR))
                     {
                         if (reader.Version == 1045 && tok.Validate("state", BinaryFieldType.DATA_PTR))
@@ -77,7 +76,7 @@ namespace BZNParser.Battlezone.GameObject
                         }
                         else
                         {
-                            throw new Exception("Failed to parse undefptr/state/PTR");
+                            return ParseResult.Fail("Failed to parse undefptr/state/PTR");
                         }
                     }
                     tok.ApplyUInt32H8(obj, x => x.cargo);
@@ -94,20 +93,23 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            var tmp = ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            if (!tmp.Success)
+                return tmp;
 
-            if (reader.Format == BZNFormat.Battlezone2)
+			if (reader.Format == BZNFormat.Battlezone2)
             {
                 if (reader.Version >= 1109)
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
-                        throw new Exception("Failed to parse state/VOID");
+                        return ParseResult.Fail("Failed to parse state/VOID");
                     //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
                     tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("cargoHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse cargoHandle/LONG");
+                    if (tok == null || !tok.Validate("cargoHandle", BinaryFieldType.DATA_LONG))
+                        return ParseResult.Fail("Failed to parse cargoHandle/LONG");
                     //if (obj != null) obj.cargo = tok.GetUInt32();
                     tok.ApplyUInt32(obj, x => x.cargo);
 
@@ -128,6 +130,8 @@ namespace BZNParser.Battlezone.GameObject
                     // stuff
                 }
             }
+
+            return ParseResult.Ok();
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

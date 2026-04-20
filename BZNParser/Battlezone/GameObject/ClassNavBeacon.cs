@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassNavBeacon.Hydrate(parent, reader, obj as ClassNavBeacon);
-                return true;
+                return ClassNavBeacon.Hydrate(parent, reader, obj as ClassNavBeacon).Success;
             }
             finally
             {
@@ -56,25 +55,27 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassNavBeacon? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassNavBeacon? obj)
         {
             IBZNToken? tok;
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
-                throw new Exception("Failed to parse name/CHAR");
+                return ParseResult.Fail("Failed to parse name/CHAR");
             tok.ApplyChars(obj, x => x.name);
 
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("navSlot", BinaryFieldType.DATA_LONG))
-                throw new Exception("Failed to parse navSlot/LONG");
+                return ParseResult.Fail("Failed to parse navSlot/LONG");
             tok.ApplyInt32(obj, x => x.navSlot);
 
             if (reader.Version > 1104)
             {
                 ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
             }
+
+            return ParseResult.Ok();
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

@@ -16,8 +16,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassAirCraft.Hydrate(parent, reader, obj as ClassAirCraft);
-                return true;
+                return ClassAirCraft.Hydrate(parent, reader, obj as ClassAirCraft).Success;
             }
             finally
             {
@@ -69,7 +68,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAirCraft? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAirCraft? obj)
         {
             if (parent.SaveType != SaveType.BZN)
             {
@@ -77,29 +76,29 @@ namespace BZNParser.Battlezone.GameObject
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
-                    throw new Exception("Failed to parse state/VOID");
+                    return ParseResult.Fail("Failed to parse state/VOID");
                 tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
-                    throw new Exception("Failed to parse deployTimer/FLOAT");
+                    return ParseResult.Fail("Failed to parse deployTimer/FLOAT");
                 tok.ApplySingle(obj, x => x.deployTimer);
 
                 if (parent.SaveType == SaveType.LOCKSTEP)
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lastSteer", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse lastSteer/FLOAT");
+                        return ParseResult.Fail("Failed to parse lastSteer/FLOAT");
                     tok.ApplySingle(obj, x => x.lastSteer);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lastThrot", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse lastThrot/FLOAT");
+                        return ParseResult.Fail("Failed to parse lastThrot/FLOAT");
                     tok.ApplySingle(obj, x => x.lastThrot);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lastStrafe", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse lastStrafe/FLOAT");
+                        return ParseResult.Fail("Failed to parse lastStrafe/FLOAT");
                     tok.ApplySingle(obj, x => x.lastStrafe);
                 }
 
@@ -107,12 +106,12 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lockMode", BinaryFieldType.DATA_BOOL))
-                        throw new Exception("Failed to parse lockMode/BOOL");
+                        return ParseResult.Fail("Failed to parse lockMode/BOOL");
                     tok.ApplyBoolean(obj, x => x.m_bLockMode); // lockMode
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lockModeDeployed", BinaryFieldType.DATA_BOOL))
-                        throw new Exception("Failed to parse lockModeDeployed/BOOL");
+                        return ParseResult.Fail("Failed to parse lockModeDeployed/BOOL");
                     tok.ApplyBoolean(obj, x => x.m_bLockModeDeployed); // lockModeDeployed
                 }
                 else
@@ -125,7 +124,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
+            return ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

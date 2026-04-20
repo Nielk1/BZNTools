@@ -22,8 +22,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassPerson.Hydrate(parent, reader, obj as ClassPerson);
-                return true;
+                return ClassPerson.Hydrate(parent, reader, obj as ClassPerson).Success;
             }
             finally
             {
@@ -57,14 +56,15 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPerson? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPerson? obj)
         {
             IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextScream/FLOAT");
+                if (tok == null || !tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse nextScream/FLOAT");
                 tok.ApplySingle(obj, x => x.nextScream);
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -72,13 +72,15 @@ namespace BZNParser.Battlezone.GameObject
                 if (reader.Version == 1047)
                 {
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse nextScream/FLOAT");
+                    if (tok == null || !tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT))
+                        return ParseResult.Fail("Failed to parse nextScream/FLOAT");
                     tok.ApplySingle(obj, x => x.nextScream);
                 }
                 else
                 {
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
+                    if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
+                        return ParseResult.Fail("Failed to parse state/VOID"); // type not confirmed
                     tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                     /*if (a2[2].vftable)
@@ -96,7 +98,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
+            return ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

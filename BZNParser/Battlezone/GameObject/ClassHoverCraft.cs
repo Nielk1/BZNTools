@@ -20,8 +20,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
-                return true;
+                return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft).Success;
             }
             finally
             {
@@ -96,98 +95,119 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassHoverCraft? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassHoverCraft? obj)
         {
             if (reader.Format == BZNFormat.Battlezone && reader.Version > 1001 && reader.Version < 1026)
             {
                 IBZNToken? tok;
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("setAltitude", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse setAltitude/FLOAT");
+                if (tok == null || !tok.Validate("setAltitude", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse setAltitude/FLOAT");
                 tok.ApplySingle(obj, x => x.setAltitude);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("accelDragStop", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelDragStop/FLOAT");
+                if (tok == null || !tok.Validate("accelDragStop", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse accelDragStop/FLOAT");
                 tok.ApplySingle(obj, x => x.accelDragStop);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("accelDragFull", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelDragFull/FLOAT");
+                if (tok == null || !tok.Validate("accelDragFull", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse accelDragFull/FLOAT");
                 tok.ApplySingle(obj, x => x.accelDragFull);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("alphaTrack", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse alphaTrack/FLOAT");
+                if (tok == null || !tok.Validate("alphaTrack", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse alphaTrack/FLOAT");
                 tok.ApplySingle(obj, x => x.alphaTrack);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("alphaDamp", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse alphaDamp/FLOAT");
+                if (tok == null || !tok.Validate("alphaDamp", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse alphaDamp/FLOAT");
                 tok.ApplySingle(obj, x => x.alphaDamp);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("pitchPitch", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse pitchPitch/FLOAT");
+                if (tok == null || !tok.Validate("pitchPitch", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse pitchPitch/FLOAT");
                 tok.ApplySingle(obj, x => x.pitchPitch);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("pitchThrust", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse pitchThrust/FLOAT");
+                if (tok == null || !tok.Validate("pitchThrust", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse pitchThrust/FLOAT");
                 tok.ApplySingle(obj, x => x.pitchThrust);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("rollStrafe", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse rollStrafe/FLOAT");
+                if (tok == null || !tok.Validate("rollStrafe", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse rollStrafe/FLOAT");
                 tok.ApplySingle(obj, x => x.rollStrafe);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("rollSteer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse rollSteer/FLOAT");
+                if (tok == null || !tok.Validate("rollSteer", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse rollSteer/FLOAT");
                 tok.ApplySingle(obj, x => x.rollSteer);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("velocForward", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse velocForward/FLOAT");
+                if (tok == null || !tok.Validate("velocForward", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse velocForward/FLOAT");
                 tok.ApplySingle(obj, x => x.velocForward);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("velocReverse", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse velocReverse/FLOAT");
+                if (tok == null || !tok.Validate("velocReverse", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse velocReverse/FLOAT");
                 tok.ApplySingle(obj, x => x.velocReverse);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("velocStrafe", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse velocStrafe/FLOAT");
+                if (tok == null || !tok.Validate("velocStrafe", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse velocStrafe/FLOAT");
                 tok.ApplySingle(obj, x => x.velocStrafe);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("accelThrust", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelThrust/FLOAT");
+                if (tok == null || !tok.Validate("accelThrust", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse accelThrust/FLOAT");
                 tok.ApplySingle(obj, x => x.accelThrust);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("accelBrake", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelBrake/FLOAT");
+                if (tok == null || !tok.Validate("accelBrake", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse accelBrake/FLOAT");
                 tok.ApplySingle(obj, x => x.accelBrake);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("omegaSpin", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse omegaSpin/FLOAT");
+                if (tok == null || !tok.Validate("omegaSpin", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse omegaSpin/FLOAT");
                 tok.ApplySingle(obj, x => x.omegaSpin);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("omegaTurn", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse omegaTurn/FLOAT");
+                if (tok == null || !tok.Validate("omegaTurn", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse omegaTurn/FLOAT");
                 tok.ApplySingle(obj, x => x.omegaTurn);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("alphaSteer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse alphaSteer/FLOAT");
+                if (tok == null || !tok.Validate("alphaSteer", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse alphaSteer/FLOAT");
                 tok.ApplySingle(obj, x => x.alphaSteer);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("accelJump", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse accelJump/FLOAT");
+                if (tok == null || !tok.Validate("accelJump", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse accelJump/FLOAT");
                 tok.ApplySingle(obj, x => x.accelJump);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("thrustRatio", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse thrustRatio/FLOAT");
+                if (tok == null || !tok.Validate("thrustRatio", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse thrustRatio/FLOAT");
                 tok.ApplySingle(obj, x => x.thrustRatio);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("throttle", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse throttle/FLOAT");
+                if (tok == null || !tok.Validate("throttle", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse throttle/FLOAT");
                 tok.ApplySingle(obj, x => x.throttle);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("airBorne", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse airBorne/FLOAT");
+                if (tok == null || !tok.Validate("airBorne", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse airBorne/FLOAT");
                 tok.ApplySingle(obj, x => x.airBorne);
             }
 
-            ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
+            return ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

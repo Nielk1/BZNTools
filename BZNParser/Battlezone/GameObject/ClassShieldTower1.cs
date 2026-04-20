@@ -16,8 +16,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassShieldTower1.Hydrate(parent, reader, obj as ClassShieldTower1);
-                return true;
+                return ClassShieldTower1.Hydrate(parent, reader, obj as ClassShieldTower1).Success;
             }
             finally
             {
@@ -28,9 +27,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassShieldTower1 : ClassBuilding
     {
         public ClassShieldTower1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassShieldTower1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassShieldTower1? obj)
         {
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

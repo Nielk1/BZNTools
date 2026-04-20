@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassMorphTank.Hydrate(parent, reader, obj as ClassMorphTank);
-                return true;
+                return ClassMorphTank.Hydrate(parent, reader, obj as ClassMorphTank).Success;
             }
             finally
             {
@@ -31,7 +30,7 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassMorphTank : ClassDeployable
     {
         public ClassMorphTank(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMorphTank? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMorphTank? obj)
         {
             //IBZNToken tok;
 
@@ -43,7 +42,7 @@ namespace BZNParser.Battlezone.GameObject
             //if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
             //state = tok.GetBytes(0, 4);
 
-            ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
+            return ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

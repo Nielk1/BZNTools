@@ -20,8 +20,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassSpawnBuoy1.Hydrate(parent, reader, obj as ClassSpawnBuoy1);
-                return true;
+                return ClassSpawnBuoy1.Hydrate(parent, reader, obj as ClassSpawnBuoy1).Success;
             }
             finally
             {
@@ -32,9 +31,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassSpawnBuoy1 : ClassGameObject
     {
         public ClassSpawnBuoy1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassSpawnBuoy1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassSpawnBuoy1? obj)
         {
-            ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+            return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

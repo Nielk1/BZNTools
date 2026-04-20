@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassKingOfHill.Hydrate(parent, reader, obj as ClassKingOfHill);
-                return true;
+                return ClassKingOfHill.Hydrate(parent, reader, obj as ClassKingOfHill).Success;
             }
             finally
             {
@@ -50,15 +49,16 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassKingOfHill? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassKingOfHill? obj)
         {
             IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (tok == null || !tok.Validate("scoreTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scoreTimer/FLOAT");
+            if (tok == null || !tok.Validate("scoreTimer", BinaryFieldType.DATA_FLOAT))
+                return ParseResult.Fail("Failed to parse scoreTimer/FLOAT");
             tok.ApplySingle(obj, x => x.scoreTimer);
 
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

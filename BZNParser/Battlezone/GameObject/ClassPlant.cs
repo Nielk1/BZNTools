@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassPlant.Hydrate(parent, reader, obj as ClassPlant);
-                return true;
+                return ClassPlant.Hydrate(parent, reader, obj as ClassPlant).Success;
             }
             finally
             {
@@ -27,9 +26,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassPlant : ClassBuilding
     {
         public ClassPlant(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPlant? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPlant? obj)
         {
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

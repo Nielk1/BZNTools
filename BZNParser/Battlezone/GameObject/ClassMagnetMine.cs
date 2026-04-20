@@ -21,8 +21,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassMagnetMine.Hydrate(parent, reader, obj as ClassMagnetMine);
-                return true;
+                return ClassMagnetMine.Hydrate(parent, reader, obj as ClassMagnetMine).Success;
             }
             finally
             {
@@ -33,7 +32,7 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassMagnetMine : ClassMine
     {
         public ClassMagnetMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMagnetMine? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMagnetMine? obj)
         {
             //IBZNToken tok;
 
@@ -44,7 +43,7 @@ namespace BZNParser.Battlezone.GameObject
             //    //saveClass = tok.GetSingle();
             //}
 
-            ClassMine.Hydrate(parent, reader, obj as ClassMine);
+            return ClassMine.Hydrate(parent, reader, obj as ClassMine);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

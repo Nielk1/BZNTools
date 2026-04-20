@@ -20,8 +20,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassFactory1.Hydrate(parent, reader, obj as ClassFactory1);
-                return true;
+                return ClassFactory1.Hydrate(parent, reader, obj as ClassFactory1).Success;
             }
             finally
             {
@@ -32,9 +31,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassFactory1 : ClassProducer
     {
         public ClassFactory1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFactory1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassFactory1? obj)
         {
-            ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
+            return ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

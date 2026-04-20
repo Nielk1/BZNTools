@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassJammerTower.Hydrate(parent, reader, obj as ClassJammerTower);
-                return true;
+                return ClassJammerTower.Hydrate(parent, reader, obj as ClassJammerTower).Success;
             }
             finally
             {
@@ -27,9 +26,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassJammerTower : ClassPoweredBuilding
     {
         public ClassJammerTower(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassJammerTower? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassJammerTower? obj)
         {
-            ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
+            return ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

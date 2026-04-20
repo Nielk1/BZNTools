@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassExtractor.Hydrate(parent, reader, obj as ClassExtractor);
-                return true;
+                return ClassExtractor.Hydrate(parent, reader, obj as ClassExtractor).Success;
             }
             finally
             {
@@ -60,12 +59,13 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassExtractor? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassExtractor? obj)
         {
             IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse scrapTimer/FLOAT");
+            if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT))
+                return ParseResult.Fail("Failed to parse scrapTimer/FLOAT");
             tok.ApplySingle(obj, x => x.scrapTimer);
 
             if (reader.Version < 1147)
@@ -81,11 +81,13 @@ namespace BZNParser.Battlezone.GameObject
                 if (!string.IsNullOrEmpty(saveClass))
                 {
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveTeam/LONG");
+                    if (tok == null || !tok.Validate("saveTeam", BinaryFieldType.DATA_LONG))
+                        return ParseResult.Fail("Failed to parse saveTeam/LONG");
                     tok.ApplyInt32(obj, x => x.saveTeam);
 
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse saveSeqno/LONG");
+                    if (tok == null || !tok.Validate("saveSeqno", BinaryFieldType.DATA_LONG))
+                        return ParseResult.Fail("Failed to parse saveSeqno/LONG");
                     //if (obj != null) obj.saveSeqno = tok.GetInt32H();
                     tok.ApplyUInt32h(obj, x => x.saveSeqno); // Int32?
 
@@ -101,11 +103,12 @@ namespace BZNParser.Battlezone.GameObject
             if (reader.Version > 1102)
             {
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("animStart", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse animStart/BOOL");
+                if (tok == null || !tok.Validate("animStart", BinaryFieldType.DATA_BOOL))
+                    return ParseResult.Fail("Failed to parse animStart/BOOL");
                 tok.ApplyBoolean(obj, x => x.animStart);
             }
 
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

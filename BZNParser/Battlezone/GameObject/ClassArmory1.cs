@@ -16,8 +16,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassArmory1.Hydrate(parent, reader, obj as ClassArmory1);
-                return true;
+                return ClassArmory1.Hydrate(parent, reader, obj as ClassArmory1).Success;
             }
             finally
             {
@@ -28,9 +27,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassArmory1 : ClassProducer
     {
         public ClassArmory1(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassArmory1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassArmory1? obj)
         {
-            ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
+            return ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassDummy.Hydrate(parent, reader, obj as ClassDummy);
-                return true;
+                return ClassDummy.Hydrate(parent, reader, obj as ClassDummy).Success;
             }
             finally
             {
@@ -33,23 +32,24 @@ namespace BZNParser.Battlezone.GameObject
         //public string name { get; set; }
         public ClassDummy(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDummy? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDummy? obj)
         {
             if (reader.Version == 1047)
             {
-                ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject); // this might be due to a changed base class on "spawnpnt"
-                return;
+                return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject); // this might be due to a changed base class on "spawnpnt"
             }
 
             IBZNToken? tok;
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
-                throw new Exception("Failed to parse name/CHAR");
+                return ParseResult.Fail("Failed to parse name/CHAR");
             tok.ApplyChars(obj, x => x.name);
 
             // Terrain doesn't call base data load
             //base.Build(reader, obj);
+
+            return ParseResult.Ok();
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

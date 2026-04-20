@@ -16,8 +16,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassMine.Hydrate(parent, reader, obj as ClassMine);
-                return true;
+                return ClassMine.Hydrate(parent, reader, obj as ClassMine).Success;
             }
             finally
             {
@@ -52,7 +51,7 @@ namespace BZNParser.Battlezone.GameObject
 
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMine? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassMine? obj)
         {
             if (reader.Format == BZNFormat.Battlezone)
             {
@@ -60,7 +59,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     IBZNToken? tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lifeTimer", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse lifeTimer/FLOAT");
+                        return ParseResult.Fail("Failed to parse lifeTimer/FLOAT");
                     tok.ApplySingle(obj, x => x.lifeTimer);
                 }
             }
@@ -69,11 +68,11 @@ namespace BZNParser.Battlezone.GameObject
             {
                 IBZNToken? tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
-                    throw new Exception("Failed to parse undeffloat/FLOAT");
+                    return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
                 tok.ApplySingle(obj, x => x.lifeTimer);
             }
 
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

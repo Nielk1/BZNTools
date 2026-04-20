@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassAssaultTank.Hydrate(parent, reader, obj as ClassAssaultTank);
-                return true;
+                return ClassAssaultTank.Hydrate(parent, reader, obj as ClassAssaultTank).Success;
             }
             finally
             {
@@ -27,14 +26,14 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassAssaultTank : ClassTrackedVehicle
     {
         public ClassAssaultTank(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAssaultTank? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAssaultTank? obj)
         {
             if (parent.SaveType != SaveType.BZN)
             {
                 // turret control
             }
 
-            ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle);
+            return ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

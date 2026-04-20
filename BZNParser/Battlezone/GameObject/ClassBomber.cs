@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassBomber.Hydrate(parent, reader, obj as ClassBomber);
-                return true;
+                return ClassBomber.Hydrate(parent, reader, obj as ClassBomber).Success;
             }
             finally
             {
@@ -50,22 +49,24 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBomber? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBomber? obj)
         {
             IBZNToken? tok;
 
             tok = reader.ReadToken();
-            if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
+            if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
+                return ParseResult.Fail("Failed to parse state/VOID");
             tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
             if (parent.SaveType != SaveType.BZN)
             {
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("m_ReloadTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse m_ReloadTime/FLOAT");
+                if (tok == null || !tok.Validate("m_ReloadTime", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse m_ReloadTime/FLOAT");
                 tok.ApplySingle(obj, x => x.m_ReloadTime);
             }
 
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

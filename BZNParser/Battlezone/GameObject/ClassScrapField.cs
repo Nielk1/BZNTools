@@ -17,8 +17,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassScrapField.Hydrate(parent, reader, obj as ClassScrapField);
-                return true;
+                return ClassScrapField.Hydrate(parent, reader, obj as ClassScrapField).Success;
             }
             finally
             {
@@ -29,9 +28,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassScrapField : ClassBuilding
     {
         public ClassScrapField(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScrapField? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScrapField? obj)
         {
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

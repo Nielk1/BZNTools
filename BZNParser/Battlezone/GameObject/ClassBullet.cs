@@ -14,8 +14,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassBullet.Hydrate(parent, reader, obj as ClassBullet);
-                return true;
+                return ClassBullet.Hydrate(parent, reader, obj as ClassBullet).Success;
             }
             finally
             {
@@ -26,9 +25,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassBullet : ClassOrdnance
     {
         public ClassBullet(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBullet? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassBullet? obj)
         {
-            ClassOrdnance.Hydrate(parent, reader, obj as ClassOrdnance);
+            return ClassOrdnance.Hydrate(parent, reader, obj as ClassOrdnance);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

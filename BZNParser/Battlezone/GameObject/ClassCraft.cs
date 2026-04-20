@@ -22,8 +22,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
-                return true;
+                return ClassCraft.Hydrate(parent, reader, obj as ClassCraft).Success;
             }
             finally
             {
@@ -108,7 +107,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassCraft? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassCraft? obj)
         {
             IBZNToken? tok;
 
@@ -119,37 +118,37 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken(); // energy0current
                     if (tok == null || !tok.Validate("energy0current", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse energy0current/LONG");
+                        return ParseResult.Fail("Failed to parse energy0current/LONG");
                     tok.ApplyUInt32(obj, x => x.energy0current);
 
                     tok = reader.ReadToken(); // energy0maximum
                     if (tok == null || !tok.Validate("energy0maximum", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse energy0maximum/LONG");
+                        return ParseResult.Fail("Failed to parse energy0maximum/LONG");
                     tok.ApplyUInt32(obj, x => x.energy0maximum);
 
                     tok = reader.ReadToken(); // energy1current
                     if (tok == null || !tok.Validate("energy1current", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse energy1current/LONG");
+                        return ParseResult.Fail("Failed to parse energy1current/LONG");
                     tok.ApplyUInt32(obj, x => x.energy1current);
 
                     tok = reader.ReadToken(); // energy1maximum
                     if (tok == null || !tok.Validate("energy1maximum", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse energy1maximum/LONG");
+                        return ParseResult.Fail("Failed to parse energy1maximum/LONG");
                     tok.ApplyUInt32(obj, x => x.energy1maximum);
 
                     tok = reader.ReadToken(); // energy2current
                     if (tok == null || !tok.Validate("energy2current", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse energy2current/LONG");
+                        return ParseResult.Fail("Failed to parse energy2current/LONG");
                     tok.ApplyUInt32(obj, x => x.energy2current);
 
                     tok = reader.ReadToken(); // energy2maximum
                     if (tok == null || !tok.Validate("energy2maximum", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse energy2maximum/LONG");
+                        return ParseResult.Fail("Failed to parse energy2maximum/LONG");
                     tok.ApplyUInt32(obj, x => x.energy2maximum);
 
                     tok = reader.ReadToken(); // bumpers
                     if (tok == null || !tok.Validate("bumpers", BinaryFieldType.DATA_VEC3D) || tok.GetCount() != 6)
-                        throw new Exception("Failed to parse energy2maximum/LONG");
+                        return ParseResult.Fail("Failed to parse energy2maximum/LONG");
 
                     if (obj != null)
                     {
@@ -162,7 +161,7 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken(); // bumpers or armor, 24 0x00s raw
                     if (tok == null || !tok.Validate("armor", BinaryFieldType.DATA_VOID) || tok.GetCount() != 1)
-                        throw new Exception("Failed to parse energy2maximum/LONG");
+                        return ParseResult.Fail("Failed to parse energy2maximum/LONG");
 
                     if (obj != null)
                     {
@@ -176,7 +175,7 @@ namespace BZNParser.Battlezone.GameObject
                     
                     tok = reader.ReadToken(); // bumpers
                     if (tok == null || !tok.Validate("bumpers", BinaryFieldType.DATA_VEC3D) || tok.GetCount() != 6)
-                        throw new Exception("Failed to parse energy2maximum/LONG");
+                        return ParseResult.Fail("Failed to parse energy2maximum/LONG");
                     if (obj != null)
                     {
                         obj.bumpers = new Vector3D[6];
@@ -192,9 +191,9 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("abandoned", BinaryFieldType.DATA_LONG))
-                    throw new Exception("Failed to parse abandoned/LONG");
+                    return ParseResult.Fail("Failed to parse abandoned/LONG");
                 if (tok.GetCount(BinaryFieldType.DATA_LONG) != 1)
-                    throw new Exception("Failed to parse abandoned/LONG (wrong entry count)"); // vastly improves type auto-detect
+                    return ParseResult.Fail("Failed to parse abandoned/LONG (wrong entry count)"); // vastly improves type auto-detect
 
                 tok.ApplyInt32(obj, x => x.abandoned);
             }
@@ -262,23 +261,23 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("cloakTransitionTime", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse cloakTransitionTime/FLOAT");
+                        return ParseResult.Fail("Failed to parse cloakTransitionTime/FLOAT");
                     tok.ApplySingle(obj, x => x.cloakTransitionTime);
                 }
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cloakState", BinaryFieldType.DATA_VOID))
-                    throw new Exception("Failed to parse cloakState/VOID");
+                    return ParseResult.Fail("Failed to parse cloakState/VOID");
                 tok.ApplyVoidBytes(obj, x => x.cloakState, 0, (v) => BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cloakTransBeginTime", BinaryFieldType.DATA_FLOAT))
-                    throw new Exception("Failed to parse cloakTransBeginTime/FLOAT");
+                    return ParseResult.Fail("Failed to parse cloakTransBeginTime/FLOAT");
                 tok.ApplySingle(obj, x => x.cloakTransBeginTime);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cloakTransEndTime", BinaryFieldType.DATA_FLOAT))
-                    throw new Exception("Failed to parse cloakTransEndTime/FLOAT");
+                    return ParseResult.Fail("Failed to parse cloakTransEndTime/FLOAT");
                 tok.ApplySingle(obj, x => x.cloakTransEndTime);
 
                 if (reader.Version >= 2002 && obj != null)
@@ -293,19 +292,19 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse curAmmo/FLOAT");
+                        return ParseResult.Fail("Failed to parse curAmmo/FLOAT");
                     //if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle());
                     tok.ApplySingle(obj, x => x.curAmmo);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse maxAmmo/FLOAT");
+                        return ParseResult.Fail("Failed to parse maxAmmo/FLOAT");
                     //if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle());
                     tok.ApplySingle(obj, x => x.maxAmmo);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
-                        throw new Exception("Failed to parse addAmmo/FLOAT");
+                        return ParseResult.Fail("Failed to parse addAmmo/FLOAT");
                     //if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle());
                     tok.ApplySingle(obj, x => x.addAmmo);
 
@@ -356,7 +355,7 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("m_ejectRatio", BinaryFieldType.DATA_FLOAT))
-                            throw new Exception("Failed to parse m_ejectRatio/FLOAT");
+                            return ParseResult.Fail("Failed to parse m_ejectRatio/FLOAT");
                         //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
                         tok.ApplySingle(obj, x => x.m_ejectRatio);
                     }
@@ -364,14 +363,14 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
-                            throw new Exception("Failed to parse ejectRatio/FLOAT");
+                            return ParseResult.Fail("Failed to parse ejectRatio/FLOAT");
                         //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
                         tok.ApplySingle(obj, x => x.m_ejectRatio);
                     }
                 }
             }
 
-            ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+            return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

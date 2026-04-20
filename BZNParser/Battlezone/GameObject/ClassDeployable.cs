@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
-                return true;
+                return ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable).Success;
             }
             finally
             {
@@ -54,7 +53,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployable? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeployable? obj)
         {
             IBZNToken tok;
 
@@ -62,12 +61,14 @@ namespace BZNParser.Battlezone.GameObject
             //if (reader.Format == BZNFormat.Battlezone2)
             {
                 tok = reader.ReadToken();
-                if (!tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
+                if (!tok.Validate("state", BinaryFieldType.DATA_VOID))
+                    return ParseResult.Fail("Failed to parse state/VOID"); // type not confirmed
                 //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR();
                 tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
-                if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
+                if (!tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse deployTimer/FLOAT");
                 tok.ApplySingle(obj, x => x.deployTimer);
 
                 if (parent.SaveType == 0)
@@ -85,7 +86,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

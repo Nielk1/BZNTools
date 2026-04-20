@@ -69,7 +69,7 @@ namespace BZNParser.Battlezone
             gameObject?.EnableMalformationAutoFix();
         }
 
-        public static bool Create(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, out EntityDescriptor? obj, bool create = true, BattlezoneBZNHints? Hints = null)
+        public static ParseResult Create(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, out EntityDescriptor? obj, bool create = true, BattlezoneBZNHints? Hints = null)
         {
             obj = null;
             if (create)
@@ -79,8 +79,7 @@ namespace BZNParser.Battlezone
             }
             try
             {
-                EntityDescriptor.Hydrate(parent, reader, countLeft, obj, Hints);
-                return true;
+                return EntityDescriptor.Hydrate(parent, reader, countLeft, obj, Hints);
             }
             finally
             {
@@ -88,28 +87,28 @@ namespace BZNParser.Battlezone
             }
         }
 
-        public static bool Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, EntityDescriptor? obj, BattlezoneBZNHints? Hints = null)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, EntityDescriptor? obj, BattlezoneBZNHints? Hints = null)
         {
             IBZNToken? tok;
             if (!reader.InBinary)
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.IsValidationOnly() || !tok.Validate("GameObject", BinaryFieldType.DATA_UNKNOWN))
-                    throw new Exception("Failed to parse [GameObject]");
+                    return ParseResult.Fail("Failed to parse [GameObject]");
             }
 
             if (reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
                 if (tok == null)
-                    throw new Exception("Failed to parse PrjID/ID");
+                    return ParseResult.Fail("Failed to parse PrjID/ID");
                 tok.ApplyUInt16(obj, x => x.PrjID, 0, (v) => new SizedString(parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v)));
             }
             else if (reader.Format == BZNFormat.Battlezone)
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("PrjID", BinaryFieldType.DATA_ID))
-                    throw new Exception("Failed to parse PrjID/ID");
+                    return ParseResult.Fail("Failed to parse PrjID/ID");
 
                 // version 1001 may require the string be 8 bytes but our only sample is 1 ASCII atm
                 // version 1001 has it written as a raw 1-liner and not a normal ID, but that might be how IDs work that far back
@@ -149,28 +148,28 @@ namespace BZNParser.Battlezone
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
-                        throw new Exception("Failed to parse seqno/SHORT");
+                        return ParseResult.Fail("Failed to parse seqno/SHORT");
                     (seqNo, _) = tok.ApplyUInt16h(obj, x => x.seqNo);
                 }
                 else if (reader.Version <= 1070)
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
-                        throw new Exception("Failed to parse seqno/SHORT");
+                        return ParseResult.Fail("Failed to parse seqno/SHORT");
                     (seqNo, _) = tok.ApplyUInt16(obj, x => x.seqNo);
                 }
                 else if (reader.Version <= 1100)
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse seqno/LONG");
+                        return ParseResult.Fail("Failed to parse seqno/LONG");
                     (seqNo, _) = tok.ApplyUInt32(obj, x => x.seqNo);
                 }
                 else
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse seqno/LONG");
+                        return ParseResult.Fail("Failed to parse seqno/LONG");
                     (seqNo, _) = tok.ApplyUInt32h(obj, x => x.seqNo);
                 }
             }
@@ -178,7 +177,7 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("seqno", BinaryFieldType.DATA_SHORT))
-                    throw new Exception("Failed to parse seqno/SHORT");
+                    return ParseResult.Fail("Failed to parse seqno/SHORT");
                 (seqNo, _) = tok.ApplyUInt16(obj, x => x.seqNo);
             }
 
@@ -186,7 +185,7 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("pos", BinaryFieldType.DATA_VEC3D))
-                    throw new Exception("Failed to parse pos/VEC3D");
+                    return ParseResult.Fail("Failed to parse pos/VEC3D");
                 tok.ApplyVector3D(obj, x => x.pos);
             }
 
@@ -194,7 +193,7 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
-                    throw new Exception("Failed to parse team/LONG");
+                    return ParseResult.Fail("Failed to parse team/LONG");
                 //if (obj != null) obj.team = tok.GetUInt32();
                 tok.ApplyUInt32(obj, x => x.team);
             }
@@ -203,14 +202,14 @@ namespace BZNParser.Battlezone
                 if (reader.Version < 1145)
                 {
                     if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_LONG))
-                        throw new Exception("Failed to parse team/LONG");
+                        return ParseResult.Fail("Failed to parse team/LONG");
                     //if (obj != null) obj.team = tok.GetUInt32();
                     tok.ApplyUInt32(obj, x => x.team);
                 }
                 else
                 {
                     if (tok == null || !tok.Validate("team", BinaryFieldType.DATA_CHAR))
-                        throw new Exception("Failed to parse team/CHAR");
+                        return ParseResult.Fail("Failed to parse team/CHAR");
                     //if (obj != null) obj.team = tok.GetUInt8(); // does this include perceived team in the high nybble? probably
                     tok.ApplyUInt8(obj, x => x.team);
                 }
@@ -220,14 +219,14 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_SHORT))
-                    throw new Exception("Failed to parse label/CHAR");
+                    return ParseResult.Fail("Failed to parse label/CHAR");
                 if (obj != null) obj.label = new SizedString(string.Format("bzn64label_{0,4:X4}", tok.GetUInt16()));
             }
             else if (reader.Format == BZNFormat.Battlezone)
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_CHAR))
-                    throw new Exception("Failed to parse label/CHAR");
+                    return ParseResult.Fail("Failed to parse label/CHAR");
                 tok.ApplyChars(obj, x => x.label);
             }
             else if (reader.Format == BZNFormat.Battlezone2)
@@ -261,7 +260,7 @@ namespace BZNParser.Battlezone
                     if (reader.Version < 1145)
                     {
                         if (tok == null || !tok.Validate("isUser", BinaryFieldType.DATA_LONG))
-                            throw new Exception("Failed to parse isUser/LONG");
+                            return ParseResult.Fail("Failed to parse isUser/LONG");
                         (_, UInt32 raw) = tok.ApplyUInt32<EntityDescriptor, bool>(obj, x => x.isUser, 0, (isUser) => isUser != 0);
                         if (raw > 1)
                             obj?.Malformations.AddIncorrectRaw<EntityDescriptor, bool>(x => x.isUser, 0, BitConverter.GetBytes(raw));
@@ -269,7 +268,7 @@ namespace BZNParser.Battlezone
                     else
                     {
                         if (tok == null || !tok.Validate("isUser", BinaryFieldType.DATA_BOOL))
-                            throw new Exception("Failed to parse isUser/BOOL");
+                            return ParseResult.Fail("Failed to parse isUser/BOOL");
                         tok.ApplyBoolean(obj, x => x.isUser);
                     }
                 }
@@ -278,7 +277,7 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("isUser", BinaryFieldType.DATA_LONG))
-                    throw new Exception("Failed to parse isUser/LONG");
+                    return ParseResult.Fail("Failed to parse isUser/LONG");
                 (_, UInt32 raw) = tok.ApplyUInt32<EntityDescriptor, bool>(obj, x => x.isUser, 0, (isUser) => isUser != 0);
                 if (raw > 1)
                     obj?.Malformations.AddIncorrectRaw<EntityDescriptor, bool>(x => x.isUser, 0, BitConverter.GetBytes(raw));
@@ -290,14 +289,14 @@ namespace BZNParser.Battlezone
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("obj_addr", BinaryFieldType.DATA_VOID))
-                        throw new Exception("Failed to parse objAddr/VOID");
+                        return ParseResult.Fail("Failed to parse objAddr/VOID");
                     tok.ApplyVoidBytesRaw(obj, x => x.obj_addr, 0, (v) => BitConverter.ToUInt32(v));
                 }
                 else
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("obj_addr", BinaryFieldType.DATA_PTR))
-                        throw new Exception("Failed to parse objAddr/VOID");
+                        return ParseResult.Fail("Failed to parse objAddr/VOID");
                     tok.ApplyUInt32H8(obj, x => x.obj_addr);
                 }
             }
@@ -305,7 +304,7 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("objAddr", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse objAddr/PTR");
+                    return ParseResult.Fail("Failed to parse objAddr/PTR");
                 if (obj != null) obj.obj_addr = tok.GetUInt32H();
             }
 
@@ -324,11 +323,11 @@ namespace BZNParser.Battlezone
             }
 
             if (obj == null)
-                return true;
+                return ParseResult.Ok();
             // other save types here
 
             obj.gameObject = ParseGameObject(parent, reader, countLeft, Hints, obj);
-            return true;
+            return ParseResult.Ok();
         }
 
         private static Entity? ParseGameObject(BZNFileBattlezone parent, BZNStreamReader reader, int countLeft, BattlezoneBZNHints? Hints, EntityDescriptor obj)
@@ -412,15 +411,15 @@ namespace BZNParser.Battlezone
                 reader.Bookmark.Mark();
                 try
                 {
-                    parent.TailParse(reader);
+                    ParseResult pr = parent.TailParse(reader);
+                    reader.Bookmark.RevertToBookmark();
+                    return pr.Success;
                 }
                 catch
                 {
                     reader.Bookmark.RevertToBookmark();
                     return false;
                 }
-                reader.Bookmark.RevertToBookmark();
-                return true;
             }
             else
             {
@@ -441,7 +440,7 @@ namespace BZNParser.Battlezone
                     reader.Bookmark.Mark();
                     try
                     {
-                        if (EntityDescriptor.Hydrate(parent, reader, countLeft, null, Hints: Hints))
+                        if (EntityDescriptor.Hydrate(parent, reader, countLeft, null, Hints: Hints).Success)
                         {
                             reader.Bookmark.RevertToBookmark();
                             return true;

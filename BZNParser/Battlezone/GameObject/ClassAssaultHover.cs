@@ -15,8 +15,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassAssaultHover.Hydrate(parent, reader, obj as ClassAssaultHover);
-                return true;
+                return ClassAssaultHover.Hydrate(parent, reader, obj as ClassAssaultHover).Success;
             }
             finally
             {
@@ -28,14 +27,14 @@ namespace BZNParser.Battlezone.GameObject
     {
         public ClassAssaultHover(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAssaultHover? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAssaultHover? obj)
         {
             if (parent.SaveType != SaveType.BZN)
             {
                 // turret control
             }
 
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

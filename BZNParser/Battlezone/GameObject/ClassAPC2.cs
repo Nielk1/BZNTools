@@ -16,8 +16,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassAPC2.Hydrate(parent, reader, obj as ClassAPC2);
-                return true;
+                return ClassAPC2.Hydrate(parent, reader, obj as ClassAPC2).Success;
             }
             finally
             {
@@ -69,25 +68,25 @@ namespace BZNParser.Battlezone.GameObject
             base.EnableMalformationAutoFix();
         }
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAPC2? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassAPC2? obj)
         {
             IBZNToken? tok;
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("IsoldierCount", BinaryFieldType.DATA_LONG))
-                throw new Exception("Failed to parse IsoldierCount/LONG");
+                return ParseResult.Fail("Failed to parse IsoldierCount/LONG");
             tok.ApplyInt32(obj, x => x.InternalSoldierCount);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("EsoldierCount", BinaryFieldType.DATA_LONG))
-                throw new Exception("Failed to parse EsoldierCount/LONG");
+                return ParseResult.Fail("Failed to parse EsoldierCount/LONG");
             (int ExternalSoldierCount, _) = tok.ApplyInt32(obj, x => x.ExternalSoldierCount);
 
             if (ExternalSoldierCount > 0)
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("SoldierHandles", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse SoldierHandles/PTR");
+                    return ParseResult.Fail("Failed to parse SoldierHandles/PTR");
                 //tok.GetUInt32H();
                 if (obj != null)
                 {
@@ -106,36 +105,37 @@ namespace BZNParser.Battlezone.GameObject
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextSoldierDelay", BinaryFieldType.DATA_FLOAT))
-                    throw new Exception("Failed to parse nextSoldierDelay/FLOAT");
+                    return ParseResult.Fail("Failed to parse nextSoldierDelay/FLOAT");
                 tok.ApplySingle(obj, x => x.NextSoldierDelay);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextSoldierAngle", BinaryFieldType.DATA_FLOAT))
-                    throw new Exception("Failed to parse nextSoldierAngle/FLOAT");
+                    return ParseResult.Fail("Failed to parse nextSoldierAngle/FLOAT");
                 tok.ApplySingle(obj, x => x.NextSoldierAngle);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextReturnTimer", BinaryFieldType.DATA_FLOAT))
-                    throw new Exception("Failed to parse nextReturnTimer/FLOAT");
+                    return ParseResult.Fail("Failed to parse nextReturnTimer/FLOAT");
                 tok.ApplySingle(obj, x => x.NextReturnToAPC);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("DeployOnLanding", BinaryFieldType.DATA_BOOL))
-                    throw new Exception("Failed to parse DeployOnLanding/BOOL");
+                    return ParseResult.Fail("Failed to parse DeployOnLanding/BOOL");
                 tok.ApplyBoolean(obj, x => x.DeployOnLanding);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undeployTimeout", BinaryFieldType.DATA_LONG))
-                    throw new Exception("Failed to parse undeployTimeout/LONG");
+                    return ParseResult.Fail("Failed to parse undeployTimeout/LONG");
                 tok.ApplyInt32(obj, x => x.UndeployTimeout);
             }
 
             tok = reader.ReadToken();
-            if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID");
+            if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
+                return ParseResult.Fail("Failed to parse state/VOID");
             //if (obj != null) obj.state = (VEHICLE_STATE)tok.GetUInt32HR(); // state
             tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

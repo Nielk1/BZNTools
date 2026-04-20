@@ -17,8 +17,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassScrap.Hydrate(parent, reader, obj as ClassScrap);
-                return true;
+                return ClassScrap.Hydrate(parent, reader, obj as ClassScrap).Success;
             }
             finally
             {
@@ -29,14 +28,14 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassScrap : ClassGameObject
     {
         public ClassScrap(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScrap? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScrap? obj)
         {
             //if (a2->isSave)
             //{
             //    (a2->vftable->field_38)(a2, &this[1].gap8[52], 4, "expireTime");
             //    (a2->vftable->out_bool)(a2, &this[1].gap8[48], 1, "HardToGetTo");
             //}
-            ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+            return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

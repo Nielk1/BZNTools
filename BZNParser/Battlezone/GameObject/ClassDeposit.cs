@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassDeposit.Hydrate(parent, reader, obj as ClassDeposit);
-                return true;
+                return ClassDeposit.Hydrate(parent, reader, obj as ClassDeposit).Success;
             }
             finally
             {
@@ -31,7 +30,7 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassDeposit : ClassBuilding
     {
         public ClassDeposit(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeposit? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassDeposit? obj)
         {
             //IBZNToken tok;
 
@@ -43,7 +42,7 @@ namespace BZNParser.Battlezone.GameObject
             //    //saveClass = tok.GetString();
             //}
 
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

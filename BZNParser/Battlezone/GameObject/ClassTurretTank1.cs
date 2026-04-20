@@ -20,8 +20,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassTurretTank1.Hydrate(parent, reader, obj as ClassTurretTank1);
-                return true;
+                return ClassTurretTank1.Hydrate(parent, reader, obj as ClassTurretTank1).Success;
             }
             finally
             {
@@ -64,7 +63,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank1? obj)
         {
             IBZNToken? tok;
 
@@ -77,28 +76,34 @@ namespace BZNParser.Battlezone.GameObject
                         // obsolete
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
+                            return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
                         tok.ApplySingle(obj, x => x.omegaTurret);
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
+                            return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
                         tok.ApplySingle(obj, x => x.alphaTurret);
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
+                            return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
                         tok.ApplySingle(obj, x => x.timeDeploy);
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                        if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
+                            return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
                         tok.ApplySingle(obj, x => x.timeUndeploy);
                     }
 
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("undefraw", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse undefraw/VOID");
+                    if (tok == null || !tok.Validate("undefraw", BinaryFieldType.DATA_VOID))
+                        return ParseResult.Fail("Failed to parse undefraw/VOID");
                     tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse undeffloat/FLOAT");
+                    if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
+                        return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
                     tok.ApplySingle(obj, x => x.delayTimer);
 
                     if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version != 1042)
@@ -106,13 +111,14 @@ namespace BZNParser.Battlezone.GameObject
                         // obsolete
 
                         tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("undefbool", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse undefbool/BOOL");
+                        if (tok == null || !tok.Validate("undefbool", BinaryFieldType.DATA_BOOL))
+                            return ParseResult.Fail("Failed to parse undefbool/BOOL");
                         tok.ApplyBoolean(obj, x => x.wantTurret); // wantTurret
                     }
                 }
             }
 
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

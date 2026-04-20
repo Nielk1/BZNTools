@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassObjectSpawn.Hydrate(parent, reader, obj as ClassObjectSpawn);
-                return true;
+                return ClassObjectSpawn.Hydrate(parent, reader, obj as ClassObjectSpawn).Success;
             }
             finally
             {
@@ -56,22 +55,24 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassObjectSpawn? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassObjectSpawn? obj)
         {
             IBZNToken? tok;
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("spawnHandle", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse spawnHandle/LONG"); // type not confirmed
+                if (tok == null || !tok.Validate("spawnHandle", BinaryFieldType.DATA_LONG))
+                    return ParseResult.Fail("Failed to parse spawnHandle/LONG"); // type not confirmed
                 tok.ApplyInt32(obj, x => x.spawnHandle);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("spawnTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse spawnTimer/FLOAT"); // type not confirmed
+                if (tok == null || !tok.Validate("spawnTimer", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse spawnTimer/FLOAT"); // type not confirmed
                 tok.ApplySingle(obj, x => x.spawnTimer);
             }
 
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

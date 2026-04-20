@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassPortal.Hydrate(parent, reader, obj as ClassPortal);
-                return true;
+                return ClassPortal.Hydrate(parent, reader, obj as ClassPortal).Success;
             }
             finally
             {
@@ -60,30 +59,34 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPortal? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPortal? obj)
         {
             IBZNToken? tok;
 
             if (reader.Version >= 2004)
             {
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("portalState", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse portalState/LONG");
+                if (tok == null || !tok.Validate("portalState", BinaryFieldType.DATA_LONG))
+                    return ParseResult.Fail("Failed to parse portalState/LONG");
                 tok.ApplyUInt32(obj, x => x.portalState); // should be hex?
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("portalBeginTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse portalBeginTime/FLOAT");
+                if (tok == null || !tok.Validate("portalBeginTime", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse portalBeginTime/FLOAT");
                 tok.ApplySingle(obj, x => x.portalBeginTime);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("portalEndTime", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse portalEndTime/FLOAT");
+                if (tok == null || !tok.Validate("portalEndTime", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse portalEndTime/FLOAT");
                 tok.ApplySingle(obj, x => x.portalEndTime);
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("isIn", BinaryFieldType.DATA_BOOL)) throw new Exception("Failed to parse isIn/BOOL");
+                if (tok == null || !tok.Validate("isIn", BinaryFieldType.DATA_BOOL))
+                    return ParseResult.Fail("Failed to parse isIn/BOOL");
                 tok.ApplyBoolean(obj, x => x.isIn);
             }
 
-            ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+            return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

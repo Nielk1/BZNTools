@@ -17,8 +17,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassProximityMine.Hydrate(parent, reader, obj as ClassProximityMine);
-                return true;
+                return ClassProximityMine.Hydrate(parent, reader, obj as ClassProximityMine).Success;
             }
             finally
             {
@@ -29,9 +28,9 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassProximityMine : ClassMine
     {
         public ClassProximityMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassProximityMine? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassProximityMine? obj)
         {
-            ClassMine.Hydrate(parent, reader, obj as ClassMine);
+            return ClassMine.Hydrate(parent, reader, obj as ClassMine);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

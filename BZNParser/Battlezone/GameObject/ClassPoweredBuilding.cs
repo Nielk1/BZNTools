@@ -25,8 +25,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding);
-                return true;
+                return ClassPoweredBuilding.Hydrate(parent, reader, obj as ClassPoweredBuilding).Success;
             }
             finally
             {
@@ -62,7 +61,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPoweredBuilding? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPoweredBuilding? obj)
         {
             IBZNToken? tok;
 
@@ -98,7 +97,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok.ApplyInt32(obj, x => x.scriptPowerOverride);
             }
 
-            ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

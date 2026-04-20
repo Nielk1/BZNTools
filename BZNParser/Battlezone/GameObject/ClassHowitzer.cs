@@ -21,8 +21,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassHowitzer.Hydrate(parent, reader, obj as ClassHowitzer);
-                return true;
+                return ClassHowitzer.Hydrate(parent, reader, obj as ClassHowitzer).Success;
             }
             finally
             {
@@ -33,14 +32,13 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassHowitzer : ClassTurretTank1
     {
         public ClassHowitzer(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassHowitzer? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassHowitzer? obj)
         {
             if (reader.Format == BZNFormat.Battlezone && reader.Version < 1020)
             {
-                ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
-                return;
+                return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
             }
-            ClassTurretTank1.Hydrate(parent, reader, obj as ClassTurretTank1);
+            return ClassTurretTank1.Hydrate(parent, reader, obj as ClassTurretTank1);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

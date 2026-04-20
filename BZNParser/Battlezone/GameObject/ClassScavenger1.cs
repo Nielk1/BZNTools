@@ -20,8 +20,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassScavenger1.Hydrate(parent, reader, obj as ClassScavenger1);
-                return true;
+                return ClassScavenger1.Hydrate(parent, reader, obj as ClassScavenger1).Success;
             }
             finally
             {
@@ -55,7 +54,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScavenger1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassScavenger1? obj)
         {
             if (reader.Format == BZNFormat.Battlezone)
             {
@@ -64,12 +63,13 @@ namespace BZNParser.Battlezone.GameObject
                 if ((reader.Version >= 1039 && reader.Version < 2000) || reader.Version > 2004)
                 {
                     IBZNToken? tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("scrapHeld", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse scrapHeld/LONG");
+                    if (tok == null || !tok.Validate("scrapHeld", BinaryFieldType.DATA_LONG))
+                        return ParseResult.Fail("Failed to parse scrapHeld/LONG");
                     tok.ApplyUInt32(obj, x => x.scrapHeld);
                 }
             }
 
-            ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
+            return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

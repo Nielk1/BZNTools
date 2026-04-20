@@ -21,8 +21,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassConstructionRig1.Hydrate(parent, reader, obj as ClassConstructionRig1);
-                return true;
+                return ClassConstructionRig1.Hydrate(parent, reader, obj as ClassConstructionRig1).Success;
             }
             finally
             {
@@ -63,7 +62,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassConstructionRig1? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassConstructionRig1? obj)
         {
             IBZNToken? tok;
 
@@ -75,20 +74,22 @@ namespace BZNParser.Battlezone.GameObject
                 {
                     tok = reader.ReadToken();
                     if (tok == null)
-                        throw new Exception("Failed to parse dropClass/ID");
+                        return ParseResult.Fail("Failed to parse dropClass/ID");
                     tok.ApplyUInt16(obj, x => x.dropClass, 0, (v) => parent.Hints?.EnumerationPrjID?[v] ?? string.Format("bzn64prjid_{0,4:X4}", v));
                 }
                 else
                 {
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("dropClass", BinaryFieldType.DATA_ID)) throw new Exception("Failed to parse dropClass/ID");
+                    if (tok == null || !tok.Validate("dropClass", BinaryFieldType.DATA_ID))
+                        return ParseResult.Fail("Failed to parse dropClass/ID");
                     tok.ApplyID(obj, x => x.dropClass);
                 }
 
                 if (reader.Format == BZNFormat.Battlezone && reader.Version >= 2001)
                 {
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("lastRecycled", BinaryFieldType.DATA_LONG)) throw new Exception("Failed to parse lastRecycled/LONG");
+                    if (tok == null || !tok.Validate("lastRecycled", BinaryFieldType.DATA_LONG))
+                        return ParseResult.Fail("Failed to parse lastRecycled/LONG");
                     if (obj != null) obj.lastRecycled = tok.GetUInt32();
                 }
             }
@@ -97,7 +98,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (obj != null) obj.dropMat = obj.transform; // matches source
             }
 
-            ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
+            return ClassProducer.Hydrate(parent, reader, obj as ClassProducer);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

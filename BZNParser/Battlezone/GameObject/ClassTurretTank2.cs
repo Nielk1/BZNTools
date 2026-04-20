@@ -16,8 +16,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassTurretTank2.Hydrate(parent, reader, obj as ClassTurretTank2);
-                return true;
+                return ClassTurretTank2.Hydrate(parent, reader, obj as ClassTurretTank2).Success;
             }
             finally
             {
@@ -68,7 +67,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank2? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTurretTank2? obj)
         {
             IBZNToken? tok;
 
@@ -228,8 +227,7 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (reader.Version < 1109)
                 {
-                    ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
-                    return;
+                    return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
                 }
 
                 if (parent.SaveType != SaveType.BZN)
@@ -241,7 +239,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
+            return ClassDeployable.Hydrate(parent, reader, obj as ClassDeployable);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

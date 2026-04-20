@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassTrackedDeployable.Hydrate(parent, reader, obj as ClassTrackedDeployable);
-                return true;
+                return ClassTrackedDeployable.Hydrate(parent, reader, obj as ClassTrackedDeployable).Success;
             }
             finally
             {
@@ -54,7 +53,7 @@ namespace BZNParser.Battlezone.GameObject
         }
 
 
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTrackedDeployable? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTrackedDeployable? obj)
         {
             IBZNToken? tok;
 
@@ -62,18 +61,20 @@ namespace BZNParser.Battlezone.GameObject
             //(a2->vftable->field_8)(a2, this + 1424, 4, "state");
             {
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse state/VOID"); // type not confirmed
+                if (tok == null || !tok.Validate("state", BinaryFieldType.DATA_VOID))
+                    return ParseResult.Fail("Failed to parse state/VOID"); // type not confirmed
                 tok.ApplyVoidBytes(obj, x => x.state, 0, (v) => (VEHICLE_STATE)BitConverter.ToUInt32(v));
 
                 tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse deployTimer/FLOAT");
+                if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
+                    return ParseResult.Fail("Failed to parse deployTimer/FLOAT");
                 tok.ApplySingle(obj, x => x.deployTimer);
 
                 //if (a2[2].vftable)
                 //    (a2->vftable->read_long)(a2, this + 2544, 4, "changeState");
             }
 
-            ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle);
+            return ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

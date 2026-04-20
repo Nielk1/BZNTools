@@ -19,8 +19,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle);
-                return true;
+                return ClassTrackedVehicle.Hydrate(parent, reader, obj as ClassTrackedVehicle).Success;
             }
             finally
             {
@@ -31,7 +30,7 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassTrackedVehicle : ClassCraft
     {
         public ClassTrackedVehicle(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTrackedVehicle? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassTrackedVehicle? obj)
         {
             //IBZNToken tok;
 
@@ -81,7 +80,7 @@ namespace BZNParser.Battlezone.GameObject
                 }*/
             }
 
-            ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
+            return ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

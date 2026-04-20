@@ -17,8 +17,7 @@ namespace BZNParser.Battlezone.GameObject
             }
             try
             {
-                ClassWeaponMine.Hydrate(parent, reader, obj as ClassWeaponMine);
-                return true;
+                return ClassWeaponMine.Hydrate(parent, reader, obj as ClassWeaponMine).Success;
             }
             finally
             {
@@ -29,7 +28,7 @@ namespace BZNParser.Battlezone.GameObject
     public class ClassWeaponMine : ClassMine
     {
         public ClassWeaponMine(EntityDescriptor preamble, string classLabel) : base(preamble, classLabel) { }
-        public static void Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassWeaponMine? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassWeaponMine? obj)
         {
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -38,20 +37,23 @@ namespace BZNParser.Battlezone.GameObject
                     IBZNToken? tok;
 
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse curAmmo/FLOAT");
+                    if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
+                        return ParseResult.Fail("Failed to parse curAmmo/FLOAT");
                     tok.ApplySingle(obj, x => x.curAmmo);
 
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse maxAmmo/FLOAT");
+                    if (tok == null || !tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
+                        return ParseResult.Fail("Failed to parse maxAmmo/FLOAT");
                     tok.ApplySingle(obj, x => x.maxAmmo);
 
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT)) throw new Exception("Failed to parse addAmmo/FLOAT");
+                    if (tok == null || !tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
+                        return ParseResult.Fail("Failed to parse addAmmo/FLOAT");
                     tok.ApplySingle(obj, x => x.addAmmo);
                 }
             }
 
-            ClassMine.Hydrate(parent, reader, obj as ClassMine);
+            return ClassMine.Hydrate(parent, reader, obj as ClassMine);
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

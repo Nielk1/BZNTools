@@ -1225,35 +1225,35 @@ namespace BZNParser.Tokenizer
 
         // Except for BZ98R this is a 32bit pointer, but for the common API we need to output a 64bit value.
         // always single-line
-        public (UInt64 written, TProp stored) WritePtr<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt32>? convert = null) where T : IMalformable
+        public (UInt64 written, TProp stored) WritePtr<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt64>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
             UInt64 value = 0;
             
-                if (convert != null)
-                {
-                    value = convert(valueInternal);
-                }
-                else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
-                {
-                    value = (UInt64)(UInt8)(object)valueInternal!;
-                }
-                else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
-                {
-                    value = (UInt64)(UInt16)(object)valueInternal!;
-                }
-                else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
-                {
-                    value = (UInt64)(UInt32)(object)valueInternal!;
-                }
-                else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
-                {
-                    value = (UInt64)(UInt64)(object)valueInternal!;
-                }
-                else
-                {
-                    throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
-                }
+            if (convert != null)
+            {
+                value = convert(valueInternal);
+            }
+            else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+            {
+                value = (UInt64)(UInt8)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+            {
+                value = (UInt64)(UInt16)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+            {
+                value = (UInt64)(UInt32)(object)valueInternal!;
+            }
+            else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+            {
+                value = (UInt64)(UInt64)(object)valueInternal!;
+            }
+            else
+            {
+                throw new Exception("Property type is not compatible with boolean writing and no conversion provided");
+            }
 
             if (InBinary)
             {
@@ -1934,7 +1934,7 @@ namespace BZNParser.Tokenizer
         public void WriteChars<T>(string name, T parent, Expression<Func<T, SizedString>> property, Func<SizedString, byte[]>? convert = null) where T : IMalformable
         {
             SizedString wrappedValue = ExtractPropertyValue(parent, property);
-            string value = wrappedValue.Value ?? string.Empty; // we don't care about the size as we're a normal char print
+            string value = wrappedValue?.Value ?? string.Empty; // we don't care about the size as we're a normal char print
             byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
 
             if (convert != null)
@@ -1999,12 +1999,16 @@ namespace BZNParser.Tokenizer
         /// <param name="oneLiner"></param>
         public void WriteChars<T>(string name, T parent, Expression<Func<T, string>> property, Func<string, byte[]>? convert = null) where T : IMalformable
         {
-            string value = ExtractPropertyValue(parent, property);
-            byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
+            string? value = ExtractPropertyValue(parent, property);
+            byte[] rawValue;
 
             if (convert != null)
             {
                 rawValue = convert(value);
+            }
+            else
+            {
+                rawValue = BZNEncoding.win1252.GetBytes(value);
             }
 
             if (PreserveMalformations)

@@ -235,15 +235,15 @@ namespace BZNParser.Battlezone
 
 
 
-        public string? UserProcess_name { get; set; }
-        public UInt32? UserProcess_sObject { get; set; }
-        public UInt32? UserProcess_undefptr_0{ get; set; }
-        public Int32? UserProcess_cycle { get; set; }
-        public Int32? UserProcess_cycleMax { get; set; }
-        public UInt32[]? UserProcess_selectList { get; set; }
-        public UInt32? UserProcess_undefptr_1 { get; set; }
-        public UInt32? UserProcess_undefptr_2 { get; set; }
-        public bool? UserProcess_exited { get; set; }
+        public string UserProcess_name { get; set; }
+        public UInt32 UserProcess_sObject { get; set; }
+        public UInt32 UserProcess_undefptr_0{ get; set; }
+        public Int32 UserProcess_cycle { get; set; }
+        public Int32 UserProcess_cycleMax { get; set; }
+        public UInt32[] UserProcess_selectList { get; set; }
+        public UInt32 UserProcess_undefptr_1 { get; set; }
+        public UInt32 UserProcess_undefptr_2 { get; set; }
+        public bool UserProcess_exited { get; set; }
 
 
 
@@ -838,6 +838,18 @@ namespace BZNParser.Battlezone
                     return ParseResult.Fail("Failed to parse exited/UNKNOWN");
                 tok.ApplyBoolean(this, x => x.UserProcess_exited);
             }
+            else
+            {
+                UserProcess_name = "UserProcess";
+                UserProcess_sObject = 0u;
+                UserProcess_undefptr_0 = 0u;
+                UserProcess_cycle = 0;
+                UserProcess_cycleMax = 0;
+                UserProcess_selectList = new UInt32[0];
+                UserProcess_undefptr_1 = 0u;
+                UserProcess_undefptr_2 = 0u;
+                UserProcess_exited = false;
+            }
 
             // if reader.SaveType != 0
 
@@ -1290,27 +1302,25 @@ namespace BZNParser.Battlezone
                 // 1001A (AiMission)
                 // 1011A (AiMission)
                 // 1012A (AiMission)
-                writer.WriteChars("name", this, x => x.UserProcess_name!, (v) => v != null ? BZNEncoding.win1252.GetBytes(v) : BZNEncoding.win1252.GetBytes("UserProcess"));
-                //if (writer.Version < 1002)
-                //{
-                //    writer.WriteBZ1_PtrDepricated("sObject", UserProcess_sObject.Value);
-                //}
-                //else
-                //{
-                //    writer.WriteBZ1_Ptr("sObject", UserProcess_sObject.Value);
-                //}
+                //writer.WriteChars("name", this, x => x.UserProcess_name!, (v) => v != null ? BZNEncoding.win1252.GetBytes(v) : BZNEncoding.win1252.GetBytes("UserProcess"));
+                writer.WriteChars("name", this, x => x.UserProcess_name!);
+                //writer.WritePtr("sObject", this, x => x.UserProcess_sObject, (v) => v.HasValue ? (UInt64)v.Value : 0uL);
                 writer.WritePtr("sObject", this, x => x.UserProcess_sObject);
 
                 writer.WriteValidation("UserProcess");
+                //writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_0, (v) => v.HasValue ? (UInt64)v.Value : 0uL);
                 writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_0);
-                //writer.WriteSignedValues("cycle", UserProcess_cycle.Value);
+                //writer.WriteInt32("cycle", this, x => x.UserProcess_cycle, (v) => v.HasValue ? (Int32)v.Value : 0);
                 writer.WriteInt32("cycle", this, x => x.UserProcess_cycle);
-                //writer.WriteSignedValues("cycleMax", UserProcess_cycleMax.Value);
+                //writer.WriteInt32("cycleMax", this, x => x.UserProcess_cycleMax, (v) => v.HasValue ? (Int32)v.Value : 0);
                 writer.WriteInt32("cycleMax", this, x => x.UserProcess_cycleMax);
-                //writer.WriteBZ1_PtrDepricated("selectList", UserProcess_selectList.Value);
+                //writer.WriteUInt32h("selectList", this, x => x.UserProcess_selectList, (v) => v != null ? (UInt32)v[0] : 0u); // TODO confirm this default is valid
                 writer.WriteUInt32h("selectList", this, x => x.UserProcess_selectList);
+                //writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_1, (v) => v.HasValue ? (UInt64)v.Value : 0uL);
                 writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_1);
+                //writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_2, (v) => v.HasValue ? (UInt64)v.Value : 0uL);
                 writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_2);
+                //writer.WriteBoolean("exited", this, x => x.UserProcess_exited, (v) => v.HasValue ? (bool)v.Value : false);
                 writer.WriteBoolean("exited", this, x => x.UserProcess_exited);
             }
 

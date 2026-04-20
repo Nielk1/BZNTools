@@ -2388,10 +2388,24 @@ namespace BZNParser.Tokenizer
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_VEC2D);
                 InternalWriteBinarySize(sizeof(float) * 2 * length);
-                foreach (var vec in vectors)
+
+                bool writeTruncate = false;
+                if (StreamDefects != null)
                 {
-                    InternalWriteVector2DValue(vec);
+                    if (StreamDefects.ContainsKey(TokenIndex))
+                    {
+                        StreamDefect defect = StreamDefects[TokenIndex];
+                        if (defect.TruncatedBytesData != null)
+                        {
+                            // fucky wucky, this might break something if you edit the field, but any edits should invalidate the entire StreamDefects collection 
+                            BaseStream.Write(defect.TruncatedBytesData);
+                            writeTruncate = true;
+                        }
+                    }
                 }
+                if (!writeTruncate)
+                    foreach (var vec in vectors)
+                        InternalWriteVector2DValue(vec);
                 InternalAlignBinary();
             }
             else
@@ -2887,17 +2901,26 @@ namespace BZNParser.Tokenizer
                     if (StreamDefects.ContainsKey(TokenIndex))
                     {
                         StreamDefect defect = StreamDefects[TokenIndex];
-                        if (TypeSize > 1 && defect.TypeGarbage.HasValue)
+                        if (TypeSize > 1)
                         {
-                            // type size is big enough to have defects and we have one
-                            if ((defect.TypeGarbage.Value & 0xff) == number[0])
+                            if (defect.TruncatedBytesType != null)
                             {
-                                // defected type is the same as the original, so lets apply it
-                                number = BitConverter.GetBytes(defect.TypeGarbage.Value).Take(TypeSize).ToArray();
+                                // fucky wucky, this might break something if you edit the field, but any edits should invalidate the entire StreamDefects collection 
+                                BaseStream.Write(defect.TruncatedBytesType);
+                                return;
                             }
-                            else
+                            else if (defect.TypeGarbage.HasValue)
                             {
-                                // probably broke something
+                                // type size is big enough to have defects and we have one
+                                if ((defect.TypeGarbage.Value & 0xff) == number[0])
+                                {
+                                    // defected type is the same as the original, so lets apply it
+                                    number = BitConverter.GetBytes(defect.TypeGarbage.Value).Take(TypeSize).ToArray();
+                                }
+                                else
+                                {
+                                    // probably broke something
+                                }
                             }
                         }
                     }
@@ -2926,6 +2949,20 @@ namespace BZNParser.Tokenizer
         {
             if (SizeSize > 0)
             {
+                if (StreamDefects != null)
+                {
+                    if (StreamDefects.ContainsKey(TokenIndex))
+                    {
+                        StreamDefect defect = StreamDefects[TokenIndex];
+                        if (defect.TruncatedBytesSize != null)
+                        {
+                            // fucky wucky, this might break something if you edit the field, but any edits should invalidate the entire StreamDefects collection 
+                            BaseStream.Write(defect.TruncatedBytesSize);
+                            return;
+                        }
+                    }
+                }
+
                 byte[] sizeBytes = new byte[SizeSize];
                 byte[] rawSize = BitConverter.GetBytes(size);
 

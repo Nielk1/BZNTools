@@ -16,11 +16,20 @@ namespace BZNParser.Tokenizer
     {
         public UInt32? TypeGarbage { get; set; }
         public string? EndPadGarbage { get; set; }
+        public byte[]? TruncatedBytesType { get; set; }
+        public byte[]? TruncatedBytesSize { get; set; }
+        public byte[]? TruncatedBytesData { get; set; }
         public bool IsEmpty()
         {
             if (TypeGarbage.HasValue)
                 return false;
             if (EndPadGarbage != null)
+                return false;
+            if (TruncatedBytesType != null)
+                return false;
+            if (TruncatedBytesSize != null)
+                return false;
+            if (TruncatedBytesData != null)
                 return false;
             return true;
         }
@@ -60,6 +69,51 @@ namespace BZNParser.Tokenizer
                 if (Defect == null)
                     Defect = new StreamDefect();
                 Defect.EndPadGarbage = value;
+                if (Defect.IsEmpty())
+                    Defect = null;
+            }
+        }
+        public byte[]? Defect_TruncatedBytesType
+        {
+            get
+            {
+                return Defect?.TruncatedBytesType;
+            }
+            set
+            {
+                if (Defect == null)
+                    Defect = new StreamDefect();
+                Defect.TruncatedBytesType = value;
+                if (Defect.IsEmpty())
+                    Defect = null;
+            }
+        }
+        public byte[]? Defect_TruncatedBytesSize
+        {
+            get
+            {
+                return Defect?.TruncatedBytesSize;
+            }
+            set
+            {
+                if (Defect == null)
+                    Defect = new StreamDefect();
+                Defect.TruncatedBytesSize = value;
+                if (Defect.IsEmpty())
+                    Defect = null;
+            }
+        }
+        public byte[]? Defect_TruncatedBytesData
+        {
+            get
+            {
+                return Defect?.TruncatedBytesData;
+            }
+            set
+            {
+                if (Defect == null)
+                    Defect = new StreamDefect();
+                Defect.TruncatedBytesData = value;
                 if (Defect.IsEmpty())
                     Defect = null;
             }
@@ -916,8 +970,12 @@ namespace BZNParser.Tokenizer
                 }
                 else
                 {
-                    filestream.Read(number, 0, TypeSize);
-                    type = BitConverter.ToUInt32(number, 0); // for bz1 this is only 1 byte, n64 lacks type
+                    int readSize = filestream.Read(number, 0, TypeSize);
+                    type = BitConverter.ToUInt32(number, 0);
+
+                    // deal with rare truncation
+                    if (readSize != TypeSize)
+                        ad.Defect_TruncatedBytesType = number.Take(readSize).ToArray();
                 }
                 typeClean = type & 0xff;
             }
@@ -929,17 +987,27 @@ namespace BZNParser.Tokenizer
             uint Size = 0;
             if (IsBigEndian)
             {
-                filestream.Read(number, sizeof(uint) - SizeSize, SizeSize);
+                int readSize = filestream.Read(number, sizeof(uint) - SizeSize, SizeSize);
                 Size = BitConverter.ToUInt32(number.Reverse().ToArray(), 0);
             }
             else
             {
-                filestream.Read(number, 0, SizeSize);
+                int readSize = filestream.Read(number, 0, SizeSize);
                 Size = BitConverter.ToUInt32(number, 0);
+
+                // deal with rare truncation
+                if (readSize != TypeSize)
+                    ad.Defect_TruncatedBytesSize = number.Take(readSize).ToArray();
             }
 
             byte[] data = new byte[Size];
-            filestream.Read(data, 0, (int)Size);
+            {
+                int readSize = filestream.Read(data, 0, (int)Size);
+
+                // deal with rare truncation
+                if (readSize != Size)
+                    ad.Defect_TruncatedBytesData = data.Take((int)readSize).ToArray();
+            }
 
             if (AlignmentBytes > 0)
             {

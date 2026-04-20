@@ -455,16 +455,17 @@ namespace BZNParser.Battlezone
                 }
             }
 
+            bool readStartTime = false;
             if (reader.Format == BZNFormat.Battlezone)
             {
-                if ((SaveType != SaveType.BZN && reader.Version > 1002)
-                 || (reader.Version == 1011 || reader.Version == 1012))
+                if (reader.Version == 1011 || reader.Version == 1012)
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("start_time", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse start_time/FLOAT");
                     start_time = tok.GetSingle();
                     //Console.WriteLine($"start_time: {start_time}");
+                    readStartTime = true;
                 }
             }
 
@@ -473,10 +474,18 @@ namespace BZNParser.Battlezone
                 reader.Bookmark.Mark();
                 bool success = false;
 
-
                 Malformations.Push(); // Create a new malformation context
                 try
                 {
+                    if (!readStartTime && SaveType != SaveType.BZN && reader.Version > 1002)
+                    {
+                        tok = reader.ReadToken();
+                        if (tok == null || !tok.Validate("start_time", BinaryFieldType.DATA_FLOAT))
+                            throw new Exception("Failed to parse start_time/FLOAT");
+                        start_time = tok.GetSingle();
+                        //Console.WriteLine($"start_time: {start_time}");
+                    }
+
                     ParseResult r = Hydrate(reader);
                     success = r.Success;
                 }
@@ -895,6 +904,11 @@ namespace BZNParser.Battlezone
                         AiPaths.Add(tmpAiPath);
                         pathCounter++;
                         excessAiPaths++;
+                    }
+                    else
+                    {
+                        reader.Bookmark.RevertToBookmark();
+                        break;
                     }
                 }
                 catch

@@ -186,7 +186,7 @@ namespace BZNParser.Battlezone
                     }
                     else
                     {
-                        Console.WriteLine($"Cleaning BZ2 ClassLabels {size}");
+                        //Console.WriteLine($"Cleaning BZ2 ClassLabels {size}");
                     }
                 }
 
@@ -288,31 +288,31 @@ namespace BZNParser.Battlezone
             }
 
             // extra info to print at start and end
-            {
-                Console.WriteLine($"---------------- START READER INFO ----------------");
-                Console.WriteLine($"StartBinary: {reader.StartBinary}");
-                Console.WriteLine($"HasBinary: {reader.HasBinary}");
-                Console.WriteLine($"InBinary: {reader.InBinary}");
-                Console.WriteLine($"StartBinary: {reader.StartBinary}");
-                Console.WriteLine($"IsBigEndian: {reader.IsBigEndian}");
-                Console.WriteLine($"TypeSize: {reader.TypeSize}");
-                Console.WriteLine($"SizeSize: {reader.SizeSize}");
-                Console.WriteLine($"Version: {reader.Version}");
-                Console.WriteLine($"AlignmentBytes: {reader.AlignmentBytes}");
-                Console.WriteLine($"Format: {reader.Format}");
-                Console.WriteLine($"QuoteStrings: {reader.QuoteStrings}");
-                Console.WriteLine($"PointerSize: {reader.PointerSize}");
-                Console.WriteLine($"MatrixBigPosit: {reader.MatrixBigPosit}");
-                Console.WriteLine($"CountCR: {reader.CountCR}");
-                Console.WriteLine($"CountLF: {reader.CountLF}");
-                Console.WriteLine($"CountCRLF: {reader.CountCRLF}");
-                Console.WriteLine($"FloatFormat: {reader.FloatFormat}");
-                Console.WriteLine($"----------------- END READER INFO -----------------");
-            }
+            //{
+            //    Console.WriteLine($"---------------- START READER INFO ----------------");
+            //    Console.WriteLine($"StartBinary: {reader.StartBinary}");
+            //    Console.WriteLine($"HasBinary: {reader.HasBinary}");
+            //    Console.WriteLine($"InBinary: {reader.InBinary}");
+            //    Console.WriteLine($"StartBinary: {reader.StartBinary}");
+            //    Console.WriteLine($"IsBigEndian: {reader.IsBigEndian}");
+            //    Console.WriteLine($"TypeSize: {reader.TypeSize}");
+            //    Console.WriteLine($"SizeSize: {reader.SizeSize}");
+            //    Console.WriteLine($"Version: {reader.Version}");
+            //    Console.WriteLine($"AlignmentBytes: {reader.AlignmentBytes}");
+            //    Console.WriteLine($"Format: {reader.Format}");
+            //    Console.WriteLine($"QuoteStrings: {reader.QuoteStrings}");
+            //    Console.WriteLine($"PointerSize: {reader.PointerSize}");
+            //    Console.WriteLine($"MatrixBigPosit: {reader.MatrixBigPosit}");
+            //    Console.WriteLine($"CountCR: {reader.CountCR}");
+            //    Console.WriteLine($"CountLF: {reader.CountLF}");
+            //    Console.WriteLine($"CountCRLF: {reader.CountCRLF}");
+            //    Console.WriteLine($"FloatFormat: {reader.FloatFormat}");
+            //    Console.WriteLine($"----------------- END READER INFO -----------------");
+            //}
 
             IBZNToken? tok;
 
-            Console.WriteLine($"Format: {reader.Format}");
+            //Console.WriteLine($"Format: {reader.Format}");
 
             if (reader.Format != BZNFormat.BattlezoneN64)
             {
@@ -320,7 +320,7 @@ namespace BZNParser.Battlezone
                 if (tok == null)
                     throw new Exception("Null Version Token");
                 tok.ApplyInt32(this, x => x.Version);
-                Console.WriteLine($"Version: {Version}"); // don't bother validating first field maybe?
+                //Console.WriteLine($"Version: {Version}"); // don't bother validating first field maybe?
                 if (!tok.IsBinary && tok is BZNTokenString strTok)
                 {
                     string fieldName = strTok.Name;
@@ -336,7 +336,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("saveType", BinaryFieldType.DATA_UNKNOWN))
                     throw new Exception("Failed to parse saveType/UNKNOWN");
                 tok.ApplyUInt32(this, x => x.SaveType, 0, (raw) => (SaveType)raw);
-                Console.WriteLine($"saveType: {SaveType}");
+                //Console.WriteLine($"saveType: {SaveType}");
             }
 
             if ((reader.Format == BZNFormat.Battlezone && reader.Version > 1022) || reader.Format == BZNFormat.Battlezone2)
@@ -345,7 +345,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("binarySave", BinaryFieldType.DATA_BOOL))
                     throw new Exception("Failed to parse binarySave/BOOL");
                 tok.ApplyBoolean(this, x => x.Binary);
-                Console.WriteLine($"binarySave: {Binary}");
+                //Console.WriteLine($"binarySave: {Binary}");
             }
 
             if (reader.Format == BZNFormat.Battlezone && reader.Version > 1022)
@@ -354,13 +354,13 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse msn_filename/CHAR");
                 tok.ApplyChars(this, x => x.msn_filename);
-                Console.WriteLine($"msn_filename: \"{msn_filename}\"");
+                //Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 //msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16, Malformations);
                 reader.ReadSizedString("msn_filename", this, x => x.msn_filename);
-                Console.WriteLine($"msn_filename: \"{msn_filename}\"");
+                //Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
 
             // todo this is oddly messy, clean it up and confirm
@@ -370,7 +370,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse seq_count/LONG");
                 tok.ApplyUInt32(this, x => x.seq_count);
-                Console.WriteLine($"seq_count: {seq_count}");
+                //Console.WriteLine($"seq_count: {seq_count}");
             }
             else
             {
@@ -380,7 +380,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("seq_count", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse seq_count/LONG");
                 tok.ApplyUInt32(this, x => x.seq_count);
-                Console.WriteLine($"seq_count: {seq_count}");
+                //Console.WriteLine($"seq_count: {seq_count}");
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -388,7 +388,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("saveType", BinaryFieldType.DATA_LONG))
                     throw new Exception("Failed to parse saveType/LONG");
                 tok.ApplyUInt32(this, x => x.SaveType2, 0, (raw) => (SaveType)raw);
-                Console.WriteLine($"saveType (redundant?): {SaveType2}"); // maybe not if the first one is missing
+                //Console.WriteLine($"saveType (redundant?): {SaveType2}"); // maybe not if the first one is missing
             }
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
@@ -396,7 +396,7 @@ namespace BZNParser.Battlezone
                 if (reader.Format == BZNFormat.Battlezone && reader.Version < 1016)
                 {
                     //bool missionSave = true;
-                    Console.WriteLine($"missionSave: true (assumed)");
+                    //Console.WriteLine($"missionSave: true (assumed)");
                     SaveType = SaveType.BZN;
                 }
                 //if ((1017 <= reader.Version && reader.Version <= 1037) || reader.Version == 1043 || reader.Version == 1045 || reader.Version == 2003 || reader.Version == 2016)
@@ -406,7 +406,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("missionSave", BinaryFieldType.DATA_BOOL))
                         throw new Exception("Failed to parse missionSave/BOOL");
                     (_, bool missionSave) = tok.ApplyBoolean(this, x => x.SaveType, 0, x => x ? SaveType.BZN : SaveType.SAVE);
-                    Console.WriteLine($"missionSave: {missionSave}");
+                    //Console.WriteLine($"missionSave: {missionSave}");
                 }
             }
 
@@ -418,7 +418,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
                     tok.ApplyChars(this, x => x.TerrainName);
-                    Console.WriteLine($"TerrainName: {TerrainName}");
+                    //Console.WriteLine($"TerrainName: {TerrainName}");
                 }
             }
             else if (reader.Format == BZNFormat.Battlezone2)
@@ -430,7 +430,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
                     tok.ApplyChars(this, x => x.TerrainName);
-                    Console.WriteLine($"TerrainName: {TerrainName}");
+                    //Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else if (reader.Version == 1171)
                 {
@@ -443,7 +443,7 @@ namespace BZNParser.Battlezone
                         Malformations.AddIncorrectName<BZNFileBattlezone, string>(x => x.TerrainName, "TerrainName");
                     }
                     tok.ApplyChars(this, x => x.TerrainName);
-                    Console.WriteLine($"TerrainName: {TerrainName}");
+                    //Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else
                 {
@@ -451,7 +451,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("g_TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse g_TerrainName/CHAR");
                     tok.ApplyChars(this, x => x.TerrainName);
-                    Console.WriteLine($"TerrainName: {TerrainName}");
+                    //Console.WriteLine($"TerrainName: {TerrainName}");
                 }
             }
 
@@ -464,7 +464,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("start_time", BinaryFieldType.DATA_FLOAT))
                         throw new Exception("Failed to parse start_time/FLOAT");
                     start_time = tok.GetSingle();
-                    Console.WriteLine($"start_time: {start_time}");
+                    //Console.WriteLine($"start_time: {start_time}");
                 }
             }
 
@@ -520,27 +520,27 @@ namespace BZNParser.Battlezone
             }
 
             // extra info to print at start and end
-            {
-                Console.WriteLine($"---------------- START READER INFO ----------------");
-                Console.WriteLine($"StartBinary: {reader.StartBinary}");
-                Console.WriteLine($"HasBinary: {reader.HasBinary}");
-                Console.WriteLine($"InBinary: {reader.InBinary}");
-                Console.WriteLine($"StartBinary: {reader.StartBinary}");
-                Console.WriteLine($"IsBigEndian: {reader.IsBigEndian}");
-                Console.WriteLine($"TypeSize: {reader.TypeSize}");
-                Console.WriteLine($"SizeSize: {reader.SizeSize}");
-                Console.WriteLine($"Version: {reader.Version}");
-                Console.WriteLine($"AlignmentBytes: {reader.AlignmentBytes}");
-                Console.WriteLine($"Format: {reader.Format}");
-                Console.WriteLine($"QuoteStrings: {reader.QuoteStrings}");
-                Console.WriteLine($"PointerSize: {reader.PointerSize}");
-                Console.WriteLine($"MatrixBigPosit: {reader.MatrixBigPosit}");
-                Console.WriteLine($"CountCR: {reader.CountCR}");
-                Console.WriteLine($"CountLF: {reader.CountLF}");
-                Console.WriteLine($"CountCRLF: {reader.CountCRLF}");
-                Console.WriteLine($"FloatFormat: {reader.FloatFormat}");
-                Console.WriteLine($"----------------- END READER INFO -----------------");
-            }
+            //{
+            //    Console.WriteLine($"---------------- START READER INFO ----------------");
+            //    Console.WriteLine($"StartBinary: {reader.StartBinary}");
+            //    Console.WriteLine($"HasBinary: {reader.HasBinary}");
+            //    Console.WriteLine($"InBinary: {reader.InBinary}");
+            //    Console.WriteLine($"StartBinary: {reader.StartBinary}");
+            //    Console.WriteLine($"IsBigEndian: {reader.IsBigEndian}");
+            //    Console.WriteLine($"TypeSize: {reader.TypeSize}");
+            //    Console.WriteLine($"SizeSize: {reader.SizeSize}");
+            //    Console.WriteLine($"Version: {reader.Version}");
+            //    Console.WriteLine($"AlignmentBytes: {reader.AlignmentBytes}");
+            //    Console.WriteLine($"Format: {reader.Format}");
+            //    Console.WriteLine($"QuoteStrings: {reader.QuoteStrings}");
+            //    Console.WriteLine($"PointerSize: {reader.PointerSize}");
+            //    Console.WriteLine($"MatrixBigPosit: {reader.MatrixBigPosit}");
+            //    Console.WriteLine($"CountCR: {reader.CountCR}");
+            //    Console.WriteLine($"CountLF: {reader.CountLF}");
+            //    Console.WriteLine($"CountCRLF: {reader.CountCRLF}");
+            //    Console.WriteLine($"FloatFormat: {reader.FloatFormat}");
+            //    Console.WriteLine($"----------------- END READER INFO -----------------");
+            //}
 
             // Battlezone requires CRLF for ASCII BZN portions
             if (reader.CountLF != reader.CountCR || reader.CountCR != reader.CountCRLF)
@@ -607,7 +607,7 @@ namespace BZNParser.Battlezone
             if (tok == null || !tok.Validate("size", BinaryFieldType.DATA_LONG))
                 return ParseResult.Fail("Failed to parse size/LONG");
             Int32 CountItems = tok.GetInt32();
-            Console.WriteLine($"size: {CountItems}");
+            //Console.WriteLine($"size: {CountItems}");
 
             // TODO hoist this up to property and ensure we can scan it for Malformations to be able to do a "has malformations" check
             // malformations, depending on what kind, might also let us rank mulitple options when the class is unclear
@@ -615,8 +615,8 @@ namespace BZNParser.Battlezone
 
             int CntPad = CountItems.ToString().Length;
             Dictionary<string, HashSet<string>> LongTermClassLabelLookupCache = new Dictionary<string, HashSet<string>>();
-            Stopwatch w = new Stopwatch();
-            w.Start();
+            //Stopwatch w = new Stopwatch();
+            //w.Start();
             for (int gameObjectCounter = 0; gameObjectCounter < CountItems; gameObjectCounter++)
             {
                 //GameObjects[gameObjectCounter] = new BZNGameObjectWrapper(reader, (gameObjectCounter + 1) == CountItems);
@@ -624,12 +624,12 @@ namespace BZNParser.Battlezone
                 if (EntityDescriptor.Create(this, reader, CountItems - gameObjectCounter, out tmpObj, true, Hints: Hints).Success && tmpObj != null)
                 {
                     GameObjects[gameObjectCounter] = tmpObj;
-                    if (w.Elapsed > TimeSpan.FromMilliseconds(100))
-                        Console.WriteLine($"GameObject[{gameObjectCounter.ToString().PadLeft(CntPad)}]: {w.Elapsed.TotalSeconds:00.0000} {GameObjects[gameObjectCounter].seqNo.ToString("X8")} {GameObjects[gameObjectCounter].PrjID.ToString().PadRight(16)} {(GameObjects[gameObjectCounter].gameObject?.ClassLabel ?? string.Empty).PadRight(16)} {GameObjects[gameObjectCounter].gameObject?.ToString()?.Replace(@"BZNParser.Battlezone.GameObject.", string.Empty)}");
-                    w.Restart();
+                    //if (w.Elapsed > TimeSpan.FromMilliseconds(100))
+                    //    Console.WriteLine($"GameObject[{gameObjectCounter.ToString().PadLeft(CntPad)}]: {w.Elapsed.TotalSeconds:00.0000} {GameObjects[gameObjectCounter].seqNo.ToString("X8")} {GameObjects[gameObjectCounter].PrjID.ToString().PadRight(16)} {(GameObjects[gameObjectCounter].gameObject?.ClassLabel ?? string.Empty).PadRight(16)} {GameObjects[gameObjectCounter].gameObject?.ToString()?.Replace(@"BZNParser.Battlezone.GameObject.", string.Empty)}");
+                    //w.Restart();
                 }
             }
-            w.Stop();
+            //w.Stop();
 
             this.Entities = GameObjects;
 
@@ -660,7 +660,7 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                         return ParseResult.Fail("Failed to parse name/CHAR");
                     tok.ApplyChars(this, x => x.Mission);
-                    Console.WriteLine($"Mission: {this.Mission}");
+                    //Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else if (reader.Version < 1145)
                 {
@@ -669,12 +669,12 @@ namespace BZNParser.Battlezone
                     if (tok == null || !tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
                         return ParseResult.Fail("Failed to parse dllName/CHAR");
                     tok.ApplyChars(this, x => x.Mission);
-                    Console.WriteLine($"Mission: {this.Mission}");
+                    //Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else
                 {
                     reader.ReadSizedString("dllName", this, x => x.Mission);
-                    Console.WriteLine($"Mission: {this.Mission}");
+                    //Console.WriteLine($"Mission: {this.Mission}");
                 }
             }
             if (reader.Format == BZNFormat.BattlezoneN64)
@@ -682,15 +682,12 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null)
                     return ParseResult.Fail("Failed to parse n64 Mission token");
-                //string mission = string.Format("BZn64Mission_{0,4:X4}", tok.GetUInt16());
-                //this.Mission = new SizedString() { Value = mission };
                 (SizedString mission, _) = tok.ApplyUInt16(this, x => x.Mission, 0, (v) => new SizedString(string.Format("BZn64Mission_{0,4:X4}", v)));
-                Console.WriteLine($"Mission: {mission.Value}");
+                //Console.WriteLine($"Mission: {mission.Value}");
 
                 tok = reader.ReadToken();
                 if (tok == null)
                     return ParseResult.Fail("Failed to parse n64 Mission sObject token");
-                //sObject = reader.ReadBZ1_PtrDepricated("sObject");
                 tok.ApplyUInt32H8(this, x => x.Mission_sObject);
             }
             if (reader.Format == BZNFormat.Battlezone)
@@ -699,17 +696,8 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                     return ParseResult.Fail("Failed to parse name/CHAR");
                 tok.ApplyChars(this, x => x.Mission);
-                Console.WriteLine($"Mission: {this.Mission}");
+                //Console.WriteLine($"Mission: {this.Mission}");
 
-                // read the old sObject ptr, not sure what can be done with it
-                //if (reader.Version < 1002)
-                //{
-                //    sObject = reader.ReadBZ1_PtrDepricated("sObject");
-                //}
-                //else
-                //{
-                //    sObject = reader.ReadBZ1_Ptr("sObject", reader.Version);
-                //}
                 tok = reader.ReadToken();
                 if (tok == null)
                     return ParseResult.Fail("Failed to parse token");
@@ -820,7 +808,6 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("selectList", BinaryFieldType.DATA_UNKNOWN))
                     return ParseResult.Fail("Failed to parse selectList/UNKNOWN");
-                //UserProcess_selectList = tok.GetUInt32H();
                 UserProcess_selectList = new UInt32[tok.GetCount()];
                 for (int j = 0; j < UserProcess_selectList.Length; j++)
                 {
@@ -1008,7 +995,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("Name", BinaryFieldType.DATA_UNKNOWN))
                     return ParseResult.Fail("Failed to parse Name/UNKNOWN");
                 TerrainName = tok.GetString();
-                Console.WriteLine($"TerrainName: {TerrainName}");
+                //Console.WriteLine($"TerrainName: {TerrainName}");
             }
 
             if (!reader.EndOfFile())
@@ -1193,7 +1180,7 @@ namespace BZNParser.Battlezone
             int idx = 0;
             foreach (var entity in Entities)
             {
-                Console.WriteLine($"Writing entity [{idx}]");
+                //Console.WriteLine($"Writing entity [{idx}]");
                 entity.Write(this, writer, binary, save);
                 idx++;
             }

@@ -68,8 +68,7 @@ namespace BZNParser.Battlezone
             }
             try
             {
-                AiPath.Hydrate(parent, reader, countPaths, countLeft, obj);
-                return true;
+                return AiPath.Hydrate(parent, reader, countPaths, countLeft, obj).Success;
             }
             finally
             {
@@ -77,7 +76,7 @@ namespace BZNParser.Battlezone
             }
         }
 
-        public static bool Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countPaths, int countLeft, AiPath? obj)
+        public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, int countPaths, int countLeft, AiPath? obj)
         {
             IBZNToken? tok;
 
@@ -85,7 +84,7 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.IsValidationOnly() || !tok.Validate("AiPath", BinaryFieldType.DATA_UNKNOWN))
-                    throw new Exception("Failed to parse [AiPath]");
+                    return ParseResult.Fail("Failed to parse [AiPath]");
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -93,7 +92,7 @@ namespace BZNParser.Battlezone
                 (string? name, _) = reader.ReadSizedString("name", obj, x => x.AiPathDummy);
                 if (name != "AiPath")
                 {
-                    throw new Exception("Failed to parse AiPath");
+                    return ParseResult.Fail("Failed to parse AiPath");
                 }
             }
 
@@ -104,7 +103,7 @@ namespace BZNParser.Battlezone
                     // 2016
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("old_ptr", BinaryFieldType.DATA_PTR))
-                        throw new Exception("Failed to parse old_ptr/PTR");
+                        return ParseResult.Fail("Failed to parse old_ptr/PTR");
                     if (obj != null) obj.sObject = tok.GetUInt32H();
                 }
                 else
@@ -112,7 +111,7 @@ namespace BZNParser.Battlezone
                     // 1030 1032 1034 1035 1037 1038 1039 1040 1043 1044 1045 1049 2003 2004 2010 2011
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("old_ptr", BinaryFieldType.DATA_VOID))
-                        throw new Exception("Failed to parse old_ptr/VOID");
+                        return ParseResult.Fail("Failed to parse old_ptr/VOID");
                     //if (obj != null) obj.sObject = tok.GetUInt32HR(); // confirm correctness
                     tok.ApplyVoidBytes(obj, x => x.sObject, 0, (v) => BitConverter.ToUInt32(v), expectedCase: 'L');
                 }
@@ -122,7 +121,7 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("sObject", BinaryFieldType.DATA_PTR))
-                    throw new Exception("Failed to parse sObject/PTR");
+                    return ParseResult.Fail("Failed to parse sObject/PTR");
                 //if (obj != null) obj.sObject = tok.GetUInt32H();
                 tok.ApplyUInt32H8(obj, x => x.sObject);
             }
@@ -132,7 +131,7 @@ namespace BZNParser.Battlezone
             {
                 tok = reader.ReadToken();
                 if (tok == null)
-                    throw new Exception("Failed to parse label");
+                    return ParseResult.Fail("Failed to parse label");
                 //label = string.Format("bzn64path_{0,4:X4}", tok.GetUInt16());
                 //if (obj != null) obj.label = new SizedString() { Value = label };
                 (SizedString labelX, _) = tok.ApplyUInt16(obj, x => x.label, 0, (v) => new SizedString(string.Format("bzn64path_{0,4:X4}", v)));
@@ -142,17 +141,17 @@ namespace BZNParser.Battlezone
             {
                 (label, _) = reader.ReadSizedStringType2("label", obj, x => x.label);
             }
-            Console.WriteLine($"AiPath[{(countPaths - countLeft).ToString().PadLeft(countPaths.ToString().Length)}]: {(label ?? string.Empty)}");
+            //Console.WriteLine($"AiPath[{(countPaths - countLeft).ToString().PadLeft(countPaths.ToString().Length)}]: {(label ?? string.Empty)}");
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("pointCount", BinaryFieldType.DATA_LONG))
-                throw new Exception("Failed to parse pointCount/LONG");
+                return ParseResult.Fail("Failed to parse pointCount/LONG");
             //int pointCount = tok.GetInt32();
             (int pointCount, _) = tok.ApplyInt32(obj, x => x.pointCount);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("points", BinaryFieldType.DATA_VEC2D))
-                throw new Exception("Failed to parse point/VEC2D");
+                return ParseResult.Fail("Failed to parse point/VEC2D");
             Vector2D[] points = new Vector2D[tok.GetCount(BinaryFieldType.DATA_VEC2D)];
             if (obj != null)
                 obj.points = points;
@@ -169,12 +168,12 @@ namespace BZNParser.Battlezone
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("pathType", BinaryFieldType.DATA_VOID))
-                throw new Exception("Failed to parse pathType/VOID");
+                return ParseResult.Fail("Failed to parse pathType/VOID");
             // 02 00 00 00 - binary for 2
             // "02000000" - ASCII for 2
             if (obj != null) obj.pathType = tok.GetUInt32HR();
 
-            return true;
+            return ParseResult.Ok();
         }
 
         public void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

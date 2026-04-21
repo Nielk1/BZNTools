@@ -2960,6 +2960,10 @@ namespace BZNParser.Tokenizer
                             BaseStream.Write(defect.TruncatedBytesSize);
                             return;
                         }
+                        if (defect.BytesOversized.HasValue)
+                        {
+                            size = (int)defect.BytesOversized.Value;
+                        }
                     }
                 }
 

@@ -19,6 +19,7 @@ namespace BZNParser.Tokenizer
         public byte[]? TruncatedBytesType { get; set; }
         public byte[]? TruncatedBytesSize { get; set; }
         public byte[]? TruncatedBytesData { get; set; }
+        public uint? BytesOversized { get; set; }
         public bool IsEmpty()
         {
             if (TypeGarbage.HasValue)
@@ -30,6 +31,8 @@ namespace BZNParser.Tokenizer
             if (TruncatedBytesSize != null)
                 return false;
             if (TruncatedBytesData != null)
+                return false;
+            if (BytesOversized.HasValue)
                 return false;
             return true;
         }
@@ -114,6 +117,21 @@ namespace BZNParser.Tokenizer
                 if (Defect == null)
                     Defect = new StreamDefect();
                 Defect.TruncatedBytesData = value;
+                if (Defect.IsEmpty())
+                    Defect = null;
+            }
+        }
+        public uint? Defect_BytesOversized
+        {
+            get
+            {
+                return Defect?.BytesOversized;
+            }
+            set
+            {
+                if (Defect == null)
+                    Defect = new StreamDefect();
+                Defect.BytesOversized = value;
                 if (Defect.IsEmpty())
                     Defect = null;
             }
@@ -966,7 +984,7 @@ namespace BZNParser.Tokenizer
                 if (IsBigEndian)
                 {
                     filestream.Read(number, sizeof(uint) - TypeSize, TypeSize);
-                    type = BitConverter.ToUInt32(number.Reverse().ToArray(), 0); // for bz1 this is only 1 byte, n64 lacks type
+                    type = BitConverter.ToUInt32(number.Reverse().ToArray(), 0);
                 }
                 else
                 {
@@ -1007,6 +1025,75 @@ namespace BZNParser.Tokenizer
                 // deal with rare truncation
                 if (readSize != Size)
                     ad.Defect_TruncatedBytesData = data.Take((int)readSize).ToArray();
+            }
+
+            if (ad.Defect_TruncatedBytesData == null)
+            {
+                // lets just avoid this code if we had a stream defect, simpler that way
+                if (typeClean == (uint)BinaryFieldType.DATA_CHAR)
+                {
+                    long pos = filestream.Position;
+                    int readSize = 0;
+
+                    // read next type
+                    uint type2 = 0;
+                    if (IsBigEndian)
+                    {
+                        readSize = filestream.Read(number, 0, TypeSize);
+                        type2 = BitConverter.ToUInt32(number.Reverse().ToArray(), 0);
+                    }
+                    else
+                    {
+                        readSize = filestream.Read(number, 0, TypeSize);
+                        type2 = BitConverter.ToUInt32(number, 0);
+                    }
+                    uint typeClean2 = type2 & 0xff;
+
+                    if (readSize != TypeSize)
+                    {
+                        // abort, something is too fucky
+                        filestream.Seek(pos, SeekOrigin.Begin);
+                    }
+                    else
+                    {
+                        if (!Enum.IsDefined(typeof(BinaryFieldType), (byte)typeClean2))
+                        {
+                            // invalid type, so try backing off by 1
+                            // if we ever add dynamic token discovery by signiture this section can be removed
+                            filestream.Seek(pos, SeekOrigin.Begin);
+                            filestream.Seek(-1, SeekOrigin.Current);
+
+                            if (IsBigEndian)
+                            {
+                                filestream.Read(number, 0, TypeSize);
+                                type2 = BitConverter.ToUInt32(number.Reverse().ToArray(), 0);
+                            }
+                            else
+                            {
+                                filestream.Read(number, 0, TypeSize);
+                                type2 = BitConverter.ToUInt32(number, 0);
+                            }
+                            typeClean2 = type2 & 0xff;
+                            if (!Enum.IsDefined(typeof(BinaryFieldType), (byte)typeClean))
+                            {
+                                // give up
+                                filestream.Seek(pos, SeekOrigin.Begin);
+                            }
+                            else
+                            {
+                                // ah we're valid now, which means our current token is oversized by 1
+                                ad.Defect_BytesOversized = Size;
+                                data = data.Take((int)Size - 1).ToArray();
+                                filestream.Seek(pos, SeekOrigin.Begin);
+                                filestream.Seek(-1, SeekOrigin.Current);
+                            }
+                        }
+                        else
+                        {
+                            filestream.Seek(pos, SeekOrigin.Begin);
+                        }
+                    }
+                }
             }
 
             if (AlignmentBytes > 0)

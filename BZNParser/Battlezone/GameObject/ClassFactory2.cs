@@ -79,14 +79,14 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse buildDoneTime/FLOAT");
-                tok.ApplySingle(obj, x => x.buildTime);
+                tok.ApplySingle(obj, x => x.buildTime, format: reader.FloatFormat);
             }
             else
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse buildTime/FLOAT");
-                tok.ApplySingle(obj, x => x.buildTime);
+                tok.ApplySingle(obj, x => x.buildTime, format: reader.FloatFormat);
             }
 
             tok = reader.ReadToken();

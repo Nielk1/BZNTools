@@ -66,7 +66,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("scrapTimer", BinaryFieldType.DATA_FLOAT))
                 return ParseResult.Fail("Failed to parse scrapTimer/FLOAT");
-            tok.ApplySingle(obj, x => x.scrapTimer);
+            tok.ApplySingle(obj, x => x.scrapTimer, format: reader.FloatFormat);
 
             if (reader.Version < 1147)
             {

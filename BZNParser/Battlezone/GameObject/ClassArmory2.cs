@@ -86,7 +86,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildDoneTime", BinaryFieldType.DATA_FLOAT))
                 return ParseResult.Fail("Failed to parse buildDoneTime/FLOAT");
-            tok.ApplySingle(obj, x => x.buildDoneTime);
+            tok.ApplySingle(obj, x => x.buildDoneTime, format: reader.FloatFormat);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildActive", BinaryFieldType.DATA_BOOL))
@@ -118,7 +118,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("buildRally", BinaryFieldType.DATA_VEC3D))
                     return ParseResult.Fail("Failed to parse buildRally/VECTOR");
-                tok.ApplyVector3D(obj, x => x.buildRally);
+                tok.ApplyVector3D(obj, x => x.buildRally, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("navHandle", BinaryFieldType.DATA_LONG))
@@ -133,7 +133,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("launchTarget", BinaryFieldType.DATA_VEC3D))
                     return ParseResult.Fail("Failed to parse launchTarget/VECTOR");
-                tok.ApplyVector3D(obj, x => x.launchTarget);
+                tok.ApplyVector3D(obj, x => x.launchTarget, format: reader.FloatFormat);
             }
 
             if (parent.SaveType == 0)

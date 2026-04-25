@@ -78,22 +78,22 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
-                        tok.ApplySingle(obj, x => x.omegaTurret);
+                        tok.ApplySingle(obj, x => x.omegaTurret, format: reader.FloatFormat);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
-                        tok.ApplySingle(obj, x => x.alphaTurret);
+                        tok.ApplySingle(obj, x => x.alphaTurret, format: reader.FloatFormat);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
-                        tok.ApplySingle(obj, x => x.timeDeploy);
+                        tok.ApplySingle(obj, x => x.timeDeploy, format: reader.FloatFormat);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
-                        tok.ApplySingle(obj, x => x.timeUndeploy);
+                        tok.ApplySingle(obj, x => x.timeUndeploy, format: reader.FloatFormat);
                     }
 
                     tok = reader.ReadToken();
@@ -104,7 +104,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
-                    tok.ApplySingle(obj, x => x.delayTimer);
+                    tok.ApplySingle(obj, x => x.delayTimer, format: reader.FloatFormat);
 
                     if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version != 1042)
                     {

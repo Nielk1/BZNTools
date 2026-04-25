@@ -262,7 +262,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("cloakTransitionTime", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse cloakTransitionTime/FLOAT");
-                    tok.ApplySingle(obj, x => x.cloakTransitionTime);
+                    tok.ApplySingle(obj, x => x.cloakTransitionTime, format: reader.FloatFormat);
                 }
 
                 tok = reader.ReadToken();
@@ -273,12 +273,12 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cloakTransBeginTime", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse cloakTransBeginTime/FLOAT");
-                tok.ApplySingle(obj, x => x.cloakTransBeginTime);
+                tok.ApplySingle(obj, x => x.cloakTransBeginTime, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("cloakTransEndTime", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse cloakTransEndTime/FLOAT");
-                tok.ApplySingle(obj, x => x.cloakTransEndTime);
+                tok.ApplySingle(obj, x => x.cloakTransEndTime, format: reader.FloatFormat);
 
                 if (reader.Version >= 2002 && obj != null)
                 {
@@ -294,19 +294,19 @@ namespace BZNParser.Battlezone.GameObject
                     if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse curAmmo/FLOAT");
                     //if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle());
-                    tok.ApplySingle(obj, x => x.curAmmo);
+                    tok.ApplySingle(obj, x => x.curAmmo, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse maxAmmo/FLOAT");
                     //if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle());
-                    tok.ApplySingle(obj, x => x.maxAmmo);
+                    tok.ApplySingle(obj, x => x.maxAmmo, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse addAmmo/FLOAT");
                     //if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle());
-                    tok.ApplySingle(obj, x => x.addAmmo);
+                    tok.ApplySingle(obj, x => x.addAmmo, format: reader.FloatFormat);
 
                     // TODO this entire CurPilot section might be able to use our existing SaveClass logic for both binary and ASCII
                     //if (reader.InBinary)
@@ -357,7 +357,7 @@ namespace BZNParser.Battlezone.GameObject
                         if (tok == null || !tok.Validate("m_ejectRatio", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse m_ejectRatio/FLOAT");
                         //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
-                        tok.ApplySingle(obj, x => x.m_ejectRatio);
+                        tok.ApplySingle(obj, x => x.m_ejectRatio, format: reader.FloatFormat);
                     }
                     else if (reader.Version >= 1196)
                     {
@@ -365,7 +365,7 @@ namespace BZNParser.Battlezone.GameObject
                         if (tok == null || !tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse ejectRatio/FLOAT");
                         //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
-                        tok.ApplySingle(obj, x => x.m_ejectRatio);
+                        tok.ApplySingle(obj, x => x.m_ejectRatio, format: reader.FloatFormat);
                     }
                 }
             }

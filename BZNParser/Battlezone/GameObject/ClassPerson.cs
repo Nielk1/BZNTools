@@ -65,7 +65,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse nextScream/FLOAT");
-                tok.ApplySingle(obj, x => x.nextScream);
+                tok.ApplySingle(obj, x => x.nextScream, format: reader.FloatFormat);
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -74,7 +74,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("nextScream", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse nextScream/FLOAT");
-                    tok.ApplySingle(obj, x => x.nextScream);
+                    tok.ApplySingle(obj, x => x.nextScream, format: reader.FloatFormat);
                 }
                 else
                 {

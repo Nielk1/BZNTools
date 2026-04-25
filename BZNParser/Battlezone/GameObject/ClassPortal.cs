@@ -73,12 +73,12 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("portalBeginTime", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse portalBeginTime/FLOAT");
-                tok.ApplySingle(obj, x => x.portalBeginTime);
+                tok.ApplySingle(obj, x => x.portalBeginTime, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("portalEndTime", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse portalEndTime/FLOAT");
-                tok.ApplySingle(obj, x => x.portalEndTime);
+                tok.ApplySingle(obj, x => x.portalEndTime, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("isIn", BinaryFieldType.DATA_BOOL))

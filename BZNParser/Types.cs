@@ -195,7 +195,7 @@ static class OtherTypeExtenions // clean this up later
 
         return value;
     }*/
-    public static Euler ReadEuler<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Euler>>? property, int index = 0) where T : IMalformable
+    public static Euler ReadEuler<T>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, Euler>>? property, int index = 0, FloatTextFormat format = FloatTextFormat.G) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -236,15 +236,15 @@ static class OtherTypeExtenions // clean this up later
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ApplyVector3D(euler, x => x.v);
+                tok.ApplyVector3D(euler, x => x.v, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ApplyVector3D(euler, x => x.omega);
+                tok.ApplyVector3D(euler, x => x.omega, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)) throw new Exception("Failed to parse euler's VEC3D");
-                tok.ApplyVector3D(euler, x => x.Accel);
+                tok.ApplyVector3D(euler, x => x.Accel, format: reader.FloatFormat);
 
                 // store the value into the property if possible
                 if (parent != null && propInfo != null)
@@ -280,15 +280,15 @@ static class OtherTypeExtenions // clean this up later
                 return value;
         
             IBZNToken subTok;
-            subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.Mass   ); if (subTok.GetRawName() != @" mass"     ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.Mass    , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.MassInv); if (subTok.GetRawName() != @" mass_inv" ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.MassInv , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.VMag   ); if (subTok.GetRawName() != @" v_mag"    ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.VMag    , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.VMagInv); if (subTok.GetRawName() != @" v_mag_inv") { value.Malformations.AddIncorrectName<Euler, float>(x => x.VMagInv , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.I      ); if (subTok.GetRawName() != @" I"        ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I       , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.IInv   ); if (subTok.GetRawName() != @" k_i"      ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.IInv    , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 6); subTok.ApplyVector3D(value, x => x.v    ); if (subTok.GetRawName() != @" v"        ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.v    , subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 7); subTok.ApplyVector3D(value, x => x.omega); if (subTok.GetRawName() != @" omega"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.omega, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 8); subTok.ApplyVector3D(value, x => x.Accel); if (subTok.GetRawName() != @" Accel"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.Accel, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.Mass   , format: format); if (subTok.GetRawName() != @" mass"     ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.Mass    , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.MassInv, format: format); if (subTok.GetRawName() != @" mass_inv" ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.MassInv , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.VMag   , format: format); if (subTok.GetRawName() != @" v_mag"    ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.VMag    , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.VMagInv, format: format); if (subTok.GetRawName() != @" v_mag_inv") { value.Malformations.AddIncorrectName<Euler, float>(x => x.VMagInv , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.I      , format: format); if (subTok.GetRawName() != @" I"        ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.I       , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.IInv   , format: format); if (subTok.GetRawName() != @" k_i"      ) { value.Malformations.AddIncorrectName<Euler, float>(x => x.IInv    , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 6); subTok.ApplyVector3D(value, x => x.v    , format: format); if (subTok.GetRawName() != @" v"        ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.v    , subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 7); subTok.ApplyVector3D(value, x => x.omega, format: format); if (subTok.GetRawName() != @" omega"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.omega, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 8); subTok.ApplyVector3D(value, x => x.Accel, format: format); if (subTok.GetRawName() != @" Accel"    ) { value.Malformations.AddIncorrectName<Euler, Vector3D>(x => x.Accel, subTok.GetRawName()); }
 
             return value;
         }
@@ -855,18 +855,18 @@ static class MatrixExtension
 
             // we have stuff to play with, so lets re-read the values back into the matrix again, but this time pass through our validation function
             IBZNToken subTok;
-            subTok = tok.GetSubToken(index,  0); subTok.ApplySingle(value, x => x.RightX); if (subTok.GetRawName() != @"  right.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightX, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  1); subTok.ApplySingle(value, x => x.RightY); if (subTok.GetRawName() != @"  right.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightY, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  2); subTok.ApplySingle(value, x => x.RightZ); if (subTok.GetRawName() != @"  right.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightZ, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  3); subTok.ApplySingle(value, x => x.UpX   ); if (subTok.GetRawName() != @"  up.x"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpX, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  4); subTok.ApplySingle(value, x => x.UpY   ); if (subTok.GetRawName() != @"  up.y"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpY, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  5); subTok.ApplySingle(value, x => x.UpZ   ); if (subTok.GetRawName() != @"  up.z"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpZ, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  6); subTok.ApplySingle(value, x => x.FrontX); if (subTok.GetRawName() != @"  front.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontX, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  7); subTok.ApplySingle(value, x => x.FrontY); if (subTok.GetRawName() != @"  front.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontY, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  8); subTok.ApplySingle(value, x => x.FrontZ); if (subTok.GetRawName() != @"  front.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontZ, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index,  9); subTok.ApplySingle(value, x => x.PositX); if (subTok.GetRawName() != @"  posit.x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositX, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 10); subTok.ApplySingle(value, x => x.PositY); if (subTok.GetRawName() != @"  posit.y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositY, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 11); subTok.ApplySingle(value, x => x.PositZ); if (subTok.GetRawName() != @"  posit.z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositZ, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  0); subTok.ApplySingle(value, x => x.RightX, format: reader.FloatFormat); if (subTok.GetRawName() != @"  right.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightX, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  1); subTok.ApplySingle(value, x => x.RightY, format: reader.FloatFormat); if (subTok.GetRawName() != @"  right.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightY, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  2); subTok.ApplySingle(value, x => x.RightZ, format: reader.FloatFormat); if (subTok.GetRawName() != @"  right.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightZ, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  3); subTok.ApplySingle(value, x => x.UpX   , format: reader.FloatFormat); if (subTok.GetRawName() != @"  up.x"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpX, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  4); subTok.ApplySingle(value, x => x.UpY   , format: reader.FloatFormat); if (subTok.GetRawName() != @"  up.y"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpY, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  5); subTok.ApplySingle(value, x => x.UpZ   , format: reader.FloatFormat); if (subTok.GetRawName() != @"  up.z"   ) { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpZ, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  6); subTok.ApplySingle(value, x => x.FrontX, format: reader.FloatFormat); if (subTok.GetRawName() != @"  front.x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontX, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  7); subTok.ApplySingle(value, x => x.FrontY, format: reader.FloatFormat); if (subTok.GetRawName() != @"  front.y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontY, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  8); subTok.ApplySingle(value, x => x.FrontZ, format: reader.FloatFormat); if (subTok.GetRawName() != @"  front.z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontZ, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index,  9); subTok.ApplySingle(value, x => x.PositX, format: reader.FloatFormat); if (subTok.GetRawName() != @"  posit.x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositX, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 10); subTok.ApplySingle(value, x => x.PositY, format: reader.FloatFormat); if (subTok.GetRawName() != @"  posit.y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositY, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 11); subTok.ApplySingle(value, x => x.PositZ, format: reader.FloatFormat); if (subTok.GetRawName() != @"  posit.z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositZ, subTok.GetRawName()); }
 
             return value;
         }
@@ -904,15 +904,15 @@ static class MatrixExtension
 
             // we have stuff to play with, so lets re-read the values back into the matrix again, but this time pass through our validation function
             IBZNToken subTok;
-            subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.RightX); if (subTok.GetRawName() != @"  right_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightX, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.RightY); if (subTok.GetRawName() != @"  right_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightY, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.RightZ); if (subTok.GetRawName() != @"  right_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightZ, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.UpX); if (subTok.GetRawName() != @"  up_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpX, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.UpY); if (subTok.GetRawName() != @"  up_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpY, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.UpZ); if (subTok.GetRawName() != @"  up_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpZ, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 6); subTok.ApplySingle(value, x => x.FrontX); if (subTok.GetRawName() != @"  front_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontX, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 7); subTok.ApplySingle(value, x => x.FrontY); if (subTok.GetRawName() != @"  front_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontY, subTok.GetRawName()); }
-            subTok = tok.GetSubToken(index, 8); subTok.ApplySingle(value, x => x.FrontZ); if (subTok.GetRawName() != @"  front_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontZ, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 0); subTok.ApplySingle(value, x => x.RightX, format: reader.FloatFormat); if (subTok.GetRawName() != @"  right_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightX, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 1); subTok.ApplySingle(value, x => x.RightY, format: reader.FloatFormat); if (subTok.GetRawName() != @"  right_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightY, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 2); subTok.ApplySingle(value, x => x.RightZ, format: reader.FloatFormat); if (subTok.GetRawName() != @"  right_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.RightZ, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 3); subTok.ApplySingle(value, x => x.UpX   , format: reader.FloatFormat); if (subTok.GetRawName() != @"  up_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpX, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 4); subTok.ApplySingle(value, x => x.UpY   , format: reader.FloatFormat); if (subTok.GetRawName() != @"  up_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpY, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 5); subTok.ApplySingle(value, x => x.UpZ   , format: reader.FloatFormat); if (subTok.GetRawName() != @"  up_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.UpZ, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 6); subTok.ApplySingle(value, x => x.FrontX, format: reader.FloatFormat); if (subTok.GetRawName() != @"  front_x") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontX, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 7); subTok.ApplySingle(value, x => x.FrontY, format: reader.FloatFormat); if (subTok.GetRawName() != @"  front_y") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontY, subTok.GetRawName()); }
+            subTok = tok.GetSubToken(index, 8); subTok.ApplySingle(value, x => x.FrontZ, format: reader.FloatFormat); if (subTok.GetRawName() != @"  front_z") { value.Malformations.AddIncorrectName<Matrix, float>(x => x.FrontZ, subTok.GetRawName()); }
 
             //if (reader.Format == BZNFormat.Battlezone && reader.Version >= 0) // BREADCRUMB VER_BIGPOSIT
             //{
@@ -922,9 +922,9 @@ static class MatrixExtension
             //}
             //else
             {
-                subTok = tok.GetSubToken(index, 9); subTok.ApplySingle(value, x => x.PositX); if (subTok.GetRawName() != @"  posit_x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositX, subTok.GetRawName()); }
-                subTok = tok.GetSubToken(index, 10); subTok.ApplySingle(value, x => x.PositY); if (subTok.GetRawName() != @"  posit_y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositY, subTok.GetRawName()); }
-                subTok = tok.GetSubToken(index, 11); subTok.ApplySingle(value, x => x.PositZ); if (subTok.GetRawName() != @"  posit_z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositZ, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index,  9); subTok.ApplySingle(value, x => x.PositX, format: reader.FloatFormat); if (subTok.GetRawName() != @"  posit_x") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositX, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 10); subTok.ApplySingle(value, x => x.PositY, format: reader.FloatFormat); if (subTok.GetRawName() != @"  posit_y") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositY, subTok.GetRawName()); }
+                subTok = tok.GetSubToken(index, 11); subTok.ApplySingle(value, x => x.PositZ, format: reader.FloatFormat); if (subTok.GetRawName() != @"  posit_z") { value.Malformations.AddIncorrectName<Matrix, double>(x => x.PositZ, subTok.GetRawName()); }
             }
 
             return value;
@@ -969,128 +969,6 @@ public enum BZNFormat
     StarTrekArmada2,
 }
 
-
-public static class MalformationExtensions
-{
-    [Obsolete]
-    public static void CheckMalformationsMatrix(this IBZNToken tok, IMalformable.MalformationManager malformations, FloatTextFormat floatFormat, int index = 0)
-    {
-        if (tok.IsBinary)
-        {
-            // check for malformations in the binary data and add to the token's malformation manager if found
-        }
-        else
-        {
-//                IBZNToken subTok;
-//                subTok = tok.GetSubToken(index,  0); if (subTok.GetRawName() != @"  right_x") { malformations.AddIncorrectName(@"  right_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_x", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  1); if (subTok.GetRawName() != @"  right_y") { malformations.AddIncorrectName(@"  right_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_y", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  2); if (subTok.GetRawName() != @"  right_z") { malformations.AddIncorrectName(@"  right_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  right_z", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  3); if (subTok.GetRawName() != @"  up_x"   ) { malformations.AddIncorrectName(@"  up_x"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_x"   , malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  4); if (subTok.GetRawName() != @"  up_y"   ) { malformations.AddIncorrectName(@"  up_y"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_y"   , malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  5); if (subTok.GetRawName() != @"  up_z"   ) { malformations.AddIncorrectName(@"  up_z"   , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  up_z"   , malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  6); if (subTok.GetRawName() != @"  front_x") { malformations.AddIncorrectName(@"  front_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_x", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  7); if (subTok.GetRawName() != @"  front_y") { malformations.AddIncorrectName(@"  front_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_y", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  8); if (subTok.GetRawName() != @"  front_z") { malformations.AddIncorrectName(@"  front_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  front_z", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index,  9); if (subTok.GetRawName() != @"  posit_x") { malformations.AddIncorrectName(@"  posit_x", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_x", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 10); if (subTok.GetRawName() != @"  posit_y") { malformations.AddIncorrectName(@"  posit_y", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_y", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 11); if (subTok.GetRawName() != @"  posit_z") { malformations.AddIncorrectName(@"  posit_z", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@"  posit_z", malformations, floatFormat);
-        }
-    }
-    [Obsolete]
-    public static void CheckMalformationsEuler(this IBZNToken tok, Euler euler, FloatTextFormat floatFormat, int index = 0)
-    {
-        if (tok.IsBinary)
-        {
-            // check for malformations in the binary data and add to the token's malformation manager if found
-        }
-        else
-        {
-//                IBZNToken subTok;
-//                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @" mass"     ) { euler.Malformations.AddIncorrectName(@" mass"     , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" mass"     , euler.Malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @" mass_inv" ) { euler.Malformations.AddIncorrectName(@" mass_inv" , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" mass_inv" , euler.Malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 2); if (subTok.GetRawName() != @" v_mag"    ) { euler.Malformations.AddIncorrectName(@" v_mag"    , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" v_mag"    , euler.Malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 3); if (subTok.GetRawName() != @" v_mag_inv") { euler.Malformations.AddIncorrectName(@" v_mag_inv", subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" v_mag_inv", euler.Malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 4); if (subTok.GetRawName() != @" I"        ) { euler.Malformations.AddIncorrectName(@" I"        , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" I"        , euler.Malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 5); if (subTok.GetRawName() != @" k_i"      ) { euler.Malformations.AddIncorrectName(@" k_i"      , subTok.GetRawName()); } subTok.CheckMalformationsSingle(@" k_i"      , euler.Malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 6); if (subTok.GetRawName() != @" v"        ) { euler.Malformations.AddIncorrectName(@" v"        , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.v.Malformations    , floatFormat);
-//                subTok = tok.GetSubToken(index, 7); if (subTok.GetRawName() != @" omega"    ) { euler.Malformations.AddIncorrectName(@" omega"    , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.omega.Malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 8); if (subTok.GetRawName() != @" Accel"    ) { euler.Malformations.AddIncorrectName(@" Accel"    , subTok.GetRawName()); } subTok.CheckMalformationsVector3D(euler.Accel.Malformations, floatFormat);
-        }
-    }
-
-    [Obsolete]
-    public static void CheckMalformationsVector2D(this IBZNToken tok, IMalformable.MalformationManager malformations, FloatTextFormat floatFormat, int index = 0)
-    {
-        if (tok.IsBinary)
-        {
-            // check for malformations in the binary data and add to the token's malformation manager if found
-        }
-        else
-        {
-//                IBZNToken subTok;
-//                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @"  x") { malformations.AddIncorrectName(@"  x", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  x", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @"  z") { malformations.AddIncorrectName(@"  z", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  z", malformations, floatFormat);
-        }
-    }
-
-    [Obsolete]
-    public static void CheckMalformationsVector3D(this IBZNToken tok, IMalformable.MalformationManager malformations, FloatTextFormat floatFormat, int index = 0)
-    {
-        if (tok.IsBinary)
-        {
-            // check for malformations in the binary data and add to the token's malformation manager if found
-        }
-        else
-        {
-//                IBZNToken subTok;
-//                subTok = tok.GetSubToken(index, 0); if (subTok.GetRawName() != @"  x") { malformations.AddIncorrectName(@"  x", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  x", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 1); if (subTok.GetRawName() != @"  y") { malformations.AddIncorrectName(@"  y", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  y", malformations, floatFormat);
-//                subTok = tok.GetSubToken(index, 2); if (subTok.GetRawName() != @"  z") { malformations.AddIncorrectName(@"  z", subTok.GetRawName()); } subTok.CheckMalformationsSingle("  z", malformations, floatFormat);
-        }
-    }
-
-    [Obsolete]
-    public static void CheckMalformationsSingle(this IBZNToken tok, string name, IMalformable.MalformationManager malformations, FloatTextFormat floatFormat, int index = 0)
-    {
-        if (tok.IsBinary)
-        {
-            // check for malformations in the binary data and add to the token's malformation manager if found
-        }
-        else
-        {
-//                if (SingleExtension.GetFloatTextFormat(tok.GetString(index)) != floatFormat || tok.GetSingle(index).ToBZNString(floatFormat) != tok.GetString(index))
-//                    malformations.AddIncorrectTextParse(name, tok.GetString(index));
-        }
-    }
-    [Obsolete]
-    public static void CheckMalformationsBool(this IBZNToken tok, string name, IMalformable.MalformationManager malformations, int index = 0)
-    {
-        if (tok.IsBinary)
-        {
-            // check for malformations in the binary data and add to the token's malformation manager if found
-        }
-        else
-        {
-//                if (tok.GetBoolean(index).ToString().ToLowerInvariant() != tok.GetString(index))
-//                    malformations.AddIncorrectTextParse(name, tok.GetString(index));
-        }
-    }
-
-    [Obsolete]
-    public static string CorrectName(this IMalformable.MalformationManager malformations, string name)
-    {
-        //if (preserveMalformations)
-        {
-//                var malIncorrectName = malformations.GetMalformations(Malformation.INCORRECT_NAME, name);
-//                if (malIncorrectName.Any())
-//                {
-//                    var mal = malIncorrectName.First();
-//                    name = (string)mal.Fields[0];
-//                }
-        }
-        return name;
-    }
-}
 
 
 // TODO merge incorect length logic from SizedString into this array system

@@ -56,7 +56,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("scoreTimer", BinaryFieldType.DATA_FLOAT))
                 return ParseResult.Fail("Failed to parse scoreTimer/FLOAT");
-            tok.ApplySingle(obj, x => x.scoreTimer);
+            tok.ApplySingle(obj, x => x.scoreTimer, format: reader.FloatFormat);
 
             return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
         }

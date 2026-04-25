@@ -95,7 +95,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("setAltitude", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse setAltitude/FLOAT");
-                tok.ApplySingle(obj, x => x.setAltitude);
+                tok.ApplySingle(obj, x => x.setAltitude, format: reader.FloatFormat);
             }
 
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version != 1042)
@@ -103,12 +103,12 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse timeDeploy/FLOAT");
-                tok.ApplySingle(obj, x => x.timeDeploy);
+                tok.ApplySingle(obj, x => x.timeDeploy, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse timeUndeploy/FLOAT");
-                tok.ApplySingle(obj, x => x.timeUndeploy);
+                tok.ApplySingle(obj, x => x.timeUndeploy, format: reader.FloatFormat);
             }
 
             tok = reader.ReadToken();
@@ -126,12 +126,12 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("delayTimer", BinaryFieldType.DATA_FLOAT))
                 return ParseResult.Fail("Failed to parse delayTimer/FLOAT");
-            tok.ApplySingle(obj, x => x.delayTimer);
+            tok.ApplySingle(obj, x => x.delayTimer, format: reader.FloatFormat);
 
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("nextRepair", BinaryFieldType.DATA_FLOAT))
                 return ParseResult.Fail("Failed to parse nextRepair/FLOAT");
-            tok.ApplySingle(obj, x => x.nextRepair);
+            tok.ApplySingle(obj, x => x.nextRepair, format: reader.FloatFormat);
 
             if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version >= 1006)
             {
@@ -158,7 +158,7 @@ namespace BZNParser.Battlezone.GameObject
                 //    obj.buildDoneTime = tok.GetSingle();
                 //    MalformationExtensions.CheckMalformationsSingle(tok, "buildDoneTime", obj.Malformations, reader.FloatFormat);
                 //}
-                tok.ApplySingle(obj, x => x.buildDoneTime);
+                tok.ApplySingle(obj, x => x.buildDoneTime, format: reader.FloatFormat);
                 // BZn64 might be invalid when it has CDCDCDCA here.
 
                 if (reader.Format == BZNFormat.Battlezone && reader.Version <= 1026)
@@ -174,14 +174,14 @@ namespace BZNParser.Battlezone.GameObject
                                              //-4.31602e+008
                     if (tok == null || !tok.Validate("buildUpdateTime", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse buildUpdateTime/FLOAT");
-                    tok.ApplySingle(obj, x => x.buildUpdateTime);
+                    tok.ApplySingle(obj, x => x.buildUpdateTime, format: reader.FloatFormat);
 
 
                     tok = reader.ReadToken();//buildDt [1] =
                                              //-4.31602e+008
                     if (tok == null || !tok.Validate("buildDt", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse buildDt/FLOAT");
-                    tok.ApplySingle(obj, x => x.buildDt);
+                    tok.ApplySingle(obj, x => x.buildDt, format: reader.FloatFormat);
 
 
                     tok = reader.ReadToken();//buildDc [1] =

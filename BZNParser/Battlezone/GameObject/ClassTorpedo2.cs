@@ -56,7 +56,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("lifeTimer", BinaryFieldType.DATA_FLOAT))
                 return ParseResult.Fail("Failed to parse lifeTimer/FLOAT");
-            tok.ApplySingle(obj, x => x.lifeTimer);
+            tok.ApplySingle(obj, x => x.lifeTimer, format: reader.FloatFormat);
 
             return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
         }

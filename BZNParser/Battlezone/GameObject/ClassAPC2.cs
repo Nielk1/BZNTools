@@ -106,17 +106,17 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextSoldierDelay", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse nextSoldierDelay/FLOAT");
-                tok.ApplySingle(obj, x => x.NextSoldierDelay);
+                tok.ApplySingle(obj, x => x.NextSoldierDelay, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextSoldierAngle", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse nextSoldierAngle/FLOAT");
-                tok.ApplySingle(obj, x => x.NextSoldierAngle);
+                tok.ApplySingle(obj, x => x.NextSoldierAngle, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("nextReturnTimer", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse nextReturnTimer/FLOAT");
-                tok.ApplySingle(obj, x => x.NextReturnToAPC);
+                tok.ApplySingle(obj, x => x.NextReturnToAPC, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("DeployOnLanding", BinaryFieldType.DATA_BOOL))

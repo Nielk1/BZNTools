@@ -82,24 +82,24 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse deployTimer/FLOAT");
-                tok.ApplySingle(obj, x => x.deployTimer);
+                tok.ApplySingle(obj, x => x.deployTimer, format: reader.FloatFormat);
 
                 if (parent.SaveType == SaveType.LOCKSTEP)
                 {
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lastSteer", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse lastSteer/FLOAT");
-                    tok.ApplySingle(obj, x => x.lastSteer);
+                    tok.ApplySingle(obj, x => x.lastSteer, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lastThrot", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse lastThrot/FLOAT");
-                    tok.ApplySingle(obj, x => x.lastThrot);
+                    tok.ApplySingle(obj, x => x.lastThrot, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lastStrafe", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse lastStrafe/FLOAT");
-                    tok.ApplySingle(obj, x => x.lastStrafe);
+                    tok.ApplySingle(obj, x => x.lastStrafe, format: reader.FloatFormat);
                 }
 
                 if (reader.Version >= 1138)

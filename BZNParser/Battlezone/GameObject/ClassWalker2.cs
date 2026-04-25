@@ -106,7 +106,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Current_Index", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse Current_Index/FLOAT");
-                tok.ApplySingle(obj, x => x.Current_Index);
+                tok.ApplySingle(obj, x => x.Current_Index, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Anim_State", BinaryFieldType.DATA_VOID))

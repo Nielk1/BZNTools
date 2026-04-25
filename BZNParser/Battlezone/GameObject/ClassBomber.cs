@@ -63,7 +63,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("m_ReloadTime", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse m_ReloadTime/FLOAT");
-                tok.ApplySingle(obj, x => x.m_ReloadTime);
+                tok.ApplySingle(obj, x => x.m_ReloadTime, format: reader.FloatFormat);
             }
 
             return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);

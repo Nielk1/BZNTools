@@ -69,7 +69,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("spawnTimer", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse spawnTimer/FLOAT"); // type not confirmed
-                tok.ApplySingle(obj, x => x.spawnTimer);
+                tok.ApplySingle(obj, x => x.spawnTimer, format: reader.FloatFormat);
             }
 
             return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);

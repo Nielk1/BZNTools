@@ -168,14 +168,14 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("illumination", BinaryFieldType.DATA_FLOAT))
                 return ParseResult.Fail("Failed to parse illumination/FLOAT");
-            tok.ApplySingle(obj, x => x.illumination);
+            tok.ApplySingle(obj, x => x.illumination, format: reader.FloatFormat);
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("pos", BinaryFieldType.DATA_VEC3D))
                     return ParseResult.Fail("Failed to parse pos/VEC3D");
-                tok.ApplyVector3D(obj, x => x.pos2);
+                tok.ApplyVector3D(obj, x => x.pos2, format: reader.FloatFormat);
             }
 
             reader.ReadEuler("euler", obj, x => x.euler);
@@ -467,32 +467,32 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken(); // float (-HUGE_NUMBER) // playerShot
                     if (tok == null || !tok.Validate("playerShot", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse playerShot/FLOAT");
-                    tok.ApplySingle(obj, x => x.playerShot);
+                    tok.ApplySingle(obj, x => x.playerShot, format: reader.FloatFormat);
 
                     tok = reader.ReadToken(); // float (-HUGE_NUMBER) // playerCollide
                     if (tok == null || !tok.Validate("playerCollide", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse playerCollide/FLOAT");
-                    tok.ApplySingle(obj, x => x.playerCollide);
+                    tok.ApplySingle(obj, x => x.playerCollide, format: reader.FloatFormat);
 
                     tok = reader.ReadToken(); // float (-HUGE_NUMBER) // friendShot
                     if (tok == null || !tok.Validate("friendShot", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse friendShot/FLOAT");
-                    tok.ApplySingle(obj, x => x.friendShot);
+                    tok.ApplySingle(obj, x => x.friendShot, format: reader.FloatFormat);
 
                     tok = reader.ReadToken(); // float (-HUGE_NUMBER) // friendCollide
                     if (tok == null || !tok.Validate("friendCollide", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse friendCollide/FLOAT");
-                    tok.ApplySingle(obj, x => x.friendCollide);
+                    tok.ApplySingle(obj, x => x.friendCollide, format: reader.FloatFormat);
 
                     tok = reader.ReadToken(); // float (-HUGE_NUMBER) // enemyShot
                     if (tok == null || !tok.Validate("enemyShot", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse enemyShot/FLOAT");
-                    tok.ApplySingle(obj, x => x.enemyShot);
+                    tok.ApplySingle(obj, x => x.enemyShot, format: reader.FloatFormat);
 
                     tok = reader.ReadToken(); // float                // groundCollide
                     if (tok == null || !tok.Validate("groundCollide", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse groundCollide/FLOAT");
-                    tok.ApplySingle(obj, x => x.groundCollide);
+                    tok.ApplySingle(obj, x => x.groundCollide, format: reader.FloatFormat);
                 }
             }
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
@@ -500,7 +500,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("healthRatio", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse healthRatio/FLOAT");
-                tok.ApplySingle(obj, x => x.healthRatio);
+                tok.ApplySingle(obj, x => x.healthRatio, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("curHealth", BinaryFieldType.DATA_LONG))
@@ -519,7 +519,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("healthRatio", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse healthRatio/FLOAT");
-                    tok.ApplySingle(obj, x => x.healthRatio);
+                    tok.ApplySingle(obj, x => x.healthRatio, format: reader.FloatFormat);
                 }
 
                 bool defaultHealth = reader.Version >= 1145 && ((saveFlags & 0x08) != 0);
@@ -535,19 +535,19 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("curHealth", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse curHealth/FLOAT");
-                    tok.ApplySingle(obj, x => x.curHealth);
+                    tok.ApplySingle(obj, x => x.curHealth, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("maxHealth", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse maxHealth/FLOAT");
-                    tok.ApplySingle(obj, x => x.maxHealth);
+                    tok.ApplySingle(obj, x => x.maxHealth, format: reader.FloatFormat);
 
                     if (reader.Version != 1041 && reader.Version != 1047)
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("addHealth", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse addHealth/FLOAT");
-                        tok.ApplySingle(obj, x => x.addHealth);
+                        tok.ApplySingle(obj, x => x.addHealth, format: reader.FloatFormat);
                     }
                 }
             }
@@ -559,7 +559,7 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("heatRatio", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse heatRatio/FLOAT");
-                    tok.ApplySingle(obj, x => x.heatRatio);
+                    tok.ApplySingle(obj, x => x.heatRatio, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("curHeat", BinaryFieldType.DATA_LONG))
@@ -579,7 +579,7 @@ namespace BZNParser.Battlezone.GameObject
                 if (tok == null || !tok.Validate("ammoRatio", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse ammoRatio/FLOAT");
                 //if (obj != null) obj.ammoRatio = tok.GetSingle();
-                tok.ApplySingle(obj, x => x.ammoRatio);
+                tok.ApplySingle(obj, x => x.ammoRatio, format: reader.FloatFormat);
 
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_LONG))
@@ -601,7 +601,7 @@ namespace BZNParser.Battlezone.GameObject
                     if (tok == null || !tok.Validate("ammoRatio", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse ammoRatio/FLOAT");
                     //if (obj != null) obj.ammoRatio = tok.GetSingle();
-                    tok.ApplySingle(obj, x => x.ammoRatio);
+                    tok.ApplySingle(obj, x => x.ammoRatio, format: reader.FloatFormat);
 
                     if (reader.Version >= 1070)
                     {
@@ -610,13 +610,13 @@ namespace BZNParser.Battlezone.GameObject
                         if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse curAmmo/FLOAT");
                         //if (obj != null) obj.curAmmo = new DualModeValue<int, float>(tok.GetSingle());
-                        tok.ApplySingle(obj, x => x.curAmmo);
+                        tok.ApplySingle(obj, x => x.curAmmo, format: reader.FloatFormat);
 
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse maxAmmo/FLOAT");
                         //if (obj != null) obj.maxAmmo = new DualModeValue<int, float>(tok.GetSingle());
-                        tok.ApplySingle(obj, x => x.maxAmmo);
+                        tok.ApplySingle(obj, x => x.maxAmmo, format: reader.FloatFormat);
                     }
                     else
                     {
@@ -640,7 +640,7 @@ namespace BZNParser.Battlezone.GameObject
                         if (tok == null || !tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
                             return ParseResult.Fail("Failed to parse addAmmo/FLOAT");
                         //if (obj != null) obj.addAmmo = new DualModeValue<int, float>(tok.GetSingle());
-                        tok.ApplySingle(obj, x => x.addAmmo);
+                        tok.ApplySingle(obj, x => x.addAmmo, format: reader.FloatFormat);
                     }
                     else if (reader.Version != 1041 && reader.Version != 1047) // avoid bz2001.bzn != 1041
                     {

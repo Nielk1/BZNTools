@@ -39,17 +39,17 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("curAmmo", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse curAmmo/FLOAT");
-                    tok.ApplySingle(obj, x => x.curAmmo);
+                    tok.ApplySingle(obj, x => x.curAmmo, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("maxAmmo", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse maxAmmo/FLOAT");
-                    tok.ApplySingle(obj, x => x.maxAmmo);
+                    tok.ApplySingle(obj, x => x.maxAmmo, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("addAmmo", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse addAmmo/FLOAT");
-                    tok.ApplySingle(obj, x => x.addAmmo);
+                    tok.ApplySingle(obj, x => x.addAmmo, format: reader.FloatFormat);
                 }
             }
 

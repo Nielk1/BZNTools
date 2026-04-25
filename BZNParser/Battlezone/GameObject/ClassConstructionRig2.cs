@@ -89,7 +89,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("buildTime", BinaryFieldType.DATA_FLOAT))
                 return ParseResult.Fail("Failed to parse buildTime/FLOAT");
-            tok.ApplySingle(obj, x => x.buildTime);
+            tok.ApplySingle(obj, x => x.buildTime, format: reader.FloatFormat);
 
             reader.ReadMatrix("buildMatrix", obj, x => x.dropMat);
 

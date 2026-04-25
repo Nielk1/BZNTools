@@ -60,7 +60,7 @@ namespace BZNParser.Battlezone.GameObject
                     IBZNToken? tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("lifeTimer", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse lifeTimer/FLOAT");
-                    tok.ApplySingle(obj, x => x.lifeTimer);
+                    tok.ApplySingle(obj, x => x.lifeTimer, format: reader.FloatFormat);
                 }
             }
 
@@ -69,7 +69,7 @@ namespace BZNParser.Battlezone.GameObject
                 IBZNToken? tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("undeffloat", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
-                tok.ApplySingle(obj, x => x.lifeTimer);
+                tok.ApplySingle(obj, x => x.lifeTimer, format: reader.FloatFormat);
             }
 
             return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);

@@ -186,7 +186,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("pos", BinaryFieldType.DATA_VEC3D))
                     return ParseResult.Fail("Failed to parse pos/VEC3D");
-                tok.ApplyVector3D(obj, x => x.pos);
+                tok.ApplyVector3D(obj, x => x.pos, format: reader.FloatFormat);
             }
 
             tok = reader.ReadToken();

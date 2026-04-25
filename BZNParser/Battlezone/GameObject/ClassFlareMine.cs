@@ -62,7 +62,7 @@ namespace BZNParser.Battlezone.GameObject
                     return ParseResult.Fail("Failed to parse undeffloat/FLOAT");
                 //if (obj != null) obj.Undeffloat = tok.GetSingle();
                 //shotTimer?
-                tok.ApplySingle(obj, x => x.Undeffloat);
+                tok.ApplySingle(obj, x => x.Undeffloat, format: reader.FloatFormat);
             }
 
             return ClassMine.Hydrate(parent, reader, obj as ClassMine);

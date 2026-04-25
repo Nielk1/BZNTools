@@ -68,7 +68,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
                     return ParseResult.Fail("Failed to parse deployTimer/FLOAT");
-                tok.ApplySingle(obj, x => x.deployTimer);
+                tok.ApplySingle(obj, x => x.deployTimer, format: reader.FloatFormat);
 
                 //if (a2[2].vftable)
                 //    (a2->vftable->read_long)(a2, this + 2544, 4, "changeState");

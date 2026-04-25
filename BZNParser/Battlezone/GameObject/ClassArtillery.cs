@@ -67,35 +67,35 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("omegaTurret", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse omegaTurret/FLOAT");
-                    tok.ApplySingle(obj, x => x.omegaTurret);
+                    tok.ApplySingle(obj, x => x.omegaTurret, format: reader.FloatFormat);
 
                     // ignored
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("heightDeploy", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse heightDeploy/FLOAT");
-                    tok.ApplySingle(obj, x => x.heightDeploy);
+                    tok.ApplySingle(obj, x => x.heightDeploy, format: reader.FloatFormat);
 
                     // ignored
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("timeDeploy", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse timeDeploy/FLOAT");
-                    tok.ApplySingle(obj, x => x.timeDeploy);
+                    tok.ApplySingle(obj, x => x.timeDeploy, format: reader.FloatFormat);
 
                     // ignored
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("timeUndeploy", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse timeUndeploy/FLOAT");
-                    tok.ApplySingle(obj, x => x.timeUndeploy);
+                    tok.ApplySingle(obj, x => x.timeUndeploy, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("deployTimer", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse deployTimer/FLOAT");
-                    tok.ApplySingle(obj, x => x.deployTimer);
+                    tok.ApplySingle(obj, x => x.deployTimer, format: reader.FloatFormat);
 
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse prevYaw/FLOAT");
-                    tok.ApplySingle(obj, x => x.prevYaw);
+                    tok.ApplySingle(obj, x => x.prevYaw, format: reader.FloatFormat);
                 }
 
                 return ClassHoverCraft.Hydrate(parent, reader, obj as ClassHoverCraft);
@@ -107,7 +107,7 @@ namespace BZNParser.Battlezone.GameObject
                     IBZNToken? tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("prevYaw", BinaryFieldType.DATA_FLOAT))
                         return ParseResult.Fail("Failed to parse prevYaw/FLOAT");
-                    tok.ApplySingle(obj, x => x.prevYaw);
+                    tok.ApplySingle(obj, x => x.prevYaw, format: reader.FloatFormat);
                 }
 
                 return ClassTurretTank2.Hydrate(parent, reader, obj as ClassTurretTank2);

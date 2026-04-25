@@ -417,7 +417,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
-                    tok.ApplyChars(this, x => x.TerrainName);
+                    tok.ApplyChars(this, x => x.TerrainName, buffSize: 100);
                     //Console.WriteLine($"TerrainName: {TerrainName}");
                 }
             }
@@ -429,7 +429,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse TerrainName/CHAR");
-                    tok.ApplyChars(this, x => x.TerrainName);
+                    tok.ApplyChars(this, x => x.TerrainName, buffSize: 100);
                     //Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else if (reader.Version == 1171)
@@ -442,7 +442,7 @@ namespace BZNParser.Battlezone
                             throw new Exception("Failed to parse g_TerrainName/CHAR"); // might need to note a safe malformation here
                         Malformations.AddIncorrectName<BZNFileBattlezone, string>(x => x.TerrainName, "TerrainName");
                     }
-                    tok.ApplyChars(this, x => x.TerrainName);
+                    tok.ApplyChars(this, x => x.TerrainName, buffSize: 100);
                     //Console.WriteLine($"TerrainName: {TerrainName}");
                 }
                 else
@@ -450,7 +450,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("g_TerrainName", BinaryFieldType.DATA_CHAR))
                         throw new Exception("Failed to parse g_TerrainName/CHAR");
-                    tok.ApplyChars(this, x => x.TerrainName);
+                    tok.ApplyChars(this, x => x.TerrainName, buffSize: 100);
                     //Console.WriteLine($"TerrainName: {TerrainName}");
                 }
             }
@@ -1170,7 +1170,7 @@ namespace BZNParser.Battlezone
             {
                 if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version != 1001)
                 {
-                    writer.WriteChars("TerrainName", this, x => x.TerrainName);
+                    writer.WriteChars("TerrainName", this, x => x.TerrainName, buffSize: 100);
                 }
             }
             else if (writer.Format == BZNFormat.Battlezone2)
@@ -1178,16 +1178,16 @@ namespace BZNParser.Battlezone
                 if (writer.Version < 1171)
                 {
                     // BZ2: 1123 1124s
-                    writer.WriteChars("TerrainName", this, x => x.TerrainName);
+                    writer.WriteChars("TerrainName", this, x => x.TerrainName, buffSize: 100);
                 }
                 else if (writer.Version == 1171)
                 {
                     // check for the malformation where sometimes it has the wrong string nae of "TerrainName"
-                    writer.WriteChars("g_TerrainName", this, x => x.TerrainName);
+                    writer.WriteChars("g_TerrainName", this, x => x.TerrainName, buffSize: 100);
                 }
                 else
                 {
-                    writer.WriteChars("g_TerrainName", this, x => x.TerrainName);
+                    writer.WriteChars("g_TerrainName", this, x => x.TerrainName, buffSize: 100);
                 }
             }
 

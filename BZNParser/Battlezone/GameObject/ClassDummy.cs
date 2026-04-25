@@ -44,7 +44,7 @@ namespace BZNParser.Battlezone.GameObject
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                 return ParseResult.Fail("Failed to parse name/CHAR");
-            tok.ApplyChars(obj, x => x.name);
+            tok.ApplyChars(obj, x => x.name, buffSize: 32);
 
             // Terrain doesn't call base data load
             //base.Build(reader, obj);
@@ -65,7 +65,7 @@ namespace BZNParser.Battlezone.GameObject
                 return;
             }
 
-            writer.WriteChars("name", obj, x => x.name);
+            writer.WriteChars("name", obj, x => x.name, buffSize: 32);
         }
     }
 }

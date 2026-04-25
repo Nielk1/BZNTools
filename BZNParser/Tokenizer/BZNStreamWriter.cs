@@ -1931,7 +1931,7 @@ namespace BZNParser.Tokenizer
         /// <param name="parent"></param>
         /// <param name="property"></param>
         /// <param name="oneLiner"></param>
-        public void WriteChars<T>(string name, T parent, Expression<Func<T, SizedString>> property, Func<SizedString, byte[]>? convert = null) where T : IMalformable
+        public void WriteChars<T>(string name, T parent, Expression<Func<T, SizedString>> property, Func<SizedString, byte[]>? convert = null, int? buffSize = null) where T : IMalformable
         {
             SizedString wrappedValue = ExtractPropertyValue(parent, property);
             string value = wrappedValue?.Value ?? string.Empty; // we don't care about the size as we're a normal char print
@@ -1944,6 +1944,17 @@ namespace BZNParser.Tokenizer
 
             if (PreserveMalformations)
             {
+                // handle null-cut extension
+                (bool hasCutExtension, byte[]? cutExtension) = parent.Malformations.GetNullCutExtension(property);
+                if (hasCutExtension && cutExtension != null)
+                {
+                    byte[] newVal = new byte[rawValue.Length + 1 + (cutExtension?.Length ?? 0)];
+                    Array.Copy(rawValue, newVal, rawValue.Length);
+                    newVal[rawValue.Length] = 0x00;
+                    Array.Copy(cutExtension!, 0, newVal, rawValue.Length + 1, cutExtension!.Length);
+                    rawValue = newVal;
+                }
+
                 // handle incorrect raw value
                 (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
                 if (hasIncorrectRaw)
@@ -1953,8 +1964,19 @@ namespace BZNParser.Tokenizer
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
-                InternalWriteBinarySize(rawValue.Length);
-                BaseStream.Write(rawValue);
+                if (buffSize.HasValue)
+                {
+                    int sizeOut = buffSize.Value > rawValue.Length ? buffSize.Value : rawValue.Length;
+                    InternalWriteBinarySize(sizeOut);
+                    byte[] outBuf = new byte[sizeOut];
+                    Array.Copy(rawValue, outBuf, rawValue.Length); // effectively pads with 0x00s
+                    BaseStream.Write(outBuf);
+                }
+                else
+                {
+                    InternalWriteBinarySize(rawValue.Length);
+                    BaseStream.Write(rawValue);
+                }
                 InternalAlignBinary();
                 TokenIndex++;
                 return;
@@ -1997,7 +2019,7 @@ namespace BZNParser.Tokenizer
         /// <param name="parent"></param>
         /// <param name="property"></param>
         /// <param name="oneLiner"></param>
-        public void WriteChars<T>(string name, T parent, Expression<Func<T, string>> property, Func<string, byte[]>? convert = null) where T : IMalformable
+        public void WriteChars<T>(string name, T parent, Expression<Func<T, string>> property, Func<string, byte[]>? convert = null, int? buffSize = null) where T : IMalformable
         {
             string? value = ExtractPropertyValue(parent, property);
             byte[] rawValue;
@@ -2013,6 +2035,17 @@ namespace BZNParser.Tokenizer
 
             if (PreserveMalformations)
             {
+                // handle null-cut extension
+                (bool hasCutExtension, byte[]? cutExtension) = parent.Malformations.GetNullCutExtension(property);
+                if (hasCutExtension && cutExtension != null)
+                {
+                    byte[] newVal = new byte[rawValue.Length + 1 + (cutExtension?.Length ?? 0)];
+                    Array.Copy(rawValue, newVal, rawValue.Length);
+                    newVal[rawValue.Length] = 0x00;
+                    Array.Copy(cutExtension!, 0, newVal, rawValue.Length + 1, cutExtension!.Length);
+                    rawValue = newVal;
+                }
+
                 // handle incorrect raw value
                 (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
                 if (hasIncorrectRaw)
@@ -2022,8 +2055,19 @@ namespace BZNParser.Tokenizer
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
-                InternalWriteBinarySize(rawValue.Length);
-                BaseStream.Write(rawValue);
+                if (buffSize.HasValue)
+                {
+                    int sizeOut = buffSize.Value > rawValue.Length ? buffSize.Value : rawValue.Length;
+                    InternalWriteBinarySize(sizeOut);
+                    byte[] outBuf = new byte[sizeOut];
+                    Array.Copy(rawValue, outBuf, rawValue.Length); // effectively pads with 0x00s
+                    BaseStream.Write(outBuf);
+                }
+                else
+                {
+                    InternalWriteBinarySize(rawValue.Length);
+                    BaseStream.Write(rawValue);
+                }
                 InternalAlignBinary();
                 TokenIndex++;
                 return;

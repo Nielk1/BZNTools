@@ -1,5 +1,6 @@
 ﻿using BZNParser.Battlezone;
 using System.Linq.Expressions;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
@@ -872,7 +873,7 @@ public static class TokenExtensions
     /// <param name="index"></param>
     /// <param name="convert"></param>
     /// <returns></returns>
-    public static (TProp stored, string raw) ApplyChars<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null) where T : IMalformable
+    public static (TProp stored, string raw) ApplyChars<T, TProp>(this IBZNToken tok, T? parent, Expression<Func<T, TProp>>? property, int index = 0, Func<string, TProp>? convert = null, int? buffSize = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -883,14 +884,39 @@ public static class TokenExtensions
 
         // clean up intake data
         int idx = valueProcessed.IndexOf('\0');
+        bool excessResolved = false;
         if (idx > -1)
+        {
+            string excess = valueProcessed.Substring(idx + 1);
             valueProcessed = valueProcessed.Substring(0, idx);
 
+            excess = excess.TrimEnd('\0');
+            switch (excess)
+            {
+                case "bzn":
+                //case "bzn\0n": // in some n64 BZNs, among other fuckups, caused by stomping on the old BZN name
+                case "myroot": // on BZ2 player spawns
+                    {
+                        // this is a common malformation where the string is null-terminated but the raw data still contains "bzn" after it and nothing else
+                        // normally we'd ignore this, but we're tracking malformations to rebuild the data so it's a special type of malformation
+
+                        // register malformations if possible
+                        if (!excessResolved && propInfo != null && parent != null)
+                        {
+                            parent.Malformations.AddNullCutExtension<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(excess));
+                            excessResolved = true;
+                        }
+                    }
+                    break;
+            }
+        }
+
         // register malformations if possible
-        if (propInfo != null && parent != null)
+        if (!excessResolved && propInfo != null && parent != null)
         {
+            string valueComparison = tok.IsBinary && buffSize.HasValue ? valueProcessed.PadRight(buffSize.Value, '\0') : valueProcessed;
             // the processed value doesn't match the internal value, log the malformation
-            if (!string.Equals(valueInternal, valueProcessed, StringComparison.Ordinal))
+            if (!string.Equals(valueInternal, valueComparison, StringComparison.Ordinal))
                 parent.Malformations.AddIncorrectRaw<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(valueInternal));
         }
 

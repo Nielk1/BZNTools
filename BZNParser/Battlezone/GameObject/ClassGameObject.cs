@@ -204,7 +204,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                     return ParseResult.Fail("Failed to parse name/CHAR");
-                tok.ApplyChars(obj, x => x.name);
+                tok.ApplyChars(obj, x => x.name, buffSize: 32);
             }
             if (reader.Format == BZNFormat.Battlezone)
             {
@@ -214,12 +214,12 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                         return ParseResult.Fail("Failed to parse name/CHAR");
-                    tok.ApplyChars(obj, x => x.name);
+                    tok.ApplyChars(obj, x => x.name, buffSize: 32);
                 }
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                reader.ReadSizedString("name", obj, x => x.name);
+                reader.ReadSizedString("name", obj, x => x.name);//, buffSize: 32);
             }
 
             byte? saveFlags = 0;
@@ -942,23 +942,23 @@ namespace BZNParser.Battlezone.GameObject
 
             if (writer.Format == BZNFormat.BattlezoneN64)
             {
-                writer.WriteChars("name", obj, x => x.name);
+                writer.WriteChars("name", obj, x => x.name, buffSize: 32);
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
                 if (writer.Version > 1030)
                     if (writer.Version < 1145)
                     {
-                        writer.WriteChars("name", obj, x => x.name);
+                        writer.WriteChars("name", obj, x => x.name, buffSize: 32);
                     }
                     else
                     {
-                        writer.WriteChars("name", obj, x => x.name);
+                        writer.WriteChars("name", obj, x => x.name, buffSize: 32);
                     }
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
-                writer.WriteSizedString("name", obj, x => x.name);
+                writer.WriteSizedString("name", obj, x => x.name);//, buffSize: 32);
             }
 
             // if save type != 0, msgString

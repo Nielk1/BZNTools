@@ -77,7 +77,7 @@ static class SizedStringExtension
     /// <param name="property"></param>
     /// <param name="destinationIndex">We already read index 0 of the Token, but this is what index we're writing to</param>
     /// <exception cref="Exception"></exception>
-    public static (string? stored, string? raw) ReadSizedString<T, TProp>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, TProp?>> property, int destinationIndex = 0/*, int? buffSize = null*/) where T : IMalformable
+    public static (string? stored, string? raw) ReadSizedString<T, TProp>(this BZNStreamReader reader, string name, T? parent, Expression<Func<T, TProp?>> property, int destinationIndex = 0, int? buffSize = null) where T : IMalformable
     {
         PropertyInfo? propInfo = null;
         if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
@@ -166,7 +166,7 @@ static class SizedStringExtension
             tok = reader.ReadToken();
             if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                 throw new Exception($"Failed to parse {name}/CHAR");
-            (string stored, string raw) = tok.ApplyChars(value, x => x.Value);//, buffSize: buffSize);
+            (string stored, string raw) = tok.ApplyChars(value, x => x.Value, buffSize: buffSize);
 
             if (propInfo != null && parent != null && did)
                 propInfo.SetValue(parent, setVal);
@@ -200,7 +200,7 @@ static class SizedStringExtension
     }
 
     // TODO fix index handling
-    public static void WriteSizedString<T, TProp>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, SizedString>? convert = null)//, int? buffSize = null)
+    public static void WriteSizedString<T, TProp>(this BZNStreamWriter writer, string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, SizedString>? convert = null, int? buffSize = null)
     {
         TProp wrappedValue = BZNStreamWriter.ExtractPropertyValue(parent, property);
         SizedString value;
@@ -233,7 +233,7 @@ static class SizedStringExtension
                 return;
             }
         }
-        writer.WriteChars(name, value, x => x.Value);
+        writer.WriteChars(name, value, x => x.Value, buffSize: buffSize);
     }
 
     /// <summary>

@@ -882,6 +882,15 @@ public static class TokenExtensions
         string valueInternal = tok.GetString(index);
         string valueProcessed = valueInternal;
 
+        bool forceIncorrectRawDueToBadLength = false;
+        if (tok.IsBinary && buffSize.HasValue)
+        {
+            if (valueInternal.Length != buffSize)
+            {
+                forceIncorrectRawDueToBadLength = true;
+            }
+        }
+
         // clean up intake data
         int idx = valueProcessed.IndexOf('\0');
         bool excessResolved = false;
@@ -912,7 +921,7 @@ public static class TokenExtensions
         }
 
         // register malformations if possible
-        if (!excessResolved && propInfo != null && parent != null)
+        if ((forceIncorrectRawDueToBadLength || !excessResolved) && propInfo != null && parent != null)
         {
             string valueComparison = tok.IsBinary && buffSize.HasValue ? valueProcessed.PadRight(buffSize.Value, '\0') : valueProcessed;
             // the processed value doesn't match the internal value, log the malformation

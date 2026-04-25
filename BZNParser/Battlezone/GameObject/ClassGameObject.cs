@@ -866,7 +866,7 @@ namespace BZNParser.Battlezone.GameObject
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("curPilot", BinaryFieldType.DATA_CHAR))
                             return ParseResult.Fail("Failed to parse curPilot/CHAR");
-                        tok.ApplyChars(obj, x => x.curPilot);
+                        tok.ApplyChars(obj, x => x.curPilot, buffSize: 16);
                     }
                 }
             }
@@ -1404,7 +1404,7 @@ namespace BZNParser.Battlezone.GameObject
                     // "game object read"
                     if (writer.Version < 1145)
                     {
-                        writer.WriteChars("curPilot", obj, x => x.curPilot);
+                        writer.WriteChars("curPilot", obj, x => x.curPilot, buffSize: 16);
                     }
                 }
             }

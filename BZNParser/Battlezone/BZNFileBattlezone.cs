@@ -359,7 +359,7 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 //msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16, Malformations);
-                reader.ReadSizedString("msn_filename", this, x => x.msn_filename);
+                reader.ReadSizedString("msn_filename", this, x => x.msn_filename, buffSize: 16);
                 //Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
 
@@ -1122,7 +1122,7 @@ namespace BZNParser.Battlezone
             if (writer.Format == BZNFormat.Battlezone2)
             {
                 //writer.WriteSizedString_BZ2_1145("msn_filename", 16, msn_filename, Malformations);
-                writer.WriteSizedString("msn_filename", this, x => x.msn_filename);
+                writer.WriteSizedString("msn_filename", this, x => x.msn_filename, buffSize: 16);
             }
 
             // todo this is oddly messy, clean it up and confirm

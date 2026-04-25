@@ -2033,6 +2033,7 @@ namespace BZNParser.Tokenizer
                 rawValue = BZNEncoding.win1252.GetBytes(value);
             }
 
+            bool rawValueOverride = false;
             if (PreserveMalformations)
             {
                 // handle null-cut extension
@@ -2049,7 +2050,10 @@ namespace BZNParser.Tokenizer
                 // handle incorrect raw value
                 (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
                 if (hasIncorrectRaw)
+                {
                     rawValue = incorrectRaw ?? [];
+                    rawValueOverride = true;
+                }
             }
 
             if (InBinary)
@@ -2057,7 +2061,7 @@ namespace BZNParser.Tokenizer
                 InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
                 if (buffSize.HasValue)
                 {
-                    int sizeOut = buffSize.Value > rawValue.Length ? buffSize.Value : rawValue.Length;
+                    int sizeOut = !rawValueOverride && buffSize.Value > rawValue.Length ? buffSize.Value : rawValue.Length;
                     InternalWriteBinarySize(sizeOut);
                     byte[] outBuf = new byte[sizeOut];
                     Array.Copy(rawValue, outBuf, rawValue.Length); // effectively pads with 0x00s

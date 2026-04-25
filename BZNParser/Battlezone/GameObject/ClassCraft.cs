@@ -347,7 +347,7 @@ namespace BZNParser.Battlezone.GameObject
 
                             //string curPilot = reader.ReadGameObjectClass_BZ2(parent, "curPilot", obj?.Malformations);
                             //if (obj != null) obj.curPilot = curPilot;
-                            reader.ReadSizedString("curPilot", obj, x => x.curPilot);
+                            reader.ReadSizedString("curPilot", obj, x => x.curPilot, buffSize: 16);
                         }
                     }
 
@@ -444,7 +444,7 @@ namespace BZNParser.Battlezone.GameObject
                     }
                     else
                     {
-                        writer.WriteSizedString("curPilot", obj, x => x.curPilot);
+                        writer.WriteSizedString("curPilot", obj, x => x.curPilot, buffSize: 16);
                     }
 
                     if (writer.Version == 1195)

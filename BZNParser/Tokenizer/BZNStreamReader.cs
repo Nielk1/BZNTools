@@ -1014,7 +1014,7 @@ namespace BZNParser.Tokenizer
                 Size = BitConverter.ToUInt32(number, 0);
 
                 // deal with rare truncation
-                if (readSize != TypeSize)
+                if (readSize != SizeSize)
                     ad.Defect_TruncatedBytesSize = number.Take(readSize).ToArray();
             }
 

@@ -74,7 +74,7 @@ namespace BZNParser.Battlezone.GameObject
         public UInt32 liveColor { get; set; }
         public UInt32 deadColor { get; set; }
         public UInt32 teamNumber { get; set; }
-        public UInt32 teamSlot { get; set; }
+        public Int32 teamSlot { get; set; }
 
 
         // legacy
@@ -361,7 +361,7 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            if (reader.Format == BZNFormat.Battlezone && (reader.Version == 1001 || reader.Version == 1011 || reader.Version == 1012 || reader.Version == 1017)) // TODO get range for these
+            if (reader.Format == BZNFormat.Battlezone && reader.Version <= 1017)
             {
                 tok = reader.ReadToken(); // 250
                 if (tok == null || !tok.Validate("liveColor", BinaryFieldType.DATA_UNKNOWN))
@@ -381,7 +381,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken(); // 0
                 if (tok == null || !tok.Validate("teamSlot", BinaryFieldType.DATA_UNKNOWN))
                     return ParseResult.Fail("Failed to parse teamSlot/UNKNOWN");
-                tok.ApplyUInt32(obj, x => x.teamSlot);
+                tok.ApplyInt32(obj, x => x.teamSlot);
             }
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
@@ -1067,12 +1067,12 @@ namespace BZNParser.Battlezone.GameObject
                 }
             }
 
-            if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012 || writer.Version == 1017)) // TODO get range for these
+            if (writer.Format == BZNFormat.Battlezone && writer.Version <= 1017)
             {
                 writer.WriteUInt32("liveColor", obj, x => x.liveColor);
                 writer.WriteUInt32("deadColor", obj, x => x.deadColor);
                 writer.WriteUInt32("teamNumber", obj, x => x.teamNumber);
-                writer.WriteUInt32("teamSlot", obj, x => x.teamSlot);
+                writer.WriteInt32("teamSlot", obj, x => x.teamSlot);
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)

@@ -411,6 +411,7 @@ namespace BZNParser.Battlezone
                 reader.Bookmark.Mark();
                 try
                 {
+                    parent.Malformations.Push();
                     ParseResult pr = parent.TailParse(reader);
                     reader.Bookmark.RevertToBookmark();
                     return pr.Success;
@@ -419,6 +420,10 @@ namespace BZNParser.Battlezone
                 {
                     reader.Bookmark.RevertToBookmark();
                     return false;
+                }
+                finally
+                {
+                    parent.Malformations.Discard();
                 }
             }
             else

@@ -1051,6 +1051,8 @@ public static class TokenExtensions
                 {
                     // assume uppercase
                     string textValue = BitConverter.ToString(valueInternal).Replace("-", string.Empty);
+                    if (expectedCase == 'L')
+                        textValue = textValue.ToLowerInvariant();
                     // basic string issue like True vs true
                     string rawString = tok.GetString(index);
                     if (!string.Equals(textValue, rawString, StringComparison.Ordinal))

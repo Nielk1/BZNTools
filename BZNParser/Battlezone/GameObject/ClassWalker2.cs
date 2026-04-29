@@ -89,7 +89,7 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("Walker_IK", BinaryFieldType.DATA_VOID))
                     return ParseResult.Fail("Failed to parse Walker_IK/VOID");
-                tok.ApplyVoidBytes(obj, x => x.Walker_IK);
+                tok.ApplyVoidBytes(obj, x => x.Walker_IK, expectedCase: 'L');
 
                 return ClassCraft.Hydrate(parent, reader, obj as ClassCraft);
             }

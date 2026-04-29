@@ -227,7 +227,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("label", BinaryFieldType.DATA_CHAR))
                     return ParseResult.Fail("Failed to parse label/CHAR");
-                tok.ApplyChars(obj, x => x.label);
+                tok.ApplyChars(obj, x => x.label, buffSize: 40);
             }
             else if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -596,7 +596,7 @@ namespace BZNParser.Battlezone
             }
             else if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WriteChars("label", this, x => x.label);
+                writer.WriteChars("label", this, x => x.label, buffSize: 40); // buffsize 40 seen on version 2004B file
             }
             else if (writer.Format == BZNFormat.Battlezone2)
             {

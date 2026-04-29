@@ -43,7 +43,7 @@ namespace BZNParser.Battlezone
                     if (reader.Version < 1145)
                     {
                         if (tok == null || !tok.Validate("what", BinaryFieldType.DATA_VOID)) throw new Exception("Failed to parse what/VOID");
-                        tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v));
+                        tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v), expectedCase: 'L');
                     }
                     else
                     {

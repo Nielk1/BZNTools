@@ -12,6 +12,7 @@ using System.Runtime.Intrinsics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml.Linq;
 using static BZNParser.Tokenizer.BZNStreamReader;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -1942,6 +1943,8 @@ namespace BZNParser.Tokenizer
                 rawValue = convert(wrappedValue);
             }
 
+            int binarySizeOut = rawValue.Length;
+            bool gotLengthFromPreservedMalformation = false;
             if (PreserveMalformations)
             {
                 // handle null-cut extension
@@ -1958,16 +1961,34 @@ namespace BZNParser.Tokenizer
                 // handle incorrect raw value
                 (bool hasIncorrectRaw, byte[]? incorrectRaw) = parent.Malformations.GetIncorrectRaw(property);
                 if (hasIncorrectRaw)
+                {
                     rawValue = incorrectRaw ?? [];
+                    binarySizeOut = rawValue.Length;
+                    gotLengthFromPreservedMalformation = true;
+                }
             }
+            if (!gotLengthFromPreservedMalformation && buffSize.HasValue)
+                binarySizeOut = buffSize.Value;
 
             if (InBinary)
             {
                 InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
                 if (buffSize.HasValue)
                 {
-                    int sizeOut = buffSize.Value > rawValue.Length ? buffSize.Value : rawValue.Length;
-                    InternalWriteBinarySize(sizeOut);
+                    int sizeOut = binarySizeOut;
+                    int sizeOut2 = sizeOut;
+                    if (StreamDefects != null)
+                    {
+                        if (StreamDefects.ContainsKey(TokenIndex))
+                        {
+                            StreamDefect defect = StreamDefects[TokenIndex];
+                            if (defect.BytesOversized.HasValue)
+                            {
+                                sizeOut2 = (int)defect.BytesOversized.Value;
+                            }
+                        }
+                    }
+                    InternalWriteBinarySize(sizeOut2);
                     byte[] outBuf = new byte[sizeOut];
                     Array.Copy(rawValue, outBuf, rawValue.Length); // effectively pads with 0x00s
                     BaseStream.Write(outBuf);

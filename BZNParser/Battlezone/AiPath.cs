@@ -89,7 +89,7 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 //string? name = reader.ReadSizedString_BZ2_1145("name", 40, obj?.Malformations);
-                (string? name, _) = reader.ReadSizedString("name", obj, x => x.AiPathDummy);
+                (string? name, _) = reader.ReadSizedString("name", obj, x => x.AiPathDummy, buffSize: 40);
                 if (name != "AiPath")
                 {
                     return ParseResult.Fail("Failed to parse AiPath");
@@ -187,7 +187,7 @@ namespace BZNParser.Battlezone
             {
                 //writer.WriteSizedString_BZ2_1145("name", 40, "AiPath", Malformations);
                 // TODO move this to a differnt malformation to get rid of the property, or just don't have malformations at all on it
-                writer.WriteSizedString("name", this, x => x.AiPathDummy, (val) => val ?? new SizedString("AiPath"));
+                writer.WriteSizedString("name", this, x => x.AiPathDummy, (val) => val ?? new SizedString("AiPath"), buffSize: 40);
             }
 
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)

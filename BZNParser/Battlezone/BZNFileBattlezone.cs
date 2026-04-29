@@ -353,7 +353,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("msn_filename", BinaryFieldType.DATA_CHAR))
                     throw new Exception("Failed to parse msn_filename/CHAR");
-                tok.ApplyChars(this, x => x.msn_filename);
+                tok.ApplyChars(this, x => x.msn_filename, buffSize: 16);
                 //Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }
             if (reader.Format == BZNFormat.Battlezone2)
@@ -668,7 +668,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                         return ParseResult.Fail("Failed to parse name/CHAR");
-                    tok.ApplyChars(this, x => x.Mission);
+                    tok.ApplyChars(this, x => x.Mission, buffSize: 40);
                     //Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else if (reader.Version < 1145)
@@ -677,7 +677,7 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("dllName", BinaryFieldType.DATA_CHAR))
                         return ParseResult.Fail("Failed to parse dllName/CHAR");
-                    tok.ApplyChars(this, x => x.Mission);
+                    tok.ApplyChars(this, x => x.Mission, buffSize: 40);
                     //Console.WriteLine($"Mission: {this.Mission}");
                 }
                 else
@@ -704,7 +704,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("name", BinaryFieldType.DATA_CHAR))
                     return ParseResult.Fail("Failed to parse name/CHAR");
-                tok.ApplyChars(this, x => x.Mission);
+                tok.ApplyChars(this, x => x.Mission, buffSize: 40);
                 //Console.WriteLine($"Mission: {this.Mission}");
 
                 tok = reader.ReadToken();
@@ -836,7 +836,7 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("exited", BinaryFieldType.DATA_UNKNOWN))
                     return ParseResult.Fail("Failed to parse exited/UNKNOWN");
-                tok.ApplyBoolean(this, x => x.UserProcess_exited);
+                tok.ApplyUInt32(this, x => x.UserProcess_exited, 0, (v) => v != 0);
             }
             else
             {
@@ -1117,7 +1117,7 @@ namespace BZNParser.Battlezone
 
             if (writer.Format == BZNFormat.Battlezone && writer.Version > 1022)
             {
-                writer.WriteChars("msn_filename", this, x => x.msn_filename);
+                writer.WriteChars("msn_filename", this, x => x.msn_filename, buffSize: 16);
             }
             if (writer.Format == BZNFormat.Battlezone2)
             {
@@ -1221,12 +1221,12 @@ namespace BZNParser.Battlezone
                 }
                 if (writer.Version == 1100 || writer.Version == 1041 || writer.Version == 1047 || writer.Version == 1070) // not sure what versions this happens
                 {
-                    writer.WriteChars("name", this, x => x.Mission);
+                    writer.WriteChars("name", this, x => x.Mission, buffSize: 40);
                 }
                 else if (writer.Version < 1145)
                 {
                     // max length 40
-                    writer.WriteChars("dllName", this, x => x.Mission);
+                    writer.WriteChars("dllName", this, x => x.Mission, buffSize: 40);
                 }
                 else
                 {
@@ -1251,7 +1251,7 @@ namespace BZNParser.Battlezone
             }
             if (writer.Format == BZNFormat.Battlezone)
             {
-                writer.WriteChars("name", this, x => x.Mission);
+                writer.WriteChars("name", this, x => x.Mission, buffSize: 40);
 
                 // read the old sObject ptr, not sure what can be done with it
                 if (writer.Version < 1002)
@@ -1321,7 +1321,7 @@ namespace BZNParser.Battlezone
                 //writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_2, (v) => v.HasValue ? (UInt64)v.Value : 0uL);
                 writer.WritePtr("undefptr", this, x => x.UserProcess_undefptr_2);
                 //writer.WriteBoolean("exited", this, x => x.UserProcess_exited, (v) => v.HasValue ? (bool)v.Value : false);
-                writer.WriteBoolean("exited", this, x => x.UserProcess_exited);
+                writer.WriteUInt32("exited", this, x => x.UserProcess_exited, (v) => v ? 1u : 0u);
             }
 
             writer.WriteValidation("AOIs");

@@ -12,21 +12,24 @@ namespace BZNParser.Tokenizer;
 public enum Malformation
 {
     UNKNOWN = 0,
-    INCOMPAT,         //X ?????????                           // Not loadable by game
-    EXTRA_FIELD,      //X "EXTRA_FIELD:CTX", <fields>         // Extra data
-    MISINTERPRET,     //X <fieldName>,       <interpretedAs>  // Misinterpreted by game but thus is loadable
-    OVERCOUNT,        //X <fieldName>                         // Too many objects of this type, maximum may have changed
-    NOT_IMPLEMENTED,  //X <fieldName>                         // Field not implemented, but it probably won't break the BZN read
-    DATA_AFTER_NULL,  // <byte[] originalRaw> // value parsed properly, but there's an extension that got cut off via a null character
-    INCORRECT_RAW,    // <byte[] originalRaw> // value parsed improperly or otherwise differently than expected, preserved original raw bytes, ASCII and Binary modes (in text mode the bytes are dumped directly into the file, not converted)
+    EXTRA_FIELD,      //                         // Extra data
+    DATA_AFTER_NULL,  // <byte[] originalRaw>    // value parsed properly, but there's an extension that got cut off via a null character
+    INCORRECT_RAW,    // <byte[] originalRaw>    // value parsed improperly or otherwise differently than expected, preserved original raw bytes, ASCII and Binary modes (in text mode the bytes are dumped directly into the file, not converted)
     INCORRECT_TEXT,   // <string originalString> // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
-    INCORRECT_CASE,   // <char 'U' or 'L'> // casing present instead of expected
-    INCORRECT_LENGTH, // <int> // incorrect length in file
-    LINE_ENDING,      //X "ALL:LINE_ENDING", <incorrectValue> // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
-    STRING_PAD,       //X <fieldName>,       <length>         // String is padded by nuls to reach this length
-    INCORRECT_NAME,   //X <fieldName>,       <badFieldName>   // Field name is wrong, very rare since normally we just fail validation
-    FLOAT_FORMAT,     //X "ALL:FLOAT_TEXT",  <formatApplied>  // Float is in an unexpected text format
-    RIGHT_TRIM,       //X <fieldName>                         // Field is a 1-liner with an empty field that got Right-Trimmed
+    INCORRECT_CASE,   // <char 'U' or 'L'>       // casing present instead of expected
+    INCORRECT_LENGTH, // <int>                   // incorrect length in file
+    LINE_ENDING,      // <incorrectValue>        // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
+    INCORRECT_NAME,   // <badFieldName>          // Field name is wrong, very rare since normally we just fail validation
+    FLOAT_FORMAT,     // <formatApplied>         // Float is in an unexpected text format
+    RIGHT_TRIM,       //                         // Field is a 1-liner with an empty field that got Right-Trimmed
+
+    //INCOMPAT,         //X ?????????                           // Not loadable by game
+
+    //MISINTERPRET,     //X <fieldName>,       <interpretedAs>  // Misinterpreted by game but thus is loadable
+    //OVERCOUNT,        //X <fieldName>                         // Too many objects of this type, maximum may have changed
+    //NOT_IMPLEMENTED,  //X <fieldName>                         // Field not implemented, but it probably won't break the BZN read
+
+    //STRING_PAD,       //X <fieldName>,       <length>         // String is padded by nuls to reach this length
 }
 
 public static class MalformationExtensions
@@ -54,9 +57,9 @@ public static class MalformationExtensions
     /// <param name="manager">The <see cref="MalformationManager"/> to which the misinterpretation will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field that was misinterpreted. Cannot be <c>null</c> or empty.</param>
     /// <param name="interpretedAs">The name of the field that received the value in error. Cannot be <c>null</c> or empty.</param>
-    [Obsolete]
-    public static void AddMisinterpretation(this MalformationManager manager, string fieldName, string interpretedAs) =>
-         manager.Add(Malformation.MISINTERPRET, fieldName, interpretedAs);
+    //[Obsolete]
+    //public static void AddMisinterpretation(this MalformationManager manager, string fieldName, string interpretedAs) =>
+    //     manager.Add(Malformation.MISINTERPRET, fieldName, interpretedAs);
 
     /// <summary>
     /// Adds an overcount malformation entry for the specified field to the <see cref="MalformationManager"/>.
@@ -66,9 +69,9 @@ public static class MalformationExtensions
     /// </remarks>
     /// <param name="manager">The <see cref="MalformationManager"/> to which the overcount malformation will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field associated with the overcount malformation. Cannot be <c>null</c> or empty.</param>
-    [Obsolete]
-    public static void AddOvercount(this MalformationManager manager, string fieldName) =>
-        manager.Add(Malformation.OVERCOUNT, fieldName);
+    //[Obsolete]
+    //public static void AddOvercount(this MalformationManager manager, string fieldName) =>
+    //    manager.Add(Malformation.OVERCOUNT, fieldName);
 
     /// <summary>
     /// Adds a "not implemented" malformation entry for the specified field to the manager.
@@ -78,9 +81,9 @@ public static class MalformationExtensions
     /// </remarks>
     /// <param name="manager">The <see cref="MalformationManager"/> to which the malformation entry will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field that is not implemented. Cannot be <c>null</c> or empty.</param>
-    [Obsolete]
-    public static void AddNotImplemented(this MalformationManager manager, string fieldName) =>
-        manager.Add(Malformation.NOT_IMPLEMENTED, fieldName);
+    //[Obsolete]
+    //public static void AddNotImplemented(this MalformationManager manager, string fieldName) =>
+    //    manager.Add(Malformation.NOT_IMPLEMENTED, fieldName);
 
     /// <summary>
     /// Adds an entry indicating that the specified field contained an incorrect value but was corrected.
@@ -91,9 +94,9 @@ public static class MalformationExtensions
     /// <param name="manager">The <see cref="MalformationManager"/> instance to which the incorrect entry will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field that contains the incorrect value. Cannot be <c>null</c> or empty.</param>
     /// <param name="incorrectValue">The value that is considered incorrect for the specified field. Can be <c>null</c> if the field's incorrect state is due to a missing or invalid value.</param>
-    [Obsolete]
-    public static void AddIncorrect(this MalformationManager manager, string fieldName, object incorrectValue) =>
-        manager.Add(Malformation.INCORRECT_RAW, fieldName, incorrectValue);
+    //[Obsolete]
+    //public static void AddIncorrect(this MalformationManager manager, string fieldName, object incorrectValue) =>
+    //    manager.Add(Malformation.INCORRECT_RAW, fieldName, incorrectValue);
 
 
 
@@ -106,9 +109,9 @@ public static class MalformationExtensions
     /// <param name="manager">The <see cref="MalformationManager"/> instance to which the incorrect entry will be added. Cannot be <c>null</c>.</param>
     /// <param name="fieldName">The name of the field that contains the incorrect value. Cannot be <c>null</c> or empty.</param>
     /// <param name="length">The length of the string after padding.</param>
-    [Obsolete]
-    public static void AddStringPad(this MalformationManager manager, string filedName, int length) =>
-        manager.Add(Malformation.STRING_PAD, filedName, length);
+    //[Obsolete]
+    //public static void AddStringPad(this MalformationManager manager, string filedName, int length) =>
+    //    manager.Add(Malformation.STRING_PAD, filedName, length);
 
 
 

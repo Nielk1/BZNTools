@@ -900,23 +900,26 @@ public static class TokenExtensions
             valueProcessed = valueProcessed.Substring(0, idx);
 
             excess = excess.TrimEnd('\0');
-            switch (excess)
-            {
-                case "bzn":
-                //case "bzn\0n": // in some n64 BZNs, among other fuckups, caused by stomping on the old BZN name
-                case "myroot": // on BZ2 player spawns
-                    {
+            if (excess.Length > 0)
+            { 
+            //switch (excess)
+            //{
+            //    case "bzn":
+            //    //case "bzn\0n": // in some n64 BZNs, among other fuckups, caused by stomping on the old BZN name
+            //    case "myroot": // on BZ2 player spawns
+            //        {
                         // this is a common malformation where the string is null-terminated but the raw data still contains "bzn" after it and nothing else
                         // normally we'd ignore this, but we're tracking malformations to rebuild the data so it's a special type of malformation
 
                         // register malformations if possible
                         if (!excessResolved && propInfo != null && parent != null)
                         {
-                            parent.Malformations.AddNullCutExtension<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(excess));
+                            parent.Malformations.AddDataAfterNull<T, TProp>(property, index, BZNEncoding.win1252.GetBytes(excess));
                             excessResolved = true;
                         }
-                    }
-                    break;
+            //        }
+            //        break;
+            //}
             }
         }
 

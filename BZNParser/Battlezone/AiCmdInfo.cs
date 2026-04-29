@@ -54,7 +54,7 @@ namespace BZNParser.Battlezone
                         }
                         else
                         {
-                            tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v));
+                            tok.ApplyVoidBytes(retVal, x => x.what, 0, (v) => BitConverter.ToUInt32(v), expectedCase: 'L');
                         }
                     }
                 }

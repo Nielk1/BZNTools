@@ -1945,7 +1945,7 @@ namespace BZNParser.Tokenizer
             if (PreserveMalformations)
             {
                 // handle null-cut extension
-                (bool hasCutExtension, byte[]? cutExtension) = parent.Malformations.GetNullCutExtension(property);
+                (bool hasCutExtension, byte[]? cutExtension) = parent.Malformations.GetDataAfterNull(property);
                 if (hasCutExtension && cutExtension != null)
                 {
                     byte[] newVal = new byte[rawValue.Length + 1 + (cutExtension?.Length ?? 0)];
@@ -2037,7 +2037,7 @@ namespace BZNParser.Tokenizer
             if (PreserveMalformations)
             {
                 // handle null-cut extension
-                (bool hasCutExtension, byte[]? cutExtension) = parent.Malformations.GetNullCutExtension(property);
+                (bool hasCutExtension, byte[]? cutExtension) = parent.Malformations.GetDataAfterNull(property);
                 if (hasCutExtension && cutExtension != null)
                 {
                     byte[] newVal = new byte[rawValue.Length + 1 + (cutExtension?.Length ?? 0)];

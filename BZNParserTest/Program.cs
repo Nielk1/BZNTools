@@ -12,6 +12,12 @@ namespace BZNParserTest
         record struct BznType(int version, bool binary, BZNFormat format);
         static void Main(string[] args)
         {
+            if (args.Length > 0)
+            {
+                Environment.ExitCode = CorpusCheck.Run(args);
+                return;
+            }
+
             BattlezoneBZNHints? BZ1Hints = BattlezoneBZNHints.BuildHintsBZ1();
             BattlezoneBZNHints? BZ2Hints = BattlezoneBZNHints.BuildHintsBZ2();
 

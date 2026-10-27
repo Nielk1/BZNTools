@@ -609,7 +609,6 @@ namespace BZNParser.Battlezone
                 {
                     // TODO change this to read a flag
                     bool noLabel = (seqNo & 0x800000) != 0;
-                    seqNo &= ~(UInt32)0x800000;
 
                     if (noLabel)
                     {

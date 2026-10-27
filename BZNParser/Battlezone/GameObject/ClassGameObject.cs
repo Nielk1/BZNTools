@@ -32,6 +32,11 @@ namespace BZNParser.Battlezone.GameObject
 
         public UInt32 isVisible { get; set; }
         public UInt16 isDamped { get; set; }
+        /// <summary>
+        /// Whether the version-1197+ damping mask record is present. This is
+        /// independent of the mask value; a present zero mask is still saved.
+        /// </summary>
+        public bool HasDampingMask { get; set; } = true;
         public UInt32 EffectsMask { get; set; }
         public UInt32 seen { get; set; }
         public Int32 groupNumber { get; set; }
@@ -294,10 +299,20 @@ namespace BZNParser.Battlezone.GameObject
 
                 if (reader.Version >= 1197)
                 {
+                    long offset = reader.Bookmark.Get();
                     tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("isDamped", BinaryFieldType.DATA_SHORT))
-                        return ParseResult.Fail("Failed to parse isDamped/SHORT");
-                    tok.ApplyUInt16(obj, x => x.isDamped);
+                    bool hasDampingMask = tok != null && tok.Validate("isDamped", BinaryFieldType.DATA_SHORT);
+                    if (hasDampingMask)
+                    {
+                        tok!.ApplyUInt16(obj, x => x.isDamped);
+                    }
+                    else
+                    {
+                        reader.Bookmark.Set(offset);
+                        if (parent.SaveType != SaveType.BZN)
+                            return ParseResult.Fail("Failed to parse isDamped/SHORT");
+                    }
+                    if (obj != null) obj.HasDampingMask = hasDampingMask;
                 }
                 else
                 {
@@ -1017,7 +1032,7 @@ namespace BZNParser.Battlezone.GameObject
                     writer.WriteUInt16("isVisible", obj, x => x.isVisible);
                 }
 
-                if (writer.Version >= 1197)
+                if (writer.Version >= 1197 && obj.HasDampingMask)
                 {
                     writer.WriteUInt16("isDamped", obj, x => x.isDamped);
                 }

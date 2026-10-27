@@ -38,6 +38,13 @@ namespace BZNParser.Battlezone
         public Dictionary<string, HashSet<string>>? ClassLabels { get; set; }
         public Dictionary<UInt16, string?>? EnumerationPrjID { get; set; }
 
+        private static string HintFilePath(string name)
+        {
+            // Preserve explicit working-directory overrides, then use the
+            // content copied beside the application by BZNParser.csproj.
+            return File.Exists(name) ? name : Path.Combine(AppContext.BaseDirectory, name);
+        }
+
         private static bool TryParseFlexibleUInt16(string input, out ushort value)
         {
             if (input.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
@@ -57,7 +64,8 @@ namespace BZNParser.Battlezone
             BZ1Hints.Strict = true;
             BZ1Hints.ClassLabels = new Dictionary<string, HashSet<string>>();
             bool AnyHints = false;
-            if (File.Exists("BZ1_ClassLabels.txt"))
+            string classLabelsPath = HintFilePath("BZ1_ClassLabels.txt");
+            if (File.Exists(classLabelsPath))
             {
                 AnyHints = true;
 
@@ -70,7 +78,7 @@ namespace BZNParser.Battlezone
                             ValidClassLabelsBZ1.Add(attr.ClassName);
                 }
 
-                foreach (string line in File.ReadAllLines("BZ1_ClassLabels.txt"))
+                foreach (string line in File.ReadAllLines(classLabelsPath))
                 {
                     string[] parts = line.Split(new char[] { '\t' }, 3);
                     if (parts.Length == 2 || parts.Length == 3)
@@ -85,13 +93,14 @@ namespace BZNParser.Battlezone
                     }
                 }
             }
-            if (File.Exists("BZN64_Enum_PrjID.txt"))
+            string enumerationPath = HintFilePath("BZN64_Enum_PrjID.txt");
+            if (File.Exists(enumerationPath))
             {
                 AnyHints = true;
 
                 Dictionary<UInt16, string?> EnumPrjID = new Dictionary<UInt16, string?>();
 
-                foreach (string line in File.ReadAllLines("BZN64_Enum_PrjID.txt"))
+                foreach (string line in File.ReadAllLines(enumerationPath))
                 {
                     string[] parts = line.Split(new char[] { '\t' }, 3);
                     if (parts.Length == 2 || parts.Length == 3)
@@ -116,13 +125,14 @@ namespace BZNParser.Battlezone
         }
         public static BattlezoneBZNHints? BuildHintsBZ2()
         {
-            if (File.Exists("BZ2_ClassLabels.txt"))
+            string classLabelsPath = HintFilePath("BZ2_ClassLabels.txt");
+            if (File.Exists(classLabelsPath))
             {
                 BattlezoneBZNHints BZ2Hints = new BattlezoneBZNHints();
                 BZ2Hints.Strict = true;
                 BZ2Hints.ClassLabels = new Dictionary<string, HashSet<string>>();
 
-                foreach (string line in File.ReadAllLines("BZ2_ClassLabels.txt"))
+                foreach (string line in File.ReadAllLines(classLabelsPath))
                 {
                     string[] parts = line.Split(new char[] { '\t' }, 3);
                     if (parts.Length == 2 || parts.Length == 3)
@@ -249,6 +259,16 @@ namespace BZNParser.Battlezone
 
         public AreaOfInterest[] AOIs { get; set; }
         public AiPath[] AiPaths { get; set; }
+
+        /// <summary>SatellitePanel state, absent in some BZ2 maps.</summary>
+        public bool? SatelliteHasEntered { get; set; }
+        public UInt32[] SatelliteOwnerObjects { get; set; } = new UInt32[3];
+        /// <summary>Optional SatellitePanel extension observed in version-1200 maps.</summary>
+        public bool? SatelliteTurnOff { get; set; }
+
+        /// <summary>Opaque BZ2 trailing records, preserved without interpreting their contents.</summary>
+        public byte[] PadData { get; set; } = Array.Empty<byte>();
+        public byte[] PadData2 { get; set; } = Array.Empty<byte>();
 
 
 
@@ -937,9 +957,11 @@ namespace BZNParser.Battlezone
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
+                SatelliteTurnOff = null;
                 // SatellitePanel
                 if (reader.Version >= 1125) // version 1169 failed to read this, might need a walk back for malformed
                 {
+                    SatelliteHasEntered = null;
                     reader.Bookmark.Mark();
 
                     // 1188 1192
@@ -960,14 +982,24 @@ namespace BZNParser.Battlezone
                     else
                     {
                         reader.Bookmark.Commit();
+                        tok.ApplyBoolean(this, x => x.SatelliteHasEntered);
                         for (int i = 0; i < 3/*MAX_WORLDS*/; i++)
                         {
                             tok = reader.ReadToken();
                             if (tok == null || !tok.Validate("ownerObj", BinaryFieldType.DATA_LONG))
                                 return ParseResult.Fail("Failed to parse ownerObj/LONG");
-                            //Int32 pathType = tok.GetUInt32H();
+                            SatelliteOwnerObjects[i] = tok.GetUInt32();
                         }
                     }
+                }
+                if (reader.Version >= 1200 && SaveType == SaveType.BZN)
+                {
+                    long offset = reader.Bookmark.Get();
+                    tok = reader.ReadToken();
+                    if (tok != null && tok.Validate("turnOff", BinaryFieldType.DATA_BOOL))
+                        tok.ApplyBoolean(this, x => x.SatelliteTurnOff);
+                    else
+                        reader.Bookmark.Set(offset);
                 }
             }
 
@@ -998,12 +1030,14 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("PadData", BinaryFieldType.DATA_VOID))
                         return ParseResult.Fail("Failed to parse PadData/VOID");
+                    tok.ApplyVoidBytes(this, x => x.PadData);
 
                     if (reader.Version >= 1119)
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("PadData2", BinaryFieldType.DATA_VOID))
                             return ParseResult.Fail("Failed to parse PadData2/VOID");
+                        tok.ApplyVoidBytes(this, x => x.PadData2);
                     }
                 }
             }
@@ -1336,6 +1370,26 @@ namespace BZNParser.Battlezone
             for (int i = 0; i < AiPaths.Length; i++)
             {
                 AiPaths[i].Write(this, writer, binary, save);
+            }
+
+            if (writer.Format == BZNFormat.Battlezone2)
+            {
+                if (writer.Version >= 1125 && SatelliteHasEntered.HasValue)
+                {
+                    if (SatelliteOwnerObjects.Length != 3)
+                        throw new InvalidOperationException("SatellitePanel must contain three owner objects.");
+                    writer.WriteBoolean("hasEntered", this, x => x.SatelliteHasEntered);
+                    for (int i = 0; i < SatelliteOwnerObjects.Length; i++)
+                        writer.WriteUInt32("ownerObj", this, x => x.SatelliteOwnerObjects, owners => owners[i]);
+                }
+                if (writer.Version >= 1200 && SatelliteTurnOff.HasValue)
+                    writer.WriteBoolean("turnOff", this, x => x.SatelliteTurnOff);
+                if (writer.Version >= 1115)
+                {
+                    writer.WriteVoidBytes("PadData", this, x => x.PadData);
+                    if (writer.Version >= 1119)
+                        writer.WriteVoidBytes("PadData2", this, x => x.PadData2);
+                }
             }
 
             if (writer.PreserveMalformations)

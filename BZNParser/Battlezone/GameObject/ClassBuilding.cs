@@ -179,7 +179,8 @@ namespace BZNParser.Battlezone.GameObject
                     return ParseResult.Ok();
                 }
 
-                ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+                ParseResult result = ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+                if (!result.Success) return result;
 
                 if (!string.IsNullOrEmpty(saveClass) && (reader.Version < 1148 || m_AlignsToObject))
                 {

@@ -56,7 +56,7 @@ This "try everything" logic may result in the emission of "MultiClass" objects w
 To parse a BZN file from a Battlezone game:
 ```csharp
 using BZNParser.Battlezone;
-using BZNParser.Reader;
+using BZNParser.Tokenizer;
 
 // Load hints for the game (e.g., BZ1 or BZ2)
 var hints = BattlezoneBZNHints.BuildHintsBZ1();
@@ -72,6 +72,43 @@ using (var reader = new BZNStreamReader(fileStream, "path/to/file.bzn"))
 ### Hints
 Hints are used to guide the parser in understanding the structure of the BZN file by providing information from outside, such as the ClassLabel of game object files.
 See the `BuildHintsBZ1` and `BuildHintsBZ2` functions in the [`BattlezoneBZNHints`](BZNParser/Battlezone/BZNFileBattlezone.cs) class for examples of how to build the hints structure.
+
+The built-in hint loaders first look in the current directory, then beside the
+application, where the project copies its hint files. This allows running a
+consumer from a different working directory while retaining local overrides.
+
+### BZCC map layouts
+
+Public 2.0.185 maps can share BZN version 1196 with later maps while omitting
+the `ejectRatio` record. The parser recognizes both map layouts and preserves
+record presence when writing. It also preserves optional `isDamped` masks in
+version-1197+ maps and the `turnOff` SatellitePanel extension observed in
+version-1200 maps. See [layout and round-trip notes](docs/BZCC-map-layouts.md)
+for the detection rules and exposed properties.
+
+### Build and regression checks
+
+Use the .NET 8 SDK:
+
+```sh
+dotnet build BZNTools.sln --configuration Release
+dotnet test BZNTools.sln --configuration Release
+```
+
+The automated tests use independently encoded synthetic maps and do not require
+an installed game or a private map corpus. The existing `BZNParserTest` program
+also accepts files and directories for a read-only corpus check:
+
+```sh
+dotnet run --project BZNParserTest --configuration Release -- --check "path/to/maps"
+dotnet run --project BZNParserTest --configuration Release -- --check --exact "path/to/map.bzn"
+```
+
+These commands parse, write to memory, and parse the result again. `--exact`
+additionally requires byte-for-byte equality. Exit codes are 0 for success,
+1 for failed checks, and 2 for invalid usage or an empty selection. Source maps
+are never written. Running without arguments retains the original developer
+harness and its local corpus paths.
 
 ### Bookmarks
 A "Bookmark" is a marker in the token stream that allows for the parser to return to a specific point in the stream after parsing failures.

@@ -45,6 +45,12 @@ namespace BZNParser.Battlezone.GameObject
 
         public float m_ejectRatio { get; set; }
 
+        /// <summary>
+        /// Whether the BZCC ejectRatio record is present. Some public 2.0.185
+        /// maps share version 1196 with later maps but omit this record.
+        /// </summary>
+        public bool HasEjectRatio { get; set; } = true;
+
         public bool m_Use13Aim { get; set; } = false;
 
 
@@ -361,16 +367,62 @@ namespace BZNParser.Battlezone.GameObject
                     }
                     else if (reader.Version >= 1196)
                     {
-                        tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
-                            return ParseResult.Fail("Failed to parse ejectRatio/FLOAT");
-                        //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
-                        tok.ApplySingle(obj, x => x.m_ejectRatio, format: reader.FloatFormat);
+                        bool hasEjectRatio = true;
+                        if (parent.SaveType == SaveType.BZN && !TryFindEjectRatio(reader, out hasEjectRatio))
+                            return ParseResult.Fail("Unrecognized Craft ejectRatio/physics layout");
+                        if (obj != null) obj.HasEjectRatio = hasEjectRatio;
+                        if (hasEjectRatio)
+                        {
+                            tok = reader.ReadToken();
+                            if (tok == null || !tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
+                                return ParseResult.Fail("Failed to parse ejectRatio/FLOAT");
+                            tok.ApplySingle(obj, x => x.m_ejectRatio, format: reader.FloatFormat);
+                        }
                     }
                 }
             }
 
             return ClassGameObject.Hydrate(parent, reader, obj as ClassGameObject);
+        }
+
+        private static bool TryFindEjectRatio(BZNStreamReader reader, out bool present)
+        {
+            present = false;
+            reader.Bookmark.Mark();
+            try
+            {
+                IBZNToken? tok = reader.ReadToken();
+                if (!reader.InBinary)
+                {
+                    present = tok != null && tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT);
+                    return present || (tok != null && tok.Validate("illumination", BinaryFieldType.DATA_FLOAT));
+                }
+
+                // illumination and Euler's six scalars follow the optional
+                // ratio. Validate the three vectors as well: a float alone
+                // cannot distinguish the two version-1196 layouts.
+                int floats = 0;
+                while (tok != null && tok.Validate(null, BinaryFieldType.DATA_FLOAT))
+                {
+                    if (tok.GetBytes().Length != sizeof(float) || ++floats > 8)
+                        return false;
+                    tok = reader.ReadToken();
+                }
+                if (floats != 7 && floats != 8) return false;
+                for (int i = 0; i < 3; i++)
+                {
+                    if (tok == null || !tok.Validate(null, BinaryFieldType.DATA_VEC3D)
+                        || tok.GetBytes().Length != sizeof(float) * 3)
+                        return false;
+                    if (i < 2) tok = reader.ReadToken();
+                }
+                present = floats == 8;
+                return true;
+            }
+            finally
+            {
+                reader.Bookmark.RevertToBookmark();
+            }
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)
@@ -451,7 +503,7 @@ namespace BZNParser.Battlezone.GameObject
                     {
                         writer.WriteSingle("m_ejectRatio", obj, x => x.m_ejectRatio);
                     }
-                    else if (writer.Version >= 1196)
+                    else if (writer.Version >= 1196 && obj.HasEjectRatio)
                     {
                         writer.WriteSingle("ejectRatio", obj, x => x.m_ejectRatio);
                     }

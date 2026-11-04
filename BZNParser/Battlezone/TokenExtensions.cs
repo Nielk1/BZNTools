@@ -166,7 +166,7 @@ public static class TokenExtensions
                 // basic string issue like True vs true
                 string rawString = tok.GetString(index);
                 if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
-                    parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+                    parent.Malformations.AddIncorrectTextParseFloat(property, index, rawString);
             }
         }
 

@@ -2361,6 +2361,10 @@ namespace BZNParser.Tokenizer
                 (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
                 if (hasIncorrectRaw)
                     textValue = incorrectText ?? string.Empty;
+
+                (bool hasIncorrectFRaw, string? incorrectTextF) = parent.Malformations.GetIncorrectTextParseFloat(property);
+                if (hasIncorrectFRaw)
+                    textValue = incorrectTextF ?? string.Empty;
             }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
@@ -2425,6 +2429,10 @@ namespace BZNParser.Tokenizer
                 (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
                 if (hasIncorrectRaw)
                     textValue = incorrectText ?? string.Empty;
+
+                (bool hasIncorrectFRaw, string? incorrectTextF) = parent.Malformations.GetIncorrectTextParseFloat(property);
+                if (hasIncorrectFRaw)
+                    textValue = incorrectTextF ?? string.Empty;
             }
 
             BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));

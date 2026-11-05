@@ -950,7 +950,7 @@ namespace BZNParser.Battlezone
                     {
                         if (tok != null && tok.Validate("PadData", BinaryFieldType.DATA_VOID))
                         {
-                            // SatellitePanel data is missing when it must exist, deal with damaged BZN?
+                            // TODO SatellitePanel data is missing when it must exist, deal with damaged BZN?
                             reader.Bookmark.RevertToBookmark();
                         }
                         else
@@ -967,6 +967,14 @@ namespace BZNParser.Battlezone
                             tok = reader.ReadToken();
                             if (tok == null || !tok.Validate("ownerObj", BinaryFieldType.DATA_LONG))
                                 return ParseResult.Fail("Failed to parse ownerObj/LONG");
+                            //Int32 pathType = tok.GetUInt32H();
+                        }
+
+                        if (reader.Version >= 1198)
+                        {
+                            tok = reader.ReadToken();
+                            if (tok == null || !tok.Validate("turnOff", BinaryFieldType.DATA_BOOL))
+                                return ParseResult.Fail("Failed to parse turnOff/BOOL");
                             //Int32 pathType = tok.GetUInt32H();
                         }
                     }

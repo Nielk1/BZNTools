@@ -23,6 +23,8 @@ public enum Malformation
     INCORRECT_NAME,   // <badFieldName>          // Field name is wrong, very rare since normally we just fail validation
     FLOAT_FORMAT,     // <formatApplied>         // Float is in an unexpected text format
     RIGHT_TRIM,       //                         // Field is a 1-liner with an empty field that got Right-Trimmed
+    BINARY_NEWLINE_CORRUPTION, // <byte[] originalSizeBytes> // Binary SIZE field shrank by a CR(0x0D)->LF(0x0A) text conversion;
+                                // the true payload was recovered. originalSizeBytes is the exact on-disk SIZE (for mirror round-trips).
 
     //INCOMPAT,         //X ?????????                           // Not loadable by game
 
@@ -155,6 +157,24 @@ public static class MalformationExtensions
 
     public static void AddRightTrimmed<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable =>
         manager.Add(property, index, Malformation.RIGHT_TRIM);
+
+    // A binary payload's SIZE field was shrunk by a CR(0x0D)->LF(0x0A) text conversion and we
+    // recovered the true payload. originalSizeBytes is the exact on-disk SIZE so mirror mode can
+    // reproduce the damaged token; correctedSize is the recovered (true) payload size.
+    public static void AddBinaryNewlineCorruption<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index, byte[] originalSizeBytes, uint correctedSize) where T : IMalformable =>
+        manager.Add(property, index, Malformation.BINARY_NEWLINE_CORRUPTION, originalSizeBytes, correctedSize);
+
+    public static (bool, byte[]?, uint?) GetBinaryNewlineCorruption<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, index, Malformation.BINARY_NEWLINE_CORRUPTION);
+            if (mals.Length > 0)
+                return (true, (byte[])mals[0].Fields[0], (uint?)mals[0].Fields[1]);
+            return (false, null, null);
+        }
+        throw new ArgumentException("Expression is not a property", nameof(property));
+    }
 
 
 

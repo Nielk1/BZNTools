@@ -131,6 +131,24 @@ static class SizedStringExtension
             }
 
             IBZNToken? tok;
+
+            // A CR->LF text conversion may have shrunk the string's binary SIZE and we may
+            // have recovered it; surface the correction so the damaged token can be
+            // round-tripped by mirror mode. (CS8620 is expected: the manager only reads the
+            // PropertyInfo, so TProp's nullability is irrelevant here.)
+            void SurfaceNewlineDefect()
+            {
+                if (parent is null) return;
+                if (reader.LastNewlineDefect is { NewlineDamaged: true } def)
+                {
+#pragma warning disable CS8620
+                    parent.Malformations.AddBinaryNewlineCorruption<T, TProp>(property, destinationIndex,
+                        def.NewlineSizeOriginal ?? System.Array.Empty<byte>(),
+                        def.NewlineSizeCorrected ?? 0);
+#pragma warning restore CS8620
+                }
+            }
+
             if (reader.InBinary)
             {
                 // this only happens on BZ2/BZCC BZNs over version 1128s
@@ -148,6 +166,8 @@ static class SizedStringExtension
                         if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                             throw new Exception($"Failed to parse {name}/CHAR");
                         (string stored_, string raw_) = tok.ApplyChars(value, x => x.Value);//, buffSize: buffSize);
+
+                        SurfaceNewlineDefect();
 
                         // this works when the property is a SizedString, but not a SizedString[] where we want to apply it instead to SizedString[destinationIndex]
                         if (propInfo != null && parent != null && did)
@@ -167,6 +187,8 @@ static class SizedStringExtension
             if (tok == null || !tok.Validate(name, BinaryFieldType.DATA_CHAR))
                 throw new Exception($"Failed to parse {name}/CHAR");
             (string stored, string raw) = tok.ApplyChars(value, x => x.Value, buffSize: buffSize);
+
+            SurfaceNewlineDefect();
 
             if (propInfo != null && parent != null && did)
                 propInfo.SetValue(parent, setVal);

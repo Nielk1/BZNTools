@@ -4,6 +4,10 @@ using BZNParser.Battlezone.GameObject;
 using BZNParser.Tokenizer;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace BZNParserTest
 {
@@ -78,6 +82,9 @@ namespace BZNParserTest
 
             /*foreach (string filename in*/
             var fileList = new string[] { }
+
+                //.Append(@"G:\Downloads\bridges2i.bzn")
+
                 //.Concat(Directory.EnumerateFiles(@"..\..\..\..\test_files\Battlezone2\1197B", "*", SearchOption.AllDirectories))
                 //.Concat(Directory.EnumerateFiles(@"..\..\..\..\test_files\Battlezone2\1197A", "*", SearchOption.AllDirectories))
                 //
@@ -99,6 +106,10 @@ namespace BZNParserTest
                 .ThenBy(dr => Path.GetFileName(dr))
                 //.Where(dr => dr != @"F:\Programming\BZRModManager\BZRModManager\BZRModManager\bin\steamcmd\steamapps\workshop\content\301650\3660662144\testmap.bzn")
                 ;
+
+            //var fileList = new string[] { }
+            //.Concat(Directory.EnumerateFiles(@"F:\Programming\BZNTools\MAPPING_BUILDING_STUFF", "*.bzn", SearchOption.AllDirectories));
+        
 
             int count = fileList.Count();
             int countWidth = count.ToString().Length;
@@ -178,6 +189,65 @@ namespace BZNParserTest
                                                     {
                                                         File.AppendAllText("success.txt", $"{filename}\r\n");
                                                     }
+
+
+
+
+                                                    // TODO extract this JSON code for later
+                                                    var JsonOptions = new JsonSerializerOptions
+                                                    {
+                                                        WriteIndented = true,
+                                                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                                        Converters = {
+                                                            new JsonStringEnumConverter(), // enums as strings
+                                                            new BZNFileBattlezoneJsonConverter(),
+                                                            new EntityJsonConverter(),
+                                                            new MalformationJsonConverter(),
+                                                            new ByteArrayHexJsonConverter(),
+                                                            new SizedStringJsonConverter(),
+                                                            new MultiClassJsonConverter(),
+                                                        },
+                                                        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                                                    };
+                                                    var JsonOptions2 = new JsonSerializerOptions
+                                                    {
+                                                        WriteIndented = true,
+                                                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+                                                        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                                                    };
+
+                                                    // clean up empty malformation display on all classes that implement the interface
+                                                    // if an earlier JsonConverter takes over before we get here, this won't run for that type
+                                                    foreach (Type targetType in typeof(Entity).Assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract && typeof(IMalformable).IsAssignableFrom(t)))
+                                                    {
+                                                        Type genericConverterType = typeof(MalformationCleanerJsonConverter<>).MakeGenericType(targetType);
+                                                        object converterInstance = Activator.CreateInstance(genericConverterType)!;
+                                                        JsonOptions.Converters.Add((JsonConverter)converterInstance);
+                                                    }
+
+                                                    string outFilename = filename.Replace(@"\test_files\", @"\test_files_out\");
+                                                    string outFolder = Path.GetDirectoryName(outFilename)!;
+                                                    if (!Directory.Exists(outFolder))
+                                                        Directory.CreateDirectory(outFolder);
+
+                                                    string jsonString = JsonSerializer.Serialize(bzn, JsonOptions2);
+                                                    File.WriteAllText($"{outFilename}.json", jsonString);
+                                                    var defects = reader.GetDefects();
+                                                    if (defects.Count > 0)
+                                                        File.WriteAllText($"{outFilename}.defect.json", JsonSerializer.Serialize(defects, JsonOptions));
+
+                                                       //BZNFileBattlezone bzn2 = JsonSerializer.Deserialize<BZNFileBattlezone>(jsonString, JsonOptions)!;
+                                                       //using (FileStream compareStream = File.OpenRead(filename))
+                                                       //using (MatchesStream ms = new MatchesStream(compareStream))
+                                                       //using (BZNStreamWriter writer = new BZNStreamWriter(ms, reader.Format, reader.Version, true, reader.GetDefects()))
+                                                       //{
+                                                       //    bzn.Write(writer, binary: reader.HasBinary, save: false);
+                                                       //}
+                                                       //lock (successTxtLock)
+                                                       //{
+                                                       //    File.AppendAllText("success.txt", $"{filename}\r\n");
+                                                       //}
                                                 }
                                             }
                                             catch (Exception ex)
@@ -217,7 +287,7 @@ namespace BZNParserTest
                 }
             });
             //Console.ReadKey(true);
-
+            /*
             i = 0;
             j = 0;
             ConcurrentDictionary<string, (int, int)> SubCounters = new ConcurrentDictionary<string, (int, int)>();
@@ -338,6 +408,7 @@ namespace BZNParserTest
                 }
             });
             //Console.ReadKey(true);
+            */
         }
     }
 }

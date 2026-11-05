@@ -317,7 +317,7 @@ namespace BZNParser.Tokenizer
         private static string BuildFixedForm(char[] digits, int exp10)
         {
             // digits represent:
-            // digits[0].digits[1..] × 10^exp10
+            // digits[0].digits[1..] ï¿½ 10^exp10
             //
             // Place decimal point after (exp10 + 1) digits from the left.
             int decimalPos = exp10 + 1;
@@ -3033,8 +3033,20 @@ namespace BZNParser.Tokenizer
                         StreamDefect defect = StreamDefects[TokenIndex];
                         if (defect.TruncatedBytesSize != null)
                         {
-                            // fucky wucky, this might break something if you edit the field, but any edits should invalidate the entire StreamDefects collection 
+                            // fucky wucky, this might break something if you edit the field, but any edits should invalidate the entire StreamDefects collection
                             BaseStream.Write(defect.TruncatedBytesSize);
+                            return;
+                        }
+                        if (defect.NewlineDamaged && defect.NewlineSizeOriginal != null && defect.NewlineSizeOriginal.Length > 0)
+                        {
+                            // mirror mode: the payload itself is intact, only this SIZE field was
+                            // rewritten by a CR->LF text conversion. Emit the exact damaged bytes so
+                            // the file round-trips byte-for-byte. (Stored little-endian; un-reverse for
+                            // big-endian formats to match the normal encoding path below.)
+                            byte[] damaged = (byte[])defect.NewlineSizeOriginal.Clone();
+                            if (IsBigEndian)
+                                Array.Reverse(damaged);
+                            BaseStream.Write(damaged);
                             return;
                         }
                         if (defect.BytesOversized.HasValue)

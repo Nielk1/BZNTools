@@ -359,6 +359,8 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 //msn_filename = reader.ReadSizedString_BZ2_1145("msn_filename", 16, Malformations);
+                // ReadSizedString surfaces any newline-corruption on the token itself, so no
+                // manual LastNewlineDefect handling is needed here.
                 reader.ReadSizedString("msn_filename", this, x => x.msn_filename, buffSize: 16);
                 //Console.WriteLine($"msn_filename: \"{msn_filename}\"");
             }

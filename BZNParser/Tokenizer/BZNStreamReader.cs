@@ -20,6 +20,38 @@ namespace BZNParser.Tokenizer
         public byte[]? TruncatedBytesSize { get; set; }
         public byte[]? TruncatedBytesData { get; set; }
         public uint? BytesOversized { get; set; }
+
+        // --- Newline (CR 0x0D -> LF 0x0A) conversion damage in the binary section ---
+        // A text tool (git line-ending normalisation, some editors, etc.) rewrote CR bytes
+        // in the raw binary payload. Because the SIZE field is read from those bytes, it
+        // comes out smaller than the real payload, so the parser would otherwise come to
+        // rest on a garbage TYPE byte (the tail of the string) and the stream would desync.
+        //
+        // When we recover the true size we keep the on-disk bytes around so that mirror
+        // mode can reproduce the damaged token exactly (for comparative tests) while
+        // corrected serialisation emits the full payload.
+        public bool NewlineDamaged { get; set; }
+
+        // true  -> we recovered a valid token but the exact original byte is ambiguous
+        //          (could have been a genuine LF, a CR->LF rewrite, or a dropped CR of a CRLF).
+        // false -> the corrected SIZE is an unambiguous CR(0x0D)->LF(0x0A) reversal of the
+        //          on-disk SIZE, so we consider the correction certain.
+        public bool NewlineDamagedPossible { get; set; }
+
+        // The SIZE bytes exactly as they appear in the damaged file (e.g. { 0x0A, 0x00 }).
+        // Written verbatim by the writer in mirror mode.
+        public byte[]? NewlineSizeOriginal { get; set; }
+
+        // The corrected (true) payload size that was recovered.
+        public uint? NewlineSizeCorrected { get; set; }
+
+        // The binary section was confirmed to have gone through newline conversion AND this token's
+        // payload contains LF (0x0A) bytes. A CR->LF rewrite only ever turns 0x0D into 0x0A, so a
+        // 0x0A value might be a rewritten CR -- indistinguishable from a genuine LF. We cannot tell
+        // which, so we flag the value as "possibly" altered for the upper layer to surface. Only set
+        // when the data actually contains 0x0A; with no 0x0A nothing could have been rewritten.
+        public bool ValuesPossiblyDamaged { get; set; }
+
         public bool IsEmpty()
         {
             if (TypeGarbage.HasValue)
@@ -33,6 +65,16 @@ namespace BZNParser.Tokenizer
             if (TruncatedBytesData != null)
                 return false;
             if (BytesOversized.HasValue)
+                return false;
+            if (NewlineDamaged)
+                return false;
+            if (NewlineDamagedPossible)
+                return false;
+            if (NewlineSizeOriginal != null)
+                return false;
+            if (NewlineSizeCorrected.HasValue)
+                return false;
+            if (ValuesPossiblyDamaged)
                 return false;
             return true;
         }
@@ -326,6 +368,32 @@ namespace BZNParser.Tokenizer
         public long CountCR { get; private set; }
         public long CountLF { get; private set; }
         public long CountCRLF { get; private set; }
+
+        // --- Newline conversion damage in the binary section ---
+        // Once we have recovered at least one binary token that was damaged by CR->LF
+        // conversion we flip this on. It both un-locks further repairs (cascades: the byte
+        // that "looked like" the next token's TYPE may itself have been a converted CR) and
+        // marks every other binary token whose payload happened to parse cleanly as possibly
+        // having a converted value byte we cannot distinguish from a genuine LF.
+        public bool NewlineDamageConfirmed { get; private set; }
+
+        // The ASCII (text) portion of the file has already been damaged by a line-ending
+        // rewrite (e.g. git collapsing CRLF to LF). That is a strong hint the binary payload
+        // was touched by the same tool, so we are willing to attempt a repair on the first
+        // binary structural break even before one has been confirmed.
+        public bool NewlineDamageSuspected { get { return CountCR != CountCRLF; } }
+
+        // We walked the token stream without having to repair a single newline-converted
+        // token. This is the "clean run" confirmation the reader was asked to track: the
+        // section is only considered un-molested once we have *not* needed a correction
+        // (whether that ends up being backed by unmolested byte sequences or simply by
+        // reaching end-of-stream without a break).
+        public bool BinarySectionClean { get { return !NewlineDamageConfirmed; } }
+
+        // The most recent binary token's newline-conversion defect, or null if that token was not
+        // newline-repaired. Lets the model layer (e.g. BZNFileBattlezone) surface a specific field's
+        // recovered corruption right after reading it, without having to walk the Atlas.
+        public StreamDefect? LastNewlineDefect { get; private set; }
 
         public BZNStreamReader(Stream stream, string filename)
         {
@@ -1074,7 +1142,10 @@ namespace BZNParser.Tokenizer
                                 type2 = BitConverter.ToUInt32(number, 0);
                             }
                             typeClean2 = type2 & 0xff;
-                            if (!Enum.IsDefined(typeof(BinaryFieldType), (byte)typeClean))
+                            // NB: check the backed-off byte (typeClean2), not the current (always-valid)
+                            // type. A damaged token reads too FEW bytes, so the byte one back is still
+                            // garbage and we must give up here and let the newline repair below handle it.
+                            if (!Enum.IsDefined(typeof(BinaryFieldType), (byte)typeClean2))
                             {
                                 // give up
                                 filestream.Seek(pos, SeekOrigin.Begin);
@@ -1092,6 +1163,45 @@ namespace BZNParser.Tokenizer
                         {
                             filestream.Seek(pos, SeekOrigin.Begin);
                         }
+                    }
+                }
+
+                // Newline (CR 0x0D -> LF 0x0A) conversion damage: a text tool rewrote CR bytes in
+                // the binary payload, shrinking this token's SIZE field so we read too FEW payload
+                // bytes and the stream now rests on the middle of the real data (a garbage TYPE
+                // byte). The oversized-by-1 path above only handles the opposite case, so if we
+                // are still parked on an invalid TYPE we attempt to recover the true size here.
+                bool repairedNewline = false;
+                if (ad.Defect_BytesOversized == null && SizeSize > 0)
+                {
+                    NewlineRepairResult? repair = TryRepairNewlineDamage(filestream, Size);
+                    if (repair != null)
+                    {
+                        data = repair.Data;
+                        Size = repair.CorrectedSize;
+                        if (ad.Defect == null)
+                            ad.Defect = new StreamDefect();
+                        ad.Defect.NewlineDamaged = true;
+                        ad.Defect.NewlineDamagedPossible = repair.Possible;
+                        ad.Defect.NewlineSizeOriginal = repair.OriginalSizeBytes;
+                        ad.Defect.NewlineSizeCorrected = repair.CorrectedSize;
+                        NewlineDamageConfirmed = true;
+                        repairedNewline = true;
+                    }
+                }
+
+                // In a confirmed-damaged binary section a token that still parsed cleanly may have
+                // had a CR value byte rewritten to LF. A CR->LF conversion only ever turns 0x0D into
+                // 0x0A, so this can only matter if the payload actually contains 0x0A bytes (some of
+                // which might be rewritten CRs, indistinguishable from genuine LFs). If it has none,
+                // nothing could have been rewritten and we leave the value clean.
+                if (NewlineDamageConfirmed && !repairedNewline)
+                {
+                    if (data.Any(b => b == 0x0A))
+                    {
+                        if (ad.Defect == null)
+                            ad.Defect = new StreamDefect();
+                        ad.Defect.ValuesPossiblyDamaged = true;
                     }
                 }
             }
@@ -1116,8 +1226,138 @@ namespace BZNParser.Tokenizer
             if (TokenIndex == Atlas.Count)
                 Atlas.Add(ad);
             TokenIndex++;
+            LastNewlineDefect = (ad.Defect != null && ad.Defect.NewlineDamaged) ? ad.Defect : null;
             return tok;
         }
+
+        #region Newline (CR -> LF) damage repair
+
+        /// <summary>Result of a successful newline-damage repair on a single binary token.</summary>
+        private sealed class NewlineRepairResult
+        {
+            /// <summary>The recovered, correct payload SIZE.</summary>
+            public uint CorrectedSize;
+            /// <summary>The damaged SIZE bytes exactly as they appear in the file (for round-tripping).</summary>
+            public byte[] OriginalSizeBytes = new byte[0];
+            /// <summary>True if this is a best-effort ("possible") repair rather than a clean CR->LF reversal.</summary>
+            public bool Possible;
+            /// <summary>The full recovered payload.</summary>
+            public byte[] Data = new byte[0];
+        }
+
+        private static bool IsValidType(int b)
+        {
+            return b >= 0 && b < 256 && Enum.IsDefined(typeof(BinaryFieldType), (byte)b);
+        }
+
+        private static int PeekByte(Stream filestream, long offset)
+        {
+            if (offset < 0 || offset >= filestream.Length)
+                return -1;
+            long pos = filestream.Position;
+            filestream.Seek(offset, SeekOrigin.Begin);
+            int b = filestream.ReadByte();
+            filestream.Seek(pos, SeekOrigin.Begin);
+            return b;
+        }
+
+        /// <summary>
+        /// True if <paramref name="trueSize"/> is <paramref name="damagedSize"/> with one or more of its
+        /// bytes changed from LF (0x0A) back to CR (0x0D) and nothing else -- the exact signature of a
+        /// CR->LF text conversion (or a CRLF -> LF rewrite).
+        /// </summary>
+        private bool IsPossibleNewlineConversion(uint damagedSize, uint trueSize)
+        {
+            if (trueSize == damagedSize)
+                return false;
+            for (int i = 0; i < SizeSize; i++)
+            {
+                int shift = 8 * i;
+                byte d = (byte)((damagedSize >> shift) & 0xff);
+                byte t = (byte)((trueSize >> shift) & 0xff);
+                if (d == t)
+                    continue;
+                if (d == 0x0A && t == 0x0D)
+                    continue;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Attempt to recover a binary token whose SIZE field was shrunk by CR(0x0D)->LF(0x0A)
+        /// conversion. On entry the stream sits just past the (too-short) payload, parked in the middle
+        /// of the real data where the next token's TYPE byte reads as garbage. On success the stream is
+        /// left at the true token boundary and the recovered payload/size are returned; on failure the
+        /// stream is restored and null is returned.
+        /// </summary>
+        private NewlineRepairResult? TryRepairNewlineDamage(Stream filestream, uint readSize)
+        {
+            long dataEnd = filestream.Position;
+            long length = filestream.Length;
+            if (SizeSize <= 0 || TypeSize <= 0)
+                return null;
+
+            // No structural break -> there is nothing to repair.
+            if (IsValidType(PeekByte(filestream, dataEnd)))
+                return null;
+
+            // Largest SIZE delta that is still a valid CR->LF byte reversal (0x0D is exactly 3 greater
+            // than 0x0A in each byte that changed). +1 also covers a CRLF -> LF (dropped CR) rewrite.
+            int cleanMax = 0;
+            for (int i = 0; i < SizeSize; i++)
+                if (((readSize >> (8 * i)) & 0xff) == 0x0A)
+                    cleanMax += 0x03 << (8 * i);
+            int maxExtra = Math.Max(cleanMax, 1);
+
+            int bestExtra = -1;
+            bool bestPossible = false;
+            for (int extra = 1; extra <= maxExtra; extra++)
+            {
+                uint candidateSize = (uint)(readSize + extra);
+                if (dataEnd + extra >= length || !IsValidType(PeekByte(filestream, dataEnd + extra)))
+                    continue;
+
+                bool clean = IsPossibleNewlineConversion(readSize, candidateSize);
+                if (clean)
+                {
+                    bestExtra = extra;
+                    bestPossible = false;
+                    break; // a clean CR->LF reversal is the most specific explanation
+                }
+                if (bestExtra == -1 && (NewlineDamageSuspected || NewlineDamageConfirmed))
+                {
+                    bestExtra = extra;
+                    bestPossible = true; // keep scanning in case a cleaner fit turns up
+                }
+            }
+
+            if (bestExtra == -1)
+                return null;
+
+            // The full payload starts where the (short) payload started, i.e. `readSize` bytes back
+            // from dataEnd. Re-read the whole thing from there.
+            uint newSize = (uint)(readSize + bestExtra);
+            long valueStart = dataEnd - readSize;
+            byte[] data = new byte[newSize];
+            filestream.Seek(valueStart, SeekOrigin.Begin);
+            int got = filestream.Read(data, 0, (int)newSize);
+            if (got != (int)newSize)
+            {
+                filestream.Seek(dataEnd, SeekOrigin.Begin);
+                return null;
+            }
+            filestream.Seek(dataEnd + bestExtra, SeekOrigin.Begin);
+            return new NewlineRepairResult
+            {
+                CorrectedSize = newSize,
+                OriginalSizeBytes = BitConverter.GetBytes(readSize).Take(SizeSize).ToArray(),
+                Possible = bestPossible,
+                Data = data,
+            };
+        }
+
+        #endregion
 
         /// <summary>
         /// Read a string from the file stream.

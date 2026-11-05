@@ -2,7 +2,7 @@
 
 namespace BZNParser.Battlezone.GameObject
 {
-    [ObjectClass(BZNFormat.Battlezone2, "minelayerT")]
+    [ObjectClass(BZNFormat.Battlezone2, "minelayert")]
     public class ClassMinelayerTFactory : IClassFactory
     {
         public bool Create(BZNFileBattlezone parent, BZNStreamReader reader, EntityDescriptor preamble, string classLabel, out Entity? obj, bool create = true)

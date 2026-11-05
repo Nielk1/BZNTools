@@ -2,7 +2,7 @@
 
 namespace BZNParser.Battlezone.GameObject
 {
-    [ObjectClass(BZNFormat.Battlezone2, "constructionrigT")]
+    [ObjectClass(BZNFormat.Battlezone2, "constructionrigt")]
     public class ClassConstructionRigTFactory : IClassFactory
     {
         public bool Create(BZNFileBattlezone parent, BZNStreamReader reader, EntityDescriptor preamble, string classLabel, out Entity? obj, bool create = true)

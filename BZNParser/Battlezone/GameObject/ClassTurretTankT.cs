@@ -2,7 +2,7 @@
 
 namespace BZNParser.Battlezone.GameObject
 {
-    [ObjectClass(BZNFormat.Battlezone2, "turrettankT")]
+    [ObjectClass(BZNFormat.Battlezone2, "turrettankt")]
     public class ClassTurretTankTFactory : IClassFactory
     {
         public bool Create(BZNFileBattlezone parent, BZNStreamReader reader, EntityDescriptor preamble, string classLabel, out Entity? obj, bool create = true)

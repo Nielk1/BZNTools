@@ -2,7 +2,7 @@
 
 namespace BZNParser.Battlezone.GameObject
 {
-    [ObjectClass(BZNFormat.Battlezone2, "commvehicleH")]
+    [ObjectClass(BZNFormat.Battlezone2, "commvehicleh")]
     public class ClassCommVehicleHFactory : IClassFactory
     {
         public bool Create(BZNFileBattlezone parent, BZNStreamReader reader, EntityDescriptor preamble, string classLabel, out Entity? obj, bool create = true)

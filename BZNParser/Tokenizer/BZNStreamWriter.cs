@@ -1463,8 +1463,8 @@ namespace BZNParser.Tokenizer
             if (PreserveMalformations)
             {
                 // handle incorrect raw value
-                (bool hasIncorrectRaw, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
-                if (hasIncorrectRaw)
+                (bool hasIncorrectText, string? incorrectText) = parent.Malformations.GetIncorrectTextParse(property);
+                if (hasIncorrectText)
                     textValue = incorrectText ?? string.Empty;
             }
 

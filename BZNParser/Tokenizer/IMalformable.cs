@@ -24,7 +24,7 @@ public enum Malformation
     FLOAT_FORMAT,     // <formatApplied>         // Float is in an unexpected text format
     RIGHT_TRIM,       //                         // Field is a 1-liner with an empty field that got Right-Trimmed
     BINARY_NEWLINE_CORRUPTION, // <byte[] originalSizeBytes> // Binary SIZE field shrank by a CR(0x0D)->LF(0x0A) text conversion;
-                                // the true payload was recovered. originalSizeBytes is the exact on-disk SIZE (for mirror round-trips).
+                               // the true payload was recovered. originalSizeBytes is the exact on-disk SIZE (for mirror round-trips).
 
     //INCOMPAT,         //X ?????????                           // Not loadable by game
 

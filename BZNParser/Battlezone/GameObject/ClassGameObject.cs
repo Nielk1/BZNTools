@@ -185,7 +185,18 @@ namespace BZNParser.Battlezone.GameObject
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("seqNo", BinaryFieldType.DATA_LONG))
                     return ParseResult.Fail("Failed to parse seqNo/LONG");
-                tok.ApplyUInt32(obj, x => x.seqNo);
+
+                // this seqno can differ, which means it is wrong
+                // we attach the malformation to *this* property, but leave the original alone
+                // always use the old value, resulting in a double store event but safe logic
+                //tok.ApplyUInt32(obj, x => x.seqNo);
+                (_, UInt32 rawSeqNo) = tok.ApplyUInt32(obj, x => x.seqNo, 0, (seqNo) => obj?.seqNo ?? seqNo);
+                if (obj != null && rawSeqNo != obj.seqNo)
+                    if (tok.IsBinary)
+                        obj?.Malformations.AddIncorrectRaw<ClassGameObject, UInt32>(x => x.seqNo, 0, BitConverter.GetBytes(rawSeqNo));
+                    else
+                        obj?.Malformations.AddIncorrectTextParse<ClassGameObject, UInt32>(x => x.seqNo, 0, tok.GetString());
+
             }
             if (reader.Format == BZNFormat.Battlezone2)
             {
@@ -195,7 +206,17 @@ namespace BZNParser.Battlezone.GameObject
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("seqNo", BinaryFieldType.DATA_LONG))
                         return ParseResult.Fail("Failed to parse seqNo/LONG");
-                    tok.ApplyUInt32h(obj, x => x.seqNo);
+
+                    // this seqno can differ, which means it is wrong
+                    // we attach the malformation to *this* property, but leave the original alone
+                    // always use the old value, resulting in a double store event but safe logic
+                    //tok.ApplyUInt32h(obj, x => x.seqNo);
+                    (_, UInt32 rawSeqNo) = tok.ApplyUInt32h(obj, x => x.seqNo, 0, (seqNo) => obj?.seqNo ?? seqNo);
+                    if (obj != null && rawSeqNo != obj.seqNo)
+                        if (tok.IsBinary)
+                            obj?.Malformations.AddIncorrectRaw<ClassGameObject, UInt32>(x => x.seqNo, 0, BitConverter.GetBytes(rawSeqNo));
+                        else
+                            obj?.Malformations.AddIncorrectTextParse<ClassGameObject, UInt32>(x => x.seqNo, 0, tok.GetString());
                 }
             }
 

@@ -196,6 +196,53 @@ public class MalformationJsonConverter : JsonConverter<IMalformable.Malformation
         writer.WriteEndObject();
     }
 }
+public class StreamDefectJsonConverter : JsonConverter<StreamDefect>
+{
+    public override StreamDefect? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        // Deserialization is not implemented in this initial version.
+        throw new NotImplementedException("Deserialization is not implemented.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, StreamDefect value, JsonSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+
+        writer.WriteStartObject();
+
+        var type = value.GetType();
+        foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            // skip indexers and non-readable
+            if (prop.GetIndexParameters().Length > 0 || !prop.CanRead)
+                continue;
+
+            var propValue = prop.GetValue(value);
+
+            // skip delegates
+            if (propValue is Delegate)
+                continue;
+
+            // only write out non-null values
+            if (propValue is null)
+                continue;
+
+            // only write out non-default values
+            if (propValue != null && prop.PropertyType.IsValueType && propValue.Equals(Activator.CreateInstance(prop.PropertyType)))
+                continue;
+
+            writer.WritePropertyName(prop.Name);
+            JsonSerializer.Serialize(writer, propValue, propValue.GetType(), options);
+        }
+
+        writer.WriteEndObject();
+    }
+}
+
 public class MultiClassJsonConverter : JsonConverter<MultiClass>
 {
     public override MultiClass? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

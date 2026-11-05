@@ -206,14 +206,8 @@ namespace BZNParserTest
                                                             new ByteArrayHexJsonConverter(),
                                                             new SizedStringJsonConverter(),
                                                             new MultiClassJsonConverter(),
+                                                            new StreamDefectJsonConverter(),
                                                         },
-                                                        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
-                                                    };
-                                                    var JsonOptions2 = new JsonSerializerOptions
-                                                    {
-                                                        WriteIndented = true,
-                                                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                                                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
                                                         NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
                                                     };
 
@@ -231,7 +225,7 @@ namespace BZNParserTest
                                                     if (!Directory.Exists(outFolder))
                                                         Directory.CreateDirectory(outFolder);
 
-                                                    string jsonString = JsonSerializer.Serialize(bzn, JsonOptions2);
+                                                    string jsonString = JsonSerializer.Serialize(bzn, JsonOptions);
                                                     File.WriteAllText($"{outFilename}.json", jsonString);
                                                     var defects = reader.GetDefects();
                                                     if (defects.Count > 0)

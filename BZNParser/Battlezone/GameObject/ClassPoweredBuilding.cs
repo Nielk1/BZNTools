@@ -63,23 +63,52 @@ namespace BZNParser.Battlezone.GameObject
 
         public static ParseResult Hydrate(BZNFileBattlezone parent, BZNStreamReader reader, ClassPoweredBuilding? obj)
         {
+            // scriptPowerOverride (a single LONG) can be misread as a powerHandle (a countable LONG array),
+            // because a lone leading LONG validates as a 1-element powerHandle and then swallows the next
+            // value(s). Disambiguate by scanning twice: once assuming powerHandle is present, and once
+            // assuming it is not. A pass is only accepted if every token validates AND ClassBuilding.Hydrate
+            // succeeds; otherwise restore the position and try the other arrangement. (Per maintainer:
+            // don't fight the version gates -- just attempt all the fields regardless of version; the
+            // validation plus the base parse resolve which layout is real.)
+            //
+            // We save/restore the stream position with Get()/Set() rather than the bookmark stack, so this
+            // retry is not sensitive to any bookmarks the delegated-to reads (e.g. ClassBuilding.Hydrate)
+            // may have left on the stack.
+            long startPos = reader.Bookmark.Get();
+
+            if (TryHydratePass(parent, reader, obj, hasPowerHandle: true))
+                return ParseResult.Ok();
+
+            reader.Bookmark.Set(startPos);
+
+            if (TryHydratePass(parent, reader, obj, hasPowerHandle: false))
+                return ParseResult.Ok();
+
+            reader.Bookmark.Set(startPos);
+            return ParseResult.Fail("Failed to parse ClassPoweredBuilding: neither a powerHandle-present nor a powerHandle-absent layout matched");
+        }
+
+        // Reads one candidate arrangement of the PoweredBuilding fields and reports whether it fully parsed.
+        // Fails (returns false) on the first bad token validation or if ClassBuilding.Hydrate does not
+        // succeed. Does not save/restore the position itself -- the caller does that between attempts.
+        private static bool TryHydratePass(BZNFileBattlezone parent, BZNStreamReader reader, ClassPoweredBuilding? obj, bool hasPowerHandle)
+        {
             IBZNToken? tok;
 
             //TapHelper::Save((this + 2060), a2); // used by PoweredBuilding and Turret (gun tower) to save lung data
-            if (reader.Version >= 1062)
+            if (hasPowerHandle)
             {
                 // we don't know how many taps there are without the ODF, so just try to read forever
-                reader.Bookmark.Mark();
                 tok = reader.ReadToken();
-                if (tok != null && tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
-                {
+                if (tok == null || !tok.Validate("powerHandle", BinaryFieldType.DATA_LONG))
+                    return false;
+                if (obj != null)
                     obj.powerHandle = Enumerable.Range(0, tok.GetCount()).Select(i => tok.GetInt32(i)).ToArray();
-                    reader.Bookmark.Commit();
-                }
-                else
-                {
-                    reader.Bookmark.RevertToBookmark();
-                }
+            }
+            else if (obj != null)
+            {
+                // make sure a failed pass 1 did not leave a bogus powerHandle behind
+                obj.powerHandle = null;
             }
 
             if (parent.SaveType != SaveType.BZN)
@@ -88,16 +117,13 @@ namespace BZNParser.Battlezone.GameObject
                 //(a2->vftable->out_bool)(a2, this + 2056, 1, "terminalRemote");
             }
 
-            if (reader.Version >= 1193)
-            {
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
-                    throw new Exception("Failed to parse scriptPowerOverride/LONG");
-                //if (obj != null) obj.scriptPowerOverride = tok.GetInt32();
-                tok.ApplyInt32(obj, x => x.scriptPowerOverride);
-            }
+            tok = reader.ReadToken();
+            if (tok == null || !tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
+                return false;
+            tok.ApplyInt32(obj, x => x.scriptPowerOverride);
 
-            return ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            var retVal = ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
+            return retVal.Success;
         }
 
         public override void Write(BZNFileBattlezone parent, BZNStreamWriter writer, bool binary, bool save)

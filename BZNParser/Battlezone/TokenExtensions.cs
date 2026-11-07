@@ -431,6 +431,133 @@ public static class TokenExtensions
 
         return (setVal, valueInternal);
     }
+    public static (TProp stored, UInt32 raw) ApplyPtr<T, TProp>(
+        this IBZNToken tok,
+        T? parent,
+        Expression<Func<T, TProp>>? property,
+        int index = 0,
+        Func<UInt32, TProp>? convert = null
+    ) where T : IMalformable
+    {
+        PropertyInfo? propInfo = null;
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo_)
+            propInfo = propInfo_;
+
+        UInt32 valueInternal = tok.GetUInt32H(index);
+
+        // Pointers are written by the game with fprintf("%p"); under the Microsoft C runtime that
+        // produces UPPERCASE hex (e.g. "00B01D68"), whereas a gcc build would be lowercase. Hence the
+        // expected case below is hard-coded to 'U' -- so long as the game is compiled with microsoft
+        // instead of gcc. The 'L' branch is kept (though unreachable while this is hard-coded to 'U')
+        // so a future switch to lowercase output is a one-character change here.
+        char expectedCase = 'U';
+
+        if (tok.IsBinary)
+        {
+            // no binary exclusive paths yet
+        }
+        else
+        {
+            if (propInfo != null && parent != null)
+            {
+                bool textMalformationHandled = false;
+
+                // incorrect case detection: the raw text is uniformly the "other" hex case
+                string rawString = tok.GetString(index);
+                string upperString = rawString.ToUpperInvariant();
+                string lowerString = rawString.ToLowerInvariant();
+
+                if (expectedCase == 'L')
+                {
+                    if (rawString != lowerString)
+                    {
+                        if (rawString == upperString)
+                            parent.Malformations.AddIncorrectCase(property, index, 'U');
+                        else
+                            parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+                        textMalformationHandled = true;
+                    }
+                }
+                else if (expectedCase == 'U')
+                {
+                    if (rawString != upperString)
+                    {
+                        if (rawString == lowerString)
+                            parent.Malformations.AddIncorrectCase(property, index, 'L');
+                        else
+                            parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+                        textMalformationHandled = true;
+                    }
+                }
+
+                // case is as expected, so make sure the value text itself matches (rendered in the expected case)
+                if (!textMalformationHandled)
+                {
+                    string textValue = valueInternal.ToString(expectedCase == 'L' ? "x8" : "X8");
+                    string rawValue = tok.GetString(index);
+                    if (!string.Equals(textValue, rawValue, StringComparison.Ordinal))
+                        parent.Malformations.AddIncorrectTextParse(property, index, rawValue);
+                }
+            }
+        }
+
+        TProp setVal = default!;
+        bool did = false;
+
+        // Array handling (including nullable arrays)
+        if (convert != null)
+        {
+            setVal = convert(valueInternal);
+            did = true;
+        }
+        else if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(UInt32))
+        {
+            var arr = (UInt32[]?)propInfo?.GetValue(parent);
+            if (arr != null && index >= 0 && index < arr.Length)
+            {
+                arr[index] = valueInternal;
+                setVal = (TProp)(object)arr;
+                did = true;
+            }
+        }
+        else if (typeof(TProp).IsGenericType
+            && typeof(TProp).GetGenericTypeDefinition() == typeof(MalformableArray<,>)
+            && typeof(TProp).GetGenericArguments()[1] == typeof(UInt32))
+        {
+            dynamic? arr = (dynamic?)propInfo?.GetValue(parent);
+            if (arr != null && index >= 0 && index < arr!.Count)
+            {
+                arr![index] = valueInternal;
+                setVal = (TProp)(object)arr;
+                did = true;
+            }
+        }
+        else if (typeof(TProp) == typeof(UInt8) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt8))
+        {
+            setVal = (TProp)(object)(UInt8)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt16) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt16))
+        {
+            setVal = (TProp)(object)(UInt16)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt32) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt32))
+        {
+            setVal = (TProp)(object)(UInt32)valueInternal;
+            did = true;
+        }
+        else if (typeof(TProp) == typeof(UInt64) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(UInt64))
+        {
+            setVal = (TProp)(object)(UInt64)valueInternal;
+            did = true;
+        }
+
+        if (propInfo != null && parent != null && did)
+            propInfo.SetValue(parent, setVal);
+
+        return (setVal, valueInternal);
+    }
 
     /// <summary>
     /// Read a UInt32 from an <see cref="IBZNToken"/> and optionally set it on a property of a parent object,

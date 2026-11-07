@@ -98,13 +98,14 @@ namespace BZNParser.Battlezone
 
             if (reader.Format == BZNFormat.Battlezone || reader.Format == BZNFormat.BattlezoneN64)
             {
-                if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version > 2011)
+                if (reader.Format == BZNFormat.BattlezoneN64 || reader.Version >= 2012)
                 {
                     // 2016
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("old_ptr", BinaryFieldType.DATA_PTR))
                         return ParseResult.Fail("Failed to parse old_ptr/PTR");
-                    if (obj != null) obj.sObject = tok.GetUInt32H();
+                    //if (obj != null) obj.sObject = tok.GetUInt32H();
+                    tok.ApplyPtr(obj, x => x.sObject, 0);
                 }
                 else
                 {
@@ -193,7 +194,7 @@ namespace BZNParser.Battlezone
             if (writer.Format == BZNFormat.Battlezone || writer.Format == BZNFormat.BattlezoneN64)
             {
                 //if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version >= 2016)
-                if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version > 2011)
+                if (writer.Format == BZNFormat.BattlezoneN64 || writer.Version >= 2012)
                 {
                     // 2016
                     writer.WritePtr("old_ptr", this, x => x.sObject);

@@ -117,10 +117,13 @@ namespace BZNParser.Battlezone.GameObject
                 //(a2->vftable->out_bool)(a2, this + 2056, 1, "terminalRemote");
             }
 
-            tok = reader.ReadToken();
-            if (tok == null || !tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
-                return false;
-            tok.ApplyInt32(obj, x => x.scriptPowerOverride);
+            if (reader.Version >= 1193)
+            {
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate("scriptPowerOverride", BinaryFieldType.DATA_LONG))
+                    return false;
+                tok.ApplyInt32(obj, x => x.scriptPowerOverride);
+            }
 
             var retVal = ClassBuilding.Hydrate(parent, reader, obj as ClassBuilding);
             return retVal.Success;

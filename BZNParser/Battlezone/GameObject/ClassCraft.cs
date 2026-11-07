@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection.PortableExecutable;
+using System.Security.AccessControl;
 using System.Text;
 
 namespace BZNParser.Battlezone.GameObject
@@ -351,21 +352,24 @@ namespace BZNParser.Battlezone.GameObject
                         }
                     }
 
-                    if (reader.Version == 1195)
+                    if (reader.Version >= 1195)
                     {
-                        tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("m_ejectRatio", BinaryFieldType.DATA_FLOAT))
-                            return ParseResult.Fail("Failed to parse m_ejectRatio/FLOAT");
-                        //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
-                        tok.ApplySingle(obj, x => x.m_ejectRatio, format: reader.FloatFormat);
-                    }
-                    else if (reader.Version >= 1196)
-                    {
-                        tok = reader.ReadToken();
-                        if (tok == null || !tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
-                            return ParseResult.Fail("Failed to parse ejectRatio/FLOAT");
-                        //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
-                        tok.ApplySingle(obj, x => x.m_ejectRatio, format: reader.FloatFormat);
+                        if (reader.Version == 1195)
+                        {
+                            tok = reader.ReadToken();
+                            if (tok == null || !tok.Validate("m_ejectRatio", BinaryFieldType.DATA_FLOAT))
+                                return ParseResult.Fail("Failed to parse m_ejectRatio/FLOAT");
+                            //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
+                            tok.ApplySingle(obj, x => x.m_ejectRatio, format: reader.FloatFormat);
+                        }
+                        else if (reader.Version >= 1196)
+                        {
+                            tok = reader.ReadToken();
+                            if (tok == null || !tok.Validate("ejectRatio", BinaryFieldType.DATA_FLOAT))
+                                return ParseResult.Fail("Failed to parse ejectRatio/FLOAT");
+                            //if (obj != null) obj.m_ejectRatio = tok.GetSingle();
+                            tok.ApplySingle(obj, x => x.m_ejectRatio, format: reader.FloatFormat);
+                        }
                     }
                 }
             }

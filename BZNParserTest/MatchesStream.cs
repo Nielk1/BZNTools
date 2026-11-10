@@ -74,7 +74,21 @@ public class MatchesStream : Stream
         byte[] compareBuffer = new byte[count];
         int read = _compareStream.Read(compareBuffer, 0, count);
         if (read != count)
+        {
+            // we only read 0 if we've finished the file, so we're done
+            if (read == 0)
+            {
+                // Writing CRLF
+                if (count == 2 && buffer[0] == 0x0d && buffer[1] == 0x0a)
+                    return;
+
+                // Writing CR or LF
+                if (count == 1 && (buffer[0] == 0x0d || buffer[0] == 0x0a))
+                    return;
+            }
+
             throw new EndOfStreamException("Target stream is shorter than written data.");
+        }
 
         for (int i = 0; i < count; i++)
         {

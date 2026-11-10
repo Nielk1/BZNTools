@@ -1021,6 +1021,22 @@ namespace BZNParser.Battlezone
                 }
             }
 
+            if (reader.Format == BZNFormat.Battlezone && reader.Version == 1001)
+            {
+                if (!reader.InBinary)
+                {
+                    tok = reader.ReadToken();
+                    if (tok == null || !tok.IsValidationOnly() || !tok.Validate("Terrain", BinaryFieldType.DATA_UNKNOWN))
+                        return ParseResult.Fail("Failed to parse [Terrain]");
+                }
+
+                tok = reader.ReadToken();
+                if (tok == null || !tok.Validate("Name", BinaryFieldType.DATA_UNKNOWN))
+                    return ParseResult.Fail("Failed to parse Name/UNKNOWN");
+                TerrainName = tok.GetString();
+                //Console.WriteLine($"TerrainName: {TerrainName}");
+            }
+
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 // code says this has to be SaveType != 0 to load, but they do always exist, very strange
@@ -1041,22 +1057,6 @@ namespace BZNParser.Battlezone
                         tok.ApplyVoidBytes(this, x => x.PadData2);
                     }
                 }
-            }
-
-            if (reader.Format == BZNFormat.Battlezone && reader.Version == 1001)
-            {
-                if (!reader.InBinary)
-                {
-                    tok = reader.ReadToken();
-                    if (tok == null || !tok.IsValidationOnly() || !tok.Validate("Terrain", BinaryFieldType.DATA_UNKNOWN))
-                        return ParseResult.Fail("Failed to parse [Terrain]");
-                }
-
-                tok = reader.ReadToken();
-                if (tok == null || !tok.Validate("Name", BinaryFieldType.DATA_UNKNOWN))
-                    return ParseResult.Fail("Failed to parse Name/UNKNOWN");
-                TerrainName = tok.GetString();
-                //Console.WriteLine($"TerrainName: {TerrainName}");
             }
 
             if (!reader.EndOfFile())
@@ -1397,15 +1397,6 @@ namespace BZNParser.Battlezone
                 writer.WriteInt32("count", this, x => x.AiTaskCount);
             }
 
-            // BZ2 PadData (version >= 1115): PadData, [PadData2 if >= 1119]
-            if (writer.Format == BZNFormat.Battlezone2 && writer.Version >= 1115)
-            {
-                if (PadData != null)
-                    writer.WriteVoidBytesL("PadData", this, x => x.PadData!);
-                if (writer.Version >= 1119 && PadData2 != null)
-                    writer.WriteVoidBytesL("PadData2", this, x => x.PadData2!);
-            }
-
             // BZ1 TerrainName (version 1001): [Terrain] + Name one-liner
             if (writer.Format == BZNFormat.Battlezone && writer.Version == 1001)
             {
@@ -1414,6 +1405,15 @@ namespace BZNParser.Battlezone
                     writer.WriteOneLinerString("Name", TerrainName ?? string.Empty);
                 else
                     writer.WriteChars("Name", this, x => x.TerrainName, buffSize: 40);
+            }
+
+            // BZ2 PadData (version >= 1115): PadData, [PadData2 if >= 1119]
+            if (writer.Format == BZNFormat.Battlezone2 && writer.Version >= 1115)
+            {
+                if (PadData != null)
+                    writer.WriteVoidBytesL("PadData", this, x => x.PadData!);
+                if (writer.Version >= 1119 && PadData2 != null)
+                    writer.WriteVoidBytesL("PadData2", this, x => x.PadData2!);
             }
 
             if (writer.PreserveMalformations)

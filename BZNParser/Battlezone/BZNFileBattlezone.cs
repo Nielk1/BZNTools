@@ -268,11 +268,6 @@ namespace BZNParser.Battlezone
         // BZ1 AiTasks (version 1001/1011/1012): count
         public Int32 AiTaskCount { get; set; }
 
-        // Whether the source file's final line was terminated by a newline. Some BZN files end
-        // immediately after the last token with no trailing line break; we reproduce that exactly.
-        public bool HasTrailingNewline { get; set; } = true;
-
-
 
         internal Dictionary<string, HashSet<string>> LongTermClassLabelLookupCache;
 
@@ -1090,10 +1085,6 @@ namespace BZNParser.Battlezone
                 return ParseResult.Fail("Tokens left after last known token");
             }
 
-            // Capture whether the file's final line had a trailing newline so the writer can
-            // reproduce the exact byte layout (some files end with no trailing line break).
-            HasTrailingNewline = reader.FileEndsWithNewline;
-
             // BZ1 version 2016 binary extra DATA_VEC2D at the end, not sure if this is universal
             return ParseResult.Ok();
         }
@@ -1432,10 +1423,6 @@ namespace BZNParser.Battlezone
                     //writer.WriteVector2Ds(null, ExtraVec2D);
                     writer.WriteVector2D(null, this, x => x.ExtraVec2D);
             }
-
-            // Emit (or drop) the trailing newline of the final line to match the source file
-            // byte-for-byte. In binary mode no newline was ever pending, so this is a no-op.
-            writer.FinalizeNewline(HasTrailingNewline);
         }
     }
 }

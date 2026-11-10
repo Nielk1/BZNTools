@@ -43,13 +43,30 @@ public class MatchesStream : Stream
     /// <summary>
     /// Throws if the write run was incomplete (fewer bytes written than the comparison stream holds).
     /// An incomplete run would otherwise look valid because Write() only detects an over-long write.
+    /// Trailing CR/LF bytes in the comparison stream are tolerated — the source file may have
+    /// extra newlines at the very tail that the writer doesn't reproduce.
     /// </summary>
     public void AssertComplete()
     {
-        if (_position < _compareStream.Length)
-            throw new InvalidOperationException(
-                $"Incomplete write: wrote {_position} of {_compareStream.Length} bytes " +
-                $"(missing {_compareStream.Length - _position} trailing bytes).");
+        long remaining = _compareStream.Length - _position;
+        if (remaining <= 0)
+            return;
+
+        // Allow trailing newlines (CR/LF) that the writer didn't emit
+        byte[] tail = new byte[remaining];
+        long savedPos = _compareStream.Position;
+        _compareStream.Seek(_position, SeekOrigin.Begin);
+        int read = _compareStream.Read(tail, 0, (int)remaining);
+        _compareStream.Position = savedPos;
+
+        for (int i = 0; i < read; i++)
+        {
+            if (tail[i] != 0x0D && tail[i] != 0x0A)
+                throw new InvalidOperationException(
+                    $"Incomplete write: wrote {_position} of {_compareStream.Length} bytes " +
+                    $"(missing {_compareStream.Length - _position} trailing bytes, " +
+                    $"first non-newline byte at offset {_position + i} = 0x{tail[i]:X2}).");
+        }
     }
 
     public override void Write(byte[] buffer, int offset, int count)

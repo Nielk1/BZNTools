@@ -1032,8 +1032,29 @@ namespace BZNParser.Tokenizer
                     textValue = incorrectText ?? string.Empty;
             }
 
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
-            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            string line = $"{InternalFixName(name, parent, property)} = " + textValue;
+
+            // Check for line wrap malformation (mid-line CRLF split)
+            if (PreserveMalformations)
+            {
+                (bool hasWrap, int? wrapWidth) = parent.Malformations.GetLineWrap<T, TProp>(property);
+                if (hasWrap && wrapWidth.HasValue && line.Length > wrapWidth.Value)
+                {
+                    int width = wrapWidth.Value;
+                    int pos = 0;
+                    while (pos < line.Length)
+                    {
+                        int len = Math.Min(width, line.Length - pos);
+                        BaseStream.Write(BZNEncoding.win1252.GetBytes(line, pos, len));
+                        InternalWriteNewline();
+                        pos += len;
+                    }
+                    TokenIndex++;
+                    return (value, valueInternal);
+                }
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(line));
             InternalWriteNewline();
             TokenIndex++;
 
@@ -1215,8 +1236,29 @@ namespace BZNParser.Tokenizer
                     textValue = incorrectText ?? string.Empty;
             }
 
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} = "));
-            BaseStream.Write(BZNEncoding.win1252.GetBytes(textValue));
+            string line = $"{InternalFixName(name, parent, property)} = " + textValue;
+
+            // Check for line wrap malformation (mid-line CRLF split)
+            if (PreserveMalformations)
+            {
+                (bool hasWrap, int? wrapWidth) = parent.Malformations.GetLineWrap<T, TProp>(property);
+                if (hasWrap && wrapWidth.HasValue && line.Length > wrapWidth.Value)
+                {
+                    int width = wrapWidth.Value;
+                    int pos = 0;
+                    while (pos < line.Length)
+                    {
+                        int len = Math.Min(width, line.Length - pos);
+                        BaseStream.Write(BZNEncoding.win1252.GetBytes(line, pos, len));
+                        InternalWriteNewline();
+                        pos += len;
+                    }
+                    TokenIndex++;
+                    return (value, valueInternal);
+                }
+            }
+
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(line));
             InternalWriteNewline();
             TokenIndex++;
 
@@ -2012,28 +2054,41 @@ namespace BZNParser.Tokenizer
                 return;
             }
 
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
+            // Build the full line
+            string line = $"{InternalFixName(name, parent, property)} =";
             if (!PreserveMalformations || !parent.Malformations.IsRightTrimmed(property))
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(" "));
-            //InternalWriteNewline();
+                line += " ";
             if (QuoteStrings)
-                BaseStream.Write(BZNEncoding.win1252.GetBytes("\""));
-            BaseStream.Write(rawValue);
+                line += "\"";
+            line += BZNEncoding.win1252.GetString(rawValue);
 
-            if (StreamDefects != null)
+            if (StreamDefects != null && StreamDefects.TryGetValue(TokenIndex, out StreamDefect? sd) && sd.EndPadGarbage != null)
+                line += sd.EndPadGarbage;
+
+            if (QuoteStrings)
+                line += "\"";
+
+            // Check for line wrap malformation (mid-line CRLF split)
+            if (PreserveMalformations)
             {
-                if (StreamDefects.ContainsKey(TokenIndex))
+                (bool hasWrap, int? wrapWidth) = parent.Malformations.GetLineWrap<T, SizedString>(property);
+                if (hasWrap && wrapWidth.HasValue && line.Length > wrapWidth.Value)
                 {
-                    StreamDefect defect = StreamDefects[TokenIndex];
-                    if (defect.EndPadGarbage != null)
+                    int width = wrapWidth.Value;
+                    int pos = 0;
+                    while (pos < line.Length)
                     {
-                        BaseStream.Write(BZNEncoding.win1252.GetBytes(defect.EndPadGarbage));
+                        int len = Math.Min(width, line.Length - pos);
+                        BaseStream.Write(BZNEncoding.win1252.GetBytes(line, pos, len));
+                        InternalWriteNewline();
+                        pos += len;
                     }
+                    TokenIndex++;
+                    return;
                 }
             }
 
-            if (QuoteStrings)
-                BaseStream.Write(BZNEncoding.win1252.GetBytes("\""));
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(line));
             InternalWriteNewline();
             TokenIndex++;
         }
@@ -2107,28 +2162,41 @@ namespace BZNParser.Tokenizer
                 return;
             }
 
-            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{InternalFixName(name, parent, property)} ="));
+            // Build the full line
+            string line = $"{InternalFixName(name, parent, property)} =";
             if (!PreserveMalformations || !parent.Malformations.IsRightTrimmed(property))
-                BaseStream.Write(BZNEncoding.win1252.GetBytes(" "));
-            //InternalWriteNewline();
+                line += " ";
             if (QuoteStrings)
-                BaseStream.Write(BZNEncoding.win1252.GetBytes("\""));
-            BaseStream.Write(rawValue);
+                line += "\"";
+            line += BZNEncoding.win1252.GetString(rawValue);
 
-            if (StreamDefects != null)
+            if (StreamDefects != null && StreamDefects.TryGetValue(TokenIndex, out StreamDefect? defect) && defect.EndPadGarbage != null)
+                line += defect.EndPadGarbage;
+
+            if (QuoteStrings)
+                line += "\"";
+
+            // Check for line wrap malformation (mid-line CRLF split)
+            if (PreserveMalformations)
             {
-                if (StreamDefects.ContainsKey(TokenIndex))
+                (bool hasWrap, int? wrapWidth) = parent.Malformations.GetLineWrap<T, string>(property);
+                if (hasWrap && wrapWidth.HasValue && line.Length > wrapWidth.Value)
                 {
-                    StreamDefect defect = StreamDefects[TokenIndex];
-                    if (defect.EndPadGarbage != null)
+                    int width = wrapWidth.Value;
+                    int pos = 0;
+                    while (pos < line.Length)
                     {
-                        BaseStream.Write(BZNEncoding.win1252.GetBytes(defect.EndPadGarbage));
+                        int len = Math.Min(width, line.Length - pos);
+                        BaseStream.Write(BZNEncoding.win1252.GetBytes(line, pos, len));
+                        InternalWriteNewline();
+                        pos += len;
                     }
+                    TokenIndex++;
+                    return;
                 }
             }
 
-            if (QuoteStrings)
-                BaseStream.Write(BZNEncoding.win1252.GetBytes("\""));
+            BaseStream.Write(BZNEncoding.win1252.GetBytes(line));
             InternalWriteNewline();
             TokenIndex++;
         }

@@ -784,7 +784,7 @@ namespace BZNParser.Tokenizer
 
             for (; filestream.Position < filestream.Length; )
             {
-                string rawLine = ReadStringLine(filestream);
+                string rawLine = ReadStringLine(filestream, out int? topWrap);
 
                 if (rawLine.Length > 0)
                 {
@@ -799,6 +799,8 @@ namespace BZNParser.Tokenizer
                     }
 
                     IBZNToken tok = ReadStringValueToken(filestream, rawLine);
+                    if (topWrap.HasValue && tok is BZNTokenString lwTok)
+                        lwTok.LineWrapWidth = topWrap.Value;
                     ad.Length = filestream.Position - ad.Offset;
                     ad.IsBinary = false;
                     if (tok is BZNTokenString strTok)
@@ -866,7 +868,7 @@ namespace BZNParser.Tokenizer
                     int countSpacesHead = 0;
                     for (; ; )
                     {
-                        string nextRawLine = ReadStringLine(filestream);
+                        string nextRawLine = ReadStringLine(filestream, out _);
                         if (nextRawLine.StartsWith(" ") && nextRawLine.Contains("="))
                         {
                             int countSpacesHead2 = nextRawLine.Length - nextRawLine/*.TrimStart()*/.Length;
@@ -906,9 +908,14 @@ namespace BZNParser.Tokenizer
                         values[subSectionCounter] = new IBZNToken[countIndentedLines];
                         for (int constructCounter = 0; constructCounter < countIndentedLines; constructCounter++)
                         {
-                            string rawLineInner = ReadStringLine(filestream).TrimEnd('\r', '\n')/*.TrimStart()*/;
+                            string rawLineInner = ReadStringLine(filestream, out int? w).TrimEnd('\r', '\n')/*.TrimStart()*/;
                             if (rawLineInner.Length != 0)
-                                values[subSectionCounter][constructCounter] = ReadStringValueToken(filestream, rawLineInner);
+                            {
+                                IBZNToken subTok = ReadStringValueToken(filestream, rawLineInner);
+                                if (w.HasValue && subTok is BZNTokenString lwSub)
+                                    lwSub.LineWrapWidth = w.Value;
+                                values[subSectionCounter][constructCounter] = subTok;
+                            }
                         }
                     }
 
@@ -948,7 +955,7 @@ namespace BZNParser.Tokenizer
                     int countSpacesHead = 0;
                     for (; ; )
                     {
-                        string nextRawLine = ReadStringLine(filestream);
+                        string nextRawLine = ReadStringLine(filestream, out _);
                         if (nextRawLine.StartsWith(" ") && nextRawLine.Contains("="))
                         {
                             int countSpacesHead2 = nextRawLine.Length - nextRawLine.TrimStart().Length;
@@ -986,9 +993,14 @@ namespace BZNParser.Tokenizer
                         values[subSectionCounter] = new IBZNToken[countIndentedLines];
                         for (int constructCounter = 0; constructCounter < countIndentedLines; constructCounter++)
                         {
-                            string rawLineInner = ReadStringLine(filestream).TrimEnd('\r', '\n')/*.TrimStart()*/;
+                            string rawLineInner = ReadStringLine(filestream, out int? w).TrimEnd('\r', '\n')/*.TrimStart()*/;
                             if (rawLineInner.Length != 0)
-                                values[subSectionCounter][constructCounter] = ReadStringValueToken(filestream, rawLineInner);
+                            {
+                                IBZNToken subTok = ReadStringValueToken(filestream, rawLineInner);
+                                if (w.HasValue && subTok is BZNTokenString lwSub)
+                                    lwSub.LineWrapWidth = w.Value;
+                                values[subSectionCounter][constructCounter] = subTok;
+                            }
                         }
                     }
 
@@ -997,11 +1009,13 @@ namespace BZNParser.Tokenizer
                 else
                 {
                     string[] values = new string[count];
+                    int? multiWrap = null;
 
                     for (int lineNum = 0; lineNum < count; lineNum++)
                     {
                         long new_pos = filestream.Position;
-                        string new_rawLine = ReadStringLine(filestream).TrimEnd('\r', '\n');
+                        string new_rawLine = ReadStringLine(filestream, out int? w).TrimEnd('\r', '\n');
+                        multiWrap ??= w;
                         //string[] new_line = new_rawLine.TrimStart().Split(' ', 4);
                         string[] new_line = SmartStringSplit(new_rawLine, 4);
 
@@ -1030,7 +1044,10 @@ namespace BZNParser.Tokenizer
                         }
                     }
 
-                    return new BZNTokenString(name, values);
+                    BZNTokenString multiTok = new BZNTokenString(name, values);
+                    if (multiWrap.HasValue)
+                        multiTok.LineWrapWidth = multiWrap.Value;
+                    return multiTok;
                 }
             }
             else
@@ -1371,11 +1388,13 @@ namespace BZNParser.Tokenizer
         /// Read a string from the file stream.
         /// </summary>
         /// <param name="fileStream"></param>
+        /// <param name="lineWrapWidth">Set to the wrap width (e.g. 4095) if a mid-line CRLF split was detected, otherwise null.</param>
         /// <returns></returns>
-        private string ReadStringLine(Stream fileStream)
+        private string ReadStringLine(Stream fileStream, out int? lineWrapWidth)
         {
             string buffer = string.Empty;
             bool endedWithNewline = false;
+            lineWrapWidth = null;
 
             for (int idx = 0; fileStream.Position < fileStream.Length; idx++)
             {
@@ -1414,10 +1433,11 @@ namespace BZNParser.Tokenizer
                     //    continue;
                     //}
 
-                    // Version 1180 line width 4095
+                    // Version 1180 line width 4095, but other times uncapped
                     // Version 1192 line width uncapped?
                     if (Version <= 1180 && idx == 4095)
                     {
+                        lineWrapWidth = 4095;
                         idx = -1;
 
                         continue;
@@ -1435,9 +1455,9 @@ namespace BZNParser.Tokenizer
                     // TODO this is likely a bug in the BZN file as it should always be CRLF, but this is just LF which is invalid
                     CountLF++;
 
-                    // strange, how is this even possible, maybe only BZ1?
                     if (Version <= 1180 && idx == 4095)
                     {
+                        lineWrapWidth = 4095;
                         idx = -1;
 
                         continue;

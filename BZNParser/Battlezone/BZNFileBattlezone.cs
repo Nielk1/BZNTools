@@ -256,6 +256,7 @@ namespace BZNParser.Battlezone
 
         // ---- Tail fields (after the GameObject list) ----
         // BZ2 SatellitePanel (version >= 1125): hasEntered, ownerObj[3], [turnOff if >= 1198]
+        public bool SatellitePanel_DataExists { get; set; } // dummy to handle the malformation where this data is missing
         public bool SatellitePanel_hasEntered { get; set; }
         public Int32 SatellitePanel_ownerObj0 { get; set; }
         public Int32 SatellitePanel_ownerObj1 { get; set; }
@@ -957,7 +958,7 @@ namespace BZNParser.Battlezone
             if (reader.Format == BZNFormat.Battlezone2)
             {
                 // SatellitePanel
-                if (reader.Version >= 1125) // version 1169 failed to read this, might need a walk back for malformed
+                if (reader.Version >= 1125) // single case of version 1169 failed to read this, might need a walk back for malformed
                 {
                     reader.Bookmark.Mark();
 
@@ -979,6 +980,7 @@ namespace BZNParser.Battlezone
                     else
                     {
                         reader.Bookmark.Commit();
+                        SatellitePanel_DataExists = true;
                         tok.ApplyBoolean(this, x => x.SatellitePanel_hasEntered);
                         for (int i = 0; i < 3/*MAX_WORLDS*/; i++)
                         {
@@ -1015,10 +1017,11 @@ namespace BZNParser.Battlezone
                 tok = reader.ReadToken();
                 if (tok == null || !tok.Validate("count", BinaryFieldType.DATA_LONG))
                     return ParseResult.Fail("Failed to parse count/LONG");
-                Int32 CountAiTasks = tok.GetInt32();
-                AiTaskCount = CountAiTasks;
+                //Int32 CountAiTasks = tok.GetInt32();
+                //AiTaskCount = CountAiTasks;
+                tok.ApplyInt32(this, x => x.AiTaskCount);
 
-                for (int i = 0; i < CountAiTasks; i++)
+                for (int i = 0; i < AiTaskCount; i++)
                 {
                 }
             }
@@ -1031,14 +1034,16 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("PadData", BinaryFieldType.DATA_VOID))
                         return ParseResult.Fail("Failed to parse PadData/VOID");
-                    PadData = tok.GetBytes();
+                    //PadData = tok.GetBytes();
+                    tok.ApplyVoidBytes(this, x => x.PadData);
 
                     if (reader.Version >= 1119)
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("PadData2", BinaryFieldType.DATA_VOID))
                             return ParseResult.Fail("Failed to parse PadData2/VOID");
-                        PadData2 = tok.GetBytes();
+                        //PadData2 = tok.GetBytes();
+                        tok.ApplyVoidBytes(this, x => x.PadData2);
                     }
                 }
             }
@@ -1383,12 +1388,15 @@ namespace BZNParser.Battlezone
             // BZ2 SatellitePanel (version >= 1125): hasEntered, ownerObj[3], [turnOff if >= 1198]
             if (writer.Format == BZNFormat.Battlezone2 && writer.Version >= 1125)
             {
-                writer.WriteBoolean("hasEntered", this, x => x.SatellitePanel_hasEntered);
-                writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj0);
-                writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj1);
-                writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj2);
-                if (writer.Version >= 1198)
-                    writer.WriteBoolean("turnOff", this, x => x.SatellitePanel_turnOff);
+                if (SatellitePanel_DataExists)
+                {
+                    writer.WriteBoolean("hasEntered", this, x => x.SatellitePanel_hasEntered);
+                    writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj0);
+                    writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj1);
+                    writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj2);
+                    if (writer.Version >= 1198)
+                        writer.WriteBoolean("turnOff", this, x => x.SatellitePanel_turnOff);
+                }
             }
 
             // BZ1 AiTasks (version 1001/1011/1012): count

@@ -20,7 +20,7 @@ Binary mode is always preferred for stability but ASCII mode is easily edited.
 
 This parser is built in 2 stages.
 The Tokenizer stage utilizes the BZNStreamReader to convert the BZN file into a stream of BZNTokens.
-The BZNStreamReader will peek at the beginning of the file to evaluate its flavor and format.
+The BZNStreamReader will peek at the beginning of the file to evaluate its flavor and format and may scan the entire file to build a profile of token defects.
 
 ## BZN Format Differences
 

@@ -18,6 +18,13 @@ namespace BZNParser.Tokenizer
         /// </summary>
         public bool RightTrimmedOneLiner { get; set; } // TODO figure out how to show this nicer as this is a carrier defect if it doesn't equal type
 
+        /// <summary>
+        /// If non-null, the original BZN file had this token's line split at the specified character
+        /// width with a mid-line CRLF injected (Battlezone2 v1180 ASCII BZN defect).
+        /// The reader transparently reassembled the line; this flag allows the writer to reproduce it.
+        /// </summary>
+        public int? LineWrapWidth { get; set; }
+
         public BZNTokenString(string name, string[] values)
         {
             this.name = name;

@@ -948,6 +948,8 @@ public static class TokenExtensions
             var tmp = tok as BZNTokenString;
             if (tmp != null && tmp.RightTrimmedOneLiner)
                 parent.Malformations.AddRightTrimmed(property, index);
+            if (tmp != null && tmp.LineWrapWidth.HasValue)
+                parent.Malformations.AddLineWrap<T, TProp>(property, index, tmp.LineWrapWidth.Value);
         }
 
         // Prepare the return value
@@ -1066,6 +1068,8 @@ public static class TokenExtensions
             {
                 if (tmp.RightTrimmedOneLiner)
                     parent.Malformations.AddRightTrimmed(property, index);
+                if (tmp.LineWrapWidth.HasValue)
+                    parent.Malformations.AddLineWrap<T, TProp>(property, index, tmp.LineWrapWidth.Value);
             }
         }
 
@@ -1187,6 +1191,18 @@ public static class TokenExtensions
                     string rawString = tok.GetString(index);
                     if (!string.Equals(textValue, rawString, StringComparison.Ordinal))
                         parent.Malformations.AddIncorrectTextParse(property, index, rawString);
+                }
+            }
+
+            if (parent != null && property != null)
+            {
+                var tmp = tok as BZNTokenString;
+                if (tmp != null)
+                {
+                    if (tmp.RightTrimmedOneLiner)
+                        parent.Malformations.AddRightTrimmed(property, index);
+                    if (tmp.LineWrapWidth.HasValue)
+                        parent.Malformations.AddLineWrap<T, TProp>(property, index, tmp.LineWrapWidth.Value);
                 }
             }
         }

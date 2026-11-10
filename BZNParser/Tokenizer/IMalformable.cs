@@ -12,19 +12,21 @@ namespace BZNParser.Tokenizer;
 public enum Malformation
 {
     UNKNOWN = 0,
-    EXTRA_FIELD,      //                         // Extra data
-    DATA_AFTER_NULL,  // <byte[] originalRaw>    // value parsed properly, but there's an extension that got cut off via a null character
-    INCORRECT_RAW,    // <byte[] originalRaw>    // value parsed improperly or otherwise differently than expected, preserved original raw bytes, ASCII and Binary modes (in text mode the bytes are dumped directly into the file, not converted)
-    INCORRECT_TEXT,   // <string originalString> // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
-    INCORRECT_FLOAT,  // <string originalString> // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
-    INCORRECT_CASE,   // <char 'U' or 'L'>       // casing present instead of expected
-    INCORRECT_LENGTH, // <int>                   // incorrect length in file
-    LINE_ENDING,      // <incorrectValue>        // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
-    INCORRECT_NAME,   // <badFieldName>          // Field name is wrong, very rare since normally we just fail validation
-    FLOAT_FORMAT,     // <formatApplied>         // Float is in an unexpected text format
-    RIGHT_TRIM,       //                         // Field is a 1-liner with an empty field that got Right-Trimmed
+    EXTRA_FIELD,               //                            // Extra data
+    DATA_AFTER_NULL,           // <byte[] originalRaw>       // value parsed properly, but there's an extension that got cut off via a null character
+    INCORRECT_RAW,             // <byte[] originalRaw>       // value parsed improperly or otherwise differently than expected, preserved original raw bytes, ASCII and Binary modes (in text mode the bytes are dumped directly into the file, not converted)
+    INCORRECT_TEXT,            // <string originalString>    // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
+    INCORRECT_FLOAT,           // <string originalString>    // value parsed improperly or otherwise differently than expected, preserved original text, ASCII only mode
+    INCORRECT_CASE,            // <char 'U' or 'L'>          // casing present instead of expected
+    INCORRECT_LENGTH,          // <int>                      // incorrect length in file
+    LINE_ENDING,               // <incorrectValue>           // Line ending is incorrect, "CR" for all "CR"s, "LF" for all "LF"s, "?" for other counts
+    INCORRECT_NAME,            // <badFieldName>             // Field name is wrong, very rare since normally we just fail validation
+    FLOAT_FORMAT,              // <formatApplied>            // Float is in an unexpected text format
+    RIGHT_TRIM,                //                            // Field is a 1-liner with an empty field that got Right-Trimmed
     BINARY_NEWLINE_CORRUPTION, // <byte[] originalSizeBytes> // Binary SIZE field shrank by a CR(0x0D)->LF(0x0A) text conversion;
-                               // the true payload was recovered. originalSizeBytes is the exact on-disk SIZE (for mirror round-trips).
+    LINE_WRAP,                 // <int wrapWidth>            // ASCII line exceeded the max physical line width and was split with a mid-line CRLF;
+                                                             // wrapWidth is the character count before the injected CRLF (typically 4095).
+                                                             // The reader transparently reassembles; the writer reproduces the split in mirror mode.
 
     //INCOMPAT,         //X ?????????                           // Not loadable by game
 
@@ -157,6 +159,23 @@ public static class MalformationExtensions
 
     public static void AddRightTrimmed<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable =>
         manager.Add(property, index, Malformation.RIGHT_TRIM);
+
+    // ASCII line exceeded the max physical line width and was split with a mid-line CRLF.
+    // wrapWidth is the character count before the injected CRLF (typically 4095 in Battlezone2 v1180).
+    public static (bool, int?) GetLineWrap<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, index, Malformation.LINE_WRAP);
+            if (mals.Length > 0)
+                return (true, (int)mals[0].Fields[0]);
+            return (false, null);
+        }
+        throw new ArgumentException("Expression is not a property", nameof(property));
+    }
+
+    public static void AddLineWrap<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index, int wrapWidth) where T : IMalformable =>
+        manager.Add(property, index, Malformation.LINE_WRAP, wrapWidth);
 
     // A binary payload's SIZE field was shrunk by a CR(0x0D)->LF(0x0A) text conversion and we
     // recovered the true payload. originalSizeBytes is the exact on-disk SIZE so mirror mode can

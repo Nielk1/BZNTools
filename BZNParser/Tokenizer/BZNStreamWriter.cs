@@ -403,7 +403,7 @@ namespace BZNParser.Tokenizer
 
         public BZNStreamWriter(Stream stream, BZNFormat format, int version, bool preserveMalformations = false, Dictionary<int, StreamDefect>? preserveDefects = null)
         {
-            BaseStream = stream;
+            BaseStream = new NewlineDelayingStream(stream);
             Format = format;
             Version = version;
             FloatFormat = FloatTextFormat.G;
@@ -2974,6 +2974,29 @@ namespace BZNParser.Tokenizer
             TokenIndex++;
         }
 
+        /// <summary>
+        /// Write a one-liner string field in the compact "name=value" form (no spaces around the
+        /// equals sign), as used by the BZ1 version 1001 Terrain "Name" field. In binary mode it
+        /// emits a DATA_CHAR token holding the value bytes.
+        /// </summary>
+        public void WriteOneLinerString(string name, string value)
+        {
+            byte[] valueBytes = BZNEncoding.win1252.GetBytes(value ?? string.Empty);
+            if (InBinary)
+            {
+                InternalWriteBinaryType(BinaryFieldType.DATA_CHAR);
+                InternalWriteBinarySize(valueBytes.Length);
+                BaseStream.Write(valueBytes);
+                InternalAlignBinary();
+                TokenIndex++;
+                return;
+            }
+            BaseStream.Write(BZNEncoding.win1252.GetBytes($"{name}="));
+            BaseStream.Write(valueBytes);
+            InternalWriteNewline();
+            TokenIndex++;
+        }
+
         private void InternalWriteBinaryType(BinaryFieldType type)
         {
             // todo Type size is only 1 byte no matter what here, put a breadcrumb so we can find all the places this is true just in case
@@ -3097,9 +3120,91 @@ namespace BZNParser.Tokenizer
 
         private void InternalWriteNewline()
         {
-            // TODO deal with newline malformation here
-            byte[] newline = BZNEncoding.win1252.GetBytes(NewLine);
-            BaseStream.Write(newline);
+            // Don't write the newline immediately. Hold it in the delay stream so it is
+            // only emitted when the next field writes its bytes. This lets FinalizeNewline
+            // decide whether the very last line of the file gets a trailing newline (some
+            // BZN files end immediately after the last token with no line break).
+            DelayedStream.PendingNewline = BZNEncoding.win1252.GetBytes(NewLine);
+        }
+
+        private NewlineDelayingStream DelayedStream => (NewlineDelayingStream)BaseStream;
+
+        /// <summary>
+        /// Emits (or discards) the trailing newline of the final line. Call once at the end
+        /// of writing a complete BZN. Pass false when the source file had no trailing newline.
+        /// </summary>
+        public void FinalizeNewline(bool writeTrailingNewline)
+        {
+            DelayedStream.FinalizeNewline(writeTrailingNewline);
+        }
+
+        /// <summary>
+        /// Wraps an output stream so a pending line break can be held back until the next
+        /// field writes. Every Write/WriteByte first flushes any buffered newline, which keeps
+        /// the byte order correct (newline goes before the following field, not after it) while
+        /// allowing the final newline to be omitted.
+        /// </summary>
+        private sealed class NewlineDelayingStream : Stream
+        {
+            private readonly Stream _inner;
+            public byte[]? PendingNewline;
+
+            public NewlineDelayingStream(Stream inner)
+            {
+                _inner = inner;
+            }
+
+            public override bool CanRead => false;
+            public override bool CanSeek => _inner.CanSeek;
+            public override bool CanWrite => true;
+            public override long Length => _inner.Length;
+            public override long Position
+            {
+                get => _inner.Position;
+                set => _inner.Position = value;
+            }
+
+            private void FlushPending()
+            {
+                if (PendingNewline != null)
+                {
+                    _inner.Write(PendingNewline, 0, PendingNewline.Length);
+                    PendingNewline = null;
+                }
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                FlushPending();
+                _inner.Write(buffer, offset, count);
+            }
+
+            public override void WriteByte(byte value)
+            {
+                FlushPending();
+                _inner.WriteByte(value);
+            }
+
+            public void FinalizeNewline(bool writeTrailingNewline)
+            {
+                if (PendingNewline != null)
+                {
+                    if (writeTrailingNewline)
+                        _inner.Write(PendingNewline, 0, PendingNewline.Length);
+                    PendingNewline = null;
+                }
+            }
+
+            public override void Flush() => _inner.Flush();
+            public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+            public override long Seek(long offset, SeekOrigin origin) => _inner.Seek(offset, origin);
+            public override void SetLength(long value) => _inner.SetLength(value);
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                    _inner.Dispose();
+                base.Dispose(disposing);
+            }
         }
     }
 }

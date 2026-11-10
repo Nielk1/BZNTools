@@ -254,6 +254,23 @@ namespace BZNParser.Battlezone
 
         public Vector2D? ExtraVec2D { get; set; }
 
+        // ---- Tail fields (after the GameObject list) ----
+        // BZ2 SatellitePanel (version >= 1125): hasEntered, ownerObj[3], [turnOff if >= 1198]
+        public bool SatellitePanel_hasEntered { get; set; }
+        public Int32 SatellitePanel_ownerObj0 { get; set; }
+        public Int32 SatellitePanel_ownerObj1 { get; set; }
+        public Int32 SatellitePanel_ownerObj2 { get; set; }
+        public bool SatellitePanel_turnOff { get; set; }
+        // BZ2 PadData (version >= 1115): PadData, [PadData2 if >= 1119]
+        public byte[]? PadData { get; set; }
+        public byte[]? PadData2 { get; set; }
+        // BZ1 AiTasks (version 1001/1011/1012): count
+        public Int32 AiTaskCount { get; set; }
+
+        // Whether the source file's final line was terminated by a newline. Some BZN files end
+        // immediately after the last token with no trailing line break; we reproduce that exactly.
+        public bool HasTrailingNewline { get; set; } = true;
+
 
 
         internal Dictionary<string, HashSet<string>> LongTermClassLabelLookupCache;
@@ -962,12 +979,16 @@ namespace BZNParser.Battlezone
                     else
                     {
                         reader.Bookmark.Commit();
+                        tok.ApplyBoolean(this, x => x.SatellitePanel_hasEntered);
                         for (int i = 0; i < 3/*MAX_WORLDS*/; i++)
                         {
                             tok = reader.ReadToken();
                             if (tok == null || !tok.Validate("ownerObj", BinaryFieldType.DATA_LONG))
                                 return ParseResult.Fail("Failed to parse ownerObj/LONG");
                             //Int32 pathType = tok.GetUInt32H();
+                            if (i == 0) tok.ApplyInt32(this, x => x.SatellitePanel_ownerObj0);
+                            else if (i == 1) tok.ApplyInt32(this, x => x.SatellitePanel_ownerObj1);
+                            else tok.ApplyInt32(this, x => x.SatellitePanel_ownerObj2);
                         }
 
                         if (reader.Version >= 1198)
@@ -976,6 +997,7 @@ namespace BZNParser.Battlezone
                             if (tok == null || !tok.Validate("turnOff", BinaryFieldType.DATA_BOOL))
                                 return ParseResult.Fail("Failed to parse turnOff/BOOL");
                             //Int32 pathType = tok.GetUInt32H();
+                            tok.ApplyBoolean(this, x => x.SatellitePanel_turnOff);
                         }
                     }
                 }
@@ -994,6 +1016,7 @@ namespace BZNParser.Battlezone
                 if (tok == null || !tok.Validate("count", BinaryFieldType.DATA_LONG))
                     return ParseResult.Fail("Failed to parse count/LONG");
                 Int32 CountAiTasks = tok.GetInt32();
+                AiTaskCount = CountAiTasks;
 
                 for (int i = 0; i < CountAiTasks; i++)
                 {
@@ -1008,12 +1031,14 @@ namespace BZNParser.Battlezone
                     tok = reader.ReadToken();
                     if (tok == null || !tok.Validate("PadData", BinaryFieldType.DATA_VOID))
                         return ParseResult.Fail("Failed to parse PadData/VOID");
+                    PadData = tok.GetBytes();
 
                     if (reader.Version >= 1119)
                     {
                         tok = reader.ReadToken();
                         if (tok == null || !tok.Validate("PadData2", BinaryFieldType.DATA_VOID))
                             return ParseResult.Fail("Failed to parse PadData2/VOID");
+                        PadData2 = tok.GetBytes();
                     }
                 }
             }
@@ -1059,6 +1084,10 @@ namespace BZNParser.Battlezone
             {
                 return ParseResult.Fail("Tokens left after last known token");
             }
+
+            // Capture whether the file's final line had a trailing newline so the writer can
+            // reproduce the exact byte layout (some files end with no trailing line break).
+            HasTrailingNewline = reader.FileEndsWithNewline;
 
             // BZ1 version 2016 binary extra DATA_VEC2D at the end, not sure if this is universal
             return ParseResult.Ok();
@@ -1348,6 +1377,46 @@ namespace BZNParser.Battlezone
                 AiPaths[i].Write(this, writer, binary, save);
             }
 
+            // ---- Tail fields (after the GameObject list) ----
+            // Order must mirror the read (TailParse) byte layout exactly.
+
+            // BZ2 SatellitePanel (version >= 1125): hasEntered, ownerObj[3], [turnOff if >= 1198]
+            if (writer.Format == BZNFormat.Battlezone2 && writer.Version >= 1125)
+            {
+                writer.WriteBoolean("hasEntered", this, x => x.SatellitePanel_hasEntered);
+                writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj0);
+                writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj1);
+                writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj2);
+                if (writer.Version >= 1198)
+                    writer.WriteBoolean("turnOff", this, x => x.SatellitePanel_turnOff);
+            }
+
+            // BZ1 AiTasks (version 1001/1011/1012): count
+            if (writer.Format == BZNFormat.Battlezone && (writer.Version == 1001 || writer.Version == 1011 || writer.Version == 1012))
+            {
+                writer.WriteValidation("AiTasks");
+                writer.WriteInt32("count", this, x => x.AiTaskCount);
+            }
+
+            // BZ2 PadData (version >= 1115): PadData, [PadData2 if >= 1119]
+            if (writer.Format == BZNFormat.Battlezone2 && writer.Version >= 1115)
+            {
+                if (PadData != null)
+                    writer.WriteVoidBytesL("PadData", this, x => x.PadData!);
+                if (writer.Version >= 1119 && PadData2 != null)
+                    writer.WriteVoidBytesL("PadData2", this, x => x.PadData2!);
+            }
+
+            // BZ1 TerrainName (version 1001): [Terrain] + Name one-liner
+            if (writer.Format == BZNFormat.Battlezone && writer.Version == 1001)
+            {
+                writer.WriteValidation("Terrain");
+                if (!writer.InBinary)
+                    writer.WriteOneLinerString("Name", TerrainName ?? string.Empty);
+                else
+                    writer.WriteChars("Name", this, x => x.TerrainName, buffSize: 40);
+            }
+
             if (writer.PreserveMalformations)
             {
                 // maybe we should just null check this instead?
@@ -1355,6 +1424,10 @@ namespace BZNParser.Battlezone
                     //writer.WriteVector2Ds(null, ExtraVec2D);
                     writer.WriteVector2D(null, this, x => x.ExtraVec2D);
             }
+
+            // Emit (or drop) the trailing newline of the final line to match the source file
+            // byte-for-byte. In binary mode no newline was ever pending, so this is a no-op.
+            writer.FinalizeNewline(HasTrailingNewline);
         }
     }
 }

@@ -35,6 +35,23 @@ public class MatchesStream : Stream
     public override void SetLength(long value) =>
         throw new NotSupportedException();
 
+    /// <summary>
+    /// True when the entire comparison stream has been consumed by writes.
+    /// </summary>
+    public bool IsComplete => _position >= _compareStream.Length;
+
+    /// <summary>
+    /// Throws if the write run was incomplete (fewer bytes written than the comparison stream holds).
+    /// An incomplete run would otherwise look valid because Write() only detects an over-long write.
+    /// </summary>
+    public void AssertComplete()
+    {
+        if (_position < _compareStream.Length)
+            throw new InvalidOperationException(
+                $"Incomplete write: wrote {_position} of {_compareStream.Length} bytes " +
+                $"(missing {_compareStream.Length - _position} trailing bytes).");
+    }
+
     public override void Write(byte[] buffer, int offset, int count)
     {
         byte[] compareBuffer = new byte[count];

@@ -111,8 +111,10 @@ public class FileTests : IClassFixture<GlobalTestDataFixture>
                                 using (BZNStreamWriter writer = new BZNStreamWriter(ms, reader.Format, reader.Version, true, reader.GetDefects()))
                                 {
                                     bzn.Write(writer, binary: reader.HasBinary, save: false);
+                                    // The write must have consumed the ENTIRE comparison stream; an
+                                    // incomplete run (missing tail fields) would otherwise look valid.
+                                    ms.AssertComplete();
                                 }
-                                Assert.True(true);
                             }
                         }
                         break;

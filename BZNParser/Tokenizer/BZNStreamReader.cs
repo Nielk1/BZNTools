@@ -369,6 +369,14 @@ namespace BZNParser.Tokenizer
         public long CountLF { get; private set; }
         public long CountCRLF { get; private set; }
 
+        /// <summary>
+        /// True when the final line of the ASCII stream was terminated by a newline
+        /// (CR/LF). When false the file ends immediately after the last token with no
+        /// trailing line break. Captured by ReadStringLine on the last line read and used
+        /// by the writer to reproduce the exact byte layout (some files omit this).
+        /// </summary>
+        public bool FileEndsWithNewline { get; set; } = true;
+
         // --- Newline conversion damage in the binary section ---
         // Once we have recovered at least one binary token that was damaged by CR->LF
         // conversion we flip this on. It both un-locks further repairs (cascades: the byte
@@ -1367,6 +1375,7 @@ namespace BZNParser.Tokenizer
         private string ReadStringLine(Stream fileStream)
         {
             string buffer = string.Empty;
+            bool endedWithNewline = false;
 
             for (int idx = 0; fileStream.Position < fileStream.Length; idx++)
             {
@@ -1416,6 +1425,7 @@ namespace BZNParser.Tokenizer
 
                     // 1171
 
+                    endedWithNewline = true;
                     break;
                 }
                 else if (character == 0x0A)
@@ -1433,6 +1443,7 @@ namespace BZNParser.Tokenizer
                         continue;
                     }
 
+                    endedWithNewline = true;
                     break;
                 }
                 else
@@ -1442,6 +1453,13 @@ namespace BZNParser.Tokenizer
                 }
             }
 
+            // Only track the trailing-newline state for lines that actually contain data.
+            // A final read at EOF returns an empty line (endedWithNewline=false) and must not
+            // clobber the value recorded for the real last line of the file.
+            if (buffer.Length > 0)
+            {
+                FileEndsWithNewline = endedWithNewline;
+            }
             return buffer;
         }
     }

@@ -489,6 +489,11 @@ namespace BZNParser.Tokenizer
                 throw new InvalidOperationException("Cannot write a text token with a null name");
 
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return default;
             Int32 value = 0;
 
             if (convert != null)
@@ -563,6 +568,11 @@ namespace BZNParser.Tokenizer
                 throw new InvalidOperationException("Cannot write a text token with a null name");
 
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             Single value = 0;
 
             if (convert != null)
@@ -717,6 +727,11 @@ namespace BZNParser.Tokenizer
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
 
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
+
             // Handle array or nullable array case
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(UInt32))
             {
@@ -820,6 +835,11 @@ namespace BZNParser.Tokenizer
         public (byte[] written, TProp stored) WriteVoidBytesRaw<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, byte[]>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             byte[] value;
 
             if (convert != null)
@@ -932,6 +952,11 @@ namespace BZNParser.Tokenizer
         public (byte[] written, TProp stored) WriteVoidBytes<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, byte[]>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             byte[] value;
 
             if (convert != null)
@@ -1071,6 +1096,11 @@ namespace BZNParser.Tokenizer
         public (byte[] written, TProp stored) WriteVoidBytesL<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, byte[]>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             byte[] value;
 
             if (convert != null)
@@ -1277,6 +1307,11 @@ namespace BZNParser.Tokenizer
         public (UInt64 written, TProp stored) WritePtr<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt64>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             UInt64 value = 0;
             
             if (convert != null)
@@ -1353,6 +1388,11 @@ namespace BZNParser.Tokenizer
                 throw new InvalidOperationException("Cannot write a text token with a null name");
 
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
 
             UInt64[] values;
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() != null)
@@ -1475,6 +1515,11 @@ namespace BZNParser.Tokenizer
                 throw new InvalidOperationException("Cannot write a text token with a null name");
 
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             UInt32 value = 0;
 
             if (convert != null)
@@ -1538,6 +1583,11 @@ namespace BZNParser.Tokenizer
         public (UInt16 written, TProp stored) WriteUInt16h<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt16>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             UInt16 value = 0;
 
             if (convert != null)
@@ -1610,6 +1660,11 @@ namespace BZNParser.Tokenizer
         public (UInt16 written, TProp stored) WriteUInt16<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt16>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             UInt16 value = 0;
 
             if (convert != null)
@@ -1671,6 +1726,11 @@ namespace BZNParser.Tokenizer
         public (UInt8 written, TProp stored) WriteSaveFlags<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt8>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             UInt8 value = 0;
 
             if (convert != null)
@@ -1732,6 +1792,11 @@ namespace BZNParser.Tokenizer
         public (Int8 written, TProp stored) WriteInt8<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Int8>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             Int8 value = 0;
 
             if (convert != null)
@@ -1804,6 +1869,11 @@ namespace BZNParser.Tokenizer
                 throw new InvalidOperationException("Cannot write a text token with a null name");
 
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             UInt8 value = 0;
 
             if (convert != null)
@@ -1863,6 +1933,11 @@ namespace BZNParser.Tokenizer
         public (UInt8 written, TProp stored) WriteUInt8h<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt8>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             UInt8 value = 0;
 
             if (convert != null)
@@ -1922,6 +1997,11 @@ namespace BZNParser.Tokenizer
         public (UInt8 written, TProp stored) WriteUInt8Raw<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, UInt8>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, valueInternal);
             UInt8 value = 0;
 
             if (convert != null)
@@ -1992,6 +2072,11 @@ namespace BZNParser.Tokenizer
         public void WriteChars<T>(string name, T parent, Expression<Func<T, SizedString>> property, Func<SizedString, byte[]>? convert = null, int? buffSize = null) where T : IMalformable
         {
             SizedString wrappedValue = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, SizedString>(property))
+                return;
             string value = wrappedValue?.Value ?? string.Empty; // we don't care about the size as we're a normal char print
             byte[] rawValue = BZNEncoding.win1252.GetBytes(value);
 
@@ -2113,6 +2198,11 @@ namespace BZNParser.Tokenizer
         public void WriteChars<T>(string name, T parent, Expression<Func<T, string>> property, Func<string, byte[]>? convert = null, int? buffSize = null) where T : IMalformable
         {
             string? value = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, string>(property))
+                return;
             byte[] rawValue;
 
             if (convert != null)
@@ -2286,6 +2376,11 @@ namespace BZNParser.Tokenizer
         public void WriteID<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property/*, bool oneLiner = false*/) where T : IMalformable
         {
             TProp value = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return;
             byte[] rawValue;
 
             if (typeof(TProp) == typeof(string) || Nullable.GetUnderlyingType(typeof(TProp)) == typeof(string))
@@ -2532,6 +2627,11 @@ namespace BZNParser.Tokenizer
                 throw new InvalidOperationException("Cannot write a text token with a null name");
 
             TProp propValue = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, propValue);
             Vector2D[] vectors;
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(Vector2D))
             {
@@ -2592,6 +2692,11 @@ namespace BZNParser.Tokenizer
                 throw new InvalidOperationException("Cannot write a text token with a null name");
 
             TProp propValue = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (default, propValue);
             Vector3D[] vectors;
             if (typeof(TProp).IsArray && typeof(TProp).GetElementType() == typeof(Vector3D))
             {
@@ -2635,6 +2740,11 @@ namespace BZNParser.Tokenizer
         public Euler WriteEuler<T>(string name, T parent, Expression<Func<T, Euler>> property) where T : IMalformable
         {
             Euler value = BZNStreamWriter.ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, Euler>(property))
+                return value;
 
             if (InBinary)
             {
@@ -2697,6 +2807,11 @@ namespace BZNParser.Tokenizer
         public void WriteMatrix<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Matrix>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return;
             Matrix value;
 
             if (convert != null)
@@ -2799,6 +2914,11 @@ namespace BZNParser.Tokenizer
         public void WriteMatrixOld<T>(string name, T parent, Expression<Func<T, Matrix>> property) where T : IMalformable
         {
             Matrix value = BZNStreamWriter.ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, Matrix>(property))
+                return;
 
             if (InBinary)
             {

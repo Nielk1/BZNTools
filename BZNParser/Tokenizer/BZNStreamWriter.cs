@@ -627,6 +627,12 @@ namespace BZNParser.Tokenizer
         public (Int32 written, TProp stored) WriteInt32<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, Int32>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return (0, valueInternal);
+
             Int32 value = 0;
 
             if (convert != null)
@@ -2214,6 +2220,12 @@ namespace BZNParser.Tokenizer
         public void WriteBoolean<T, TProp>(string name, T parent, Expression<Func<T, TProp>> property, Func<TProp, bool>? convert = null) where T : IMalformable
         {
             TProp valueInternal = ExtractPropertyValue(parent, property);
+
+            // This field is required by the version spec but was absent in the source (MISSING_FIELD).
+            // In mirror mode we reproduce the omission by skipping the write entirely.
+            if (PreserveMalformations && parent.Malformations.IsMissingField<T, TProp>(property))
+                return;
+
             bool value = false;
 
             if (convert != null)

@@ -23,6 +23,8 @@ public enum Malformation
     INCORRECT_NAME,            // <badFieldName>             // Field name is wrong, very rare since normally we just fail validation
     FLOAT_FORMAT,              // <formatApplied>            // Float is in an unexpected text format
     RIGHT_TRIM,                //                            // Field is a 1-liner with an empty field that got Right-Trimmed
+    MISSING_FIELD,             //                            // Field is required by the version spec but was absent in the source; its value is left at the
+                                                                      // default and the writer skips emitting it in mirror mode. No extra metadata is stored.
     LINE_WRAP,                 // <int wrapWidth>            // ASCII line exceeded the max physical line width and was split with a mid-line CRLF;
                                                              // wrapWidth is the character count before the injected CRLF (typically 4095).
                                                              // The reader transparently reassembles; the writer reproduces the split in mirror mode.
@@ -158,6 +160,22 @@ public static class MalformationExtensions
 
     public static void AddRightTrimmed<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable =>
         manager.Add(property, index, Malformation.RIGHT_TRIM);
+
+    // Field is required by the version spec but was absent in the source; value left at default and the writer skips it in mirror mode.
+    public static bool IsMissingField<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>> property, int index = 0) where T : IMalformable
+    {
+        if (property != null && property.Body is MemberExpression member && member.Member is PropertyInfo propInfo)
+        {
+            var mals = manager.GetMalformations(propInfo, index, Malformation.MISSING_FIELD);
+            if (mals.Length > 0)
+                return true;
+            return false;
+        }
+        throw new ArgumentException("Expression is not a property", nameof(property));
+    }
+
+    public static void AddMissingField<T, TProp>(this MalformationManager manager, Expression<Func<T, TProp>>? property, int index = 0) where T : IMalformable =>
+        manager.Add(property, index, Malformation.MISSING_FIELD);
 
     // ASCII line exceeded the max physical line width and was split with a mid-line CRLF.
     // wrapWidth is the character count before the injected CRLF (typically 4095 in Battlezone2 v1180).

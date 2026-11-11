@@ -255,13 +255,10 @@ namespace BZNParser.Battlezone
         public Vector2D? ExtraVec2D { get; set; }
 
         // ---- Tail fields (after the GameObject list) ----
-        // BZ2 SatellitePanel (version >= 1125): hasEntered, ownerObj[3], [turnOff if >= 1198]
-        public bool SatellitePanel_DataExists { get; set; } // dummy to handle the malformation where this data is missing
-        public bool SatellitePanel_hasEntered { get; set; }
-        public Int32 SatellitePanel_ownerObj0 { get; set; }
-        public Int32 SatellitePanel_ownerObj1 { get; set; }
-        public Int32 SatellitePanel_ownerObj2 { get; set; }
-        public bool SatellitePanel_turnOff { get; set; }
+        // BZ2 SatellitePanel (version >= 1125): hasEntered, ownerObj[3], [turnOff if >= 1198].
+        // Required by the version spec, so the object always exists when the spec demands it; its members
+        // are tagged MISSING_FIELD if the source BZN omits the data.
+        public SatellitePanel? SatellitePanel { get; set; }
         // BZ2 PadData (version >= 1115): PadData, [PadData2 if >= 1119]
         public byte[]? PadData { get; set; }
         public byte[]? PadData2 { get; set; }
@@ -609,6 +606,7 @@ namespace BZNParser.Battlezone
                 aoi.ClearMalformations();
             foreach(var aipath in AiPaths)
                 aipath.ClearMalformations();
+            SatellitePanel?.ClearMalformations();
             ExtraVec2D?.ClearMalformations();
             Malformations.Clear();
         }
@@ -952,51 +950,14 @@ namespace BZNParser.Battlezone
 
             if (reader.Format == BZNFormat.Battlezone2)
             {
-                // SatellitePanel
-                if (reader.Version >= 1125) // single case of version 1169 failed to read this, might need a walk back for malformed
+                // SatellitePanel (version >= 1125): required by the version spec. When the source omits the
+                // data the object still exists but its members are tagged MISSING_FIELD so the writer
+                // reproduces the omission in mirror mode.
+                if (reader.Version >= 1125)
                 {
-                    reader.Bookmark.Mark();
-
-                    // 1188 1192
-                    tok = reader.ReadToken();
-                    if (tok == null || !tok.Validate("hasEntered", BinaryFieldType.DATA_BOOL))
-                    {
-                        if (tok != null && tok.Validate("PadData", BinaryFieldType.DATA_VOID))
-                        {
-                            // TODO SatellitePanel data is missing when it must exist, deal with damaged BZN?
-                            reader.Bookmark.RevertToBookmark();
-                        }
-                        else
-                        {
-                            reader.Bookmark.Commit();
-                            return ParseResult.Fail("Failed to parse hasEntered/BOOL");
-                        }
-                    }
-                    else
-                    {
-                        reader.Bookmark.Commit();
-                        SatellitePanel_DataExists = true;
-                        tok.ApplyBoolean(this, x => x.SatellitePanel_hasEntered);
-                        for (int i = 0; i < 3/*MAX_WORLDS*/; i++)
-                        {
-                            tok = reader.ReadToken();
-                            if (tok == null || !tok.Validate("ownerObj", BinaryFieldType.DATA_LONG))
-                                return ParseResult.Fail("Failed to parse ownerObj/LONG");
-                            //Int32 pathType = tok.GetUInt32H();
-                            if (i == 0) tok.ApplyInt32(this, x => x.SatellitePanel_ownerObj0);
-                            else if (i == 1) tok.ApplyInt32(this, x => x.SatellitePanel_ownerObj1);
-                            else tok.ApplyInt32(this, x => x.SatellitePanel_ownerObj2);
-                        }
-
-                        if (reader.Version >= 1198)
-                        {
-                            tok = reader.ReadToken();
-                            if (tok == null || !tok.Validate("turnOff", BinaryFieldType.DATA_BOOL))
-                                return ParseResult.Fail("Failed to parse turnOff/BOOL");
-                            //Int32 pathType = tok.GetUInt32H();
-                            tok.ApplyBoolean(this, x => x.SatellitePanel_turnOff);
-                        }
-                    }
+                    if (!BZNParser.Battlezone.SatellitePanel.Create(this, reader, out var panel))
+                        return ParseResult.Fail("Failed to parse SatellitePanel");
+                    SatellitePanel = panel;
                 }
             }
 
@@ -1379,15 +1340,7 @@ namespace BZNParser.Battlezone
             // BZ2 SatellitePanel (version >= 1125): hasEntered, ownerObj[3], [turnOff if >= 1198]
             if (writer.Format == BZNFormat.Battlezone2 && writer.Version >= 1125)
             {
-                if (SatellitePanel_DataExists)
-                {
-                    writer.WriteBoolean("hasEntered", this, x => x.SatellitePanel_hasEntered);
-                    writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj0);
-                    writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj1);
-                    writer.WriteInt32("ownerObj", this, x => x.SatellitePanel_ownerObj2);
-                    if (writer.Version >= 1198)
-                        writer.WriteBoolean("turnOff", this, x => x.SatellitePanel_turnOff);
-                }
+                SatellitePanel?.Write(this, writer, binary, save);
             }
 
             // BZ1 AiTasks (version 1001/1011/1012): count

@@ -22,8 +22,8 @@ namespace BZNParser.Battlezone
 {
     public enum SaveType
     {
-        BZN = 0, // ST_MISSION in BZ2, MissionSave False in BZ1 (I might have MissionSave bool backwards in BZ1, not sure)
-        SAVE = 1, // ST_SAVE in BZ2, MissionSave True in BZ1 (I might have MissionSave bool backwards in BZ1, not sure)
+        BZN = 0, // ST_MISSION in BZ2, MissionSave True in BZ1
+        SAVE = 1, // ST_SAVE in BZ2, MissionSave False in BZ1
         JOIN = 2, // ST_JOIN in BZ2
         LOCKSTEP = 3, // ST_LOCKSTEP in BZ2
         VISUAL = 4, // ST_SWITCHSHOW in BZ2
